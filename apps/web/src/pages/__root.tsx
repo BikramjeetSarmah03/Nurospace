@@ -1,9 +1,7 @@
-import Header from "@/components/header";
 import Loader from "@/components/loader";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import {
-  HeadContent,
   Outlet,
   createRootRouteWithContext,
   useRouterState,
@@ -11,7 +9,8 @@ import {
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import "../index.css";
 
-export interface RouterAppContext {}
+// biome-ignore lint/complexity/noBannedTypes: <right now its empty>
+export type RouterAppContext = {};
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
   component: RootComponent,
@@ -41,12 +40,9 @@ function RootComponent() {
 
   return (
     <>
-      <HeadContent />
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-        <div className="grid grid-rows-[auto_1fr] h-svh">
-          <Header />
-          {isFetching ? <Loader /> : <Outlet />}
-        </div>
+        {isFetching ? <Loader /> : <Outlet />}
+
         <Toaster richColors />
       </ThemeProvider>
       <TanStackRouterDevtools position="bottom-left" />

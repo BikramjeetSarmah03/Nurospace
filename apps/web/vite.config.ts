@@ -8,8 +8,7 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     tanstackRouter({
-      routesDirectory: "./src/routes",
-      routeFileIgnorePrefix: "_",
+      routesDirectory: "./src/pages",
       autoCodeSplitting: true,
     }),
     react(),
