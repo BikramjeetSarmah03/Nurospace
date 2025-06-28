@@ -1,16 +1,19 @@
-import Loader from "@/components/loader";
-import { ThemeProvider } from "@/components/theme-provider";
-import { Toaster } from "@/components/ui/sonner";
 import {
   Outlet,
   createRootRouteWithContext,
   useRouterState,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import type { QueryClient } from "@tanstack/react-query";
+
+import Loader from "@/components/loader";
+
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
+
 import "../index.css";
 
-// biome-ignore lint/complexity/noBannedTypes: <right now its empty>
-export type RouterAppContext = {};
+export type RouterAppContext = { queryClient: QueryClient };
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
   component: RootComponent,

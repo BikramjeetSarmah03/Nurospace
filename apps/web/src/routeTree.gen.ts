@@ -9,68 +9,194 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './pages/__root'
+import { Route as DashboardRouteImport } from './pages/dashboard'
+import { Route as AuthRouteImport } from './pages/auth'
+import { Route as WwwRouteImport } from './pages/_www'
 import { Route as DashboardIndexRouteImport } from './pages/dashboard/index'
-import { Route as wwwIndexRouteImport } from './pages/(www)/index'
+import { Route as WwwIndexRouteImport } from './pages/_www/index'
+import { Route as AuthRegisterRouteImport } from './pages/auth/register'
+import { Route as AuthLoginRouteImport } from './pages/auth/login'
 
-const DashboardIndexRoute = DashboardIndexRouteImport.update({
-  id: '/dashboard/',
-  path: '/dashboard/',
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const wwwIndexRoute = wwwIndexRouteImport.update({
-  id: '/(www)/',
-  path: '/',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
+} as any)
+const WwwRoute = WwwRouteImport.update({
+  id: '/_www',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const WwwIndexRoute = WwwIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => WwwRoute,
+} as any)
+const AuthRegisterRoute = AuthRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AuthRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof wwwIndexRoute
-  '/dashboard': typeof DashboardIndexRoute
+  '/auth': typeof AuthRouteWithChildren
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/register': typeof AuthRegisterRoute
+  '/': typeof WwwIndexRoute
+  '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof wwwIndexRoute
+  '/auth': typeof AuthRouteWithChildren
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/register': typeof AuthRegisterRoute
+  '/': typeof WwwIndexRoute
   '/dashboard': typeof DashboardIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/(www)/': typeof wwwIndexRoute
+  '/_www': typeof WwwRouteWithChildren
+  '/auth': typeof AuthRouteWithChildren
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/register': typeof AuthRegisterRoute
+  '/_www/': typeof WwwIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard'
+  fullPaths:
+    | '/auth'
+    | '/dashboard'
+    | '/auth/login'
+    | '/auth/register'
+    | '/'
+    | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard'
-  id: '__root__' | '/(www)/' | '/dashboard/'
+  to: '/auth' | '/auth/login' | '/auth/register' | '/' | '/dashboard'
+  id:
+    | '__root__'
+    | '/_www'
+    | '/auth'
+    | '/dashboard'
+    | '/auth/login'
+    | '/auth/register'
+    | '/_www/'
+    | '/dashboard/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  wwwIndexRoute: typeof wwwIndexRoute
-  DashboardIndexRoute: typeof DashboardIndexRoute
+  WwwRoute: typeof WwwRouteWithChildren
+  AuthRoute: typeof AuthRouteWithChildren
+  DashboardRoute: typeof DashboardRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/dashboard/': {
-      id: '/dashboard/'
+    '/dashboard': {
+      id: '/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardIndexRouteImport
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(www)/': {
-      id: '/(www)/'
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_www': {
+      id: '/_www'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof WwwRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_www/': {
+      id: '/_www/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof wwwIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof WwwIndexRouteImport
+      parentRoute: typeof WwwRoute
+    }
+    '/auth/register': {
+      id: '/auth/register'
+      path: '/register'
+      fullPath: '/auth/register'
+      preLoaderRoute: typeof AuthRegisterRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/auth/login': {
+      id: '/auth/login'
+      path: '/login'
+      fullPath: '/auth/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof AuthRoute
     }
   }
 }
 
-const rootRouteChildren: RootRouteChildren = {
-  wwwIndexRoute: wwwIndexRoute,
+interface WwwRouteChildren {
+  WwwIndexRoute: typeof WwwIndexRoute
+}
+
+const WwwRouteChildren: WwwRouteChildren = {
+  WwwIndexRoute: WwwIndexRoute,
+}
+
+const WwwRouteWithChildren = WwwRoute._addFileChildren(WwwRouteChildren)
+
+interface AuthRouteChildren {
+  AuthLoginRoute: typeof AuthLoginRoute
+  AuthRegisterRoute: typeof AuthRegisterRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthLoginRoute: AuthLoginRoute,
+  AuthRegisterRoute: AuthRegisterRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
+interface DashboardRouteChildren {
+  DashboardIndexRoute: typeof DashboardIndexRoute
+}
+
+const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardIndexRoute: DashboardIndexRoute,
+}
+
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
+)
+
+const rootRouteChildren: RootRouteChildren = {
+  WwwRoute: WwwRouteWithChildren,
+  AuthRoute: AuthRouteWithChildren,
+  DashboardRoute: DashboardRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

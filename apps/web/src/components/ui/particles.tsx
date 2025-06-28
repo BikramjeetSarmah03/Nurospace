@@ -1,4 +1,4 @@
-/** biome-ignore-all lint/correctness/useExhaustiveDependencies: <explanation> */
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: <no need to add deps array> */
 "use client";
 
 import { cn } from "@/lib/utils";

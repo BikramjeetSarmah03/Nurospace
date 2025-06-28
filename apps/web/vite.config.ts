@@ -10,6 +10,7 @@ export default defineConfig({
     tanstackRouter({
       routesDirectory: "./src/pages",
       autoCodeSplitting: true,
+      routeFileIgnorePattern: "_components",
     }),
     react(),
   ],
