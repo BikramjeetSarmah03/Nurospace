@@ -11,7 +11,7 @@ import Loader from "@/components/loader";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 
-import "../index.css";
+import "../globals.css";
 
 export type RouterAppContext = { queryClient: QueryClient };
 
