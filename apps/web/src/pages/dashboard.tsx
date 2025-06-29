@@ -1,5 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
+import Navbar from "@/components/common/navbar";
+
 import { authClient } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/dashboard")({
@@ -14,5 +16,10 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function RouteComponent() {
-  return <Outlet />;
+  return (
+    <div className="h-full">
+      <Navbar />
+      <Outlet />
+    </div>
+  );
 }

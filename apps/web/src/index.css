@@ -11,11 +11,16 @@
 
 html,
 body {
+  @apply h-full;
   @apply bg-white dark:bg-gray-950;
 
   @media (prefers-color-scheme: dark) {
     color-scheme: dark;
   }
+}
+
+#app{
+  @apply h-full;
 }
 
 :root {
