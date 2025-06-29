@@ -30,8 +30,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 import { apiClient } from "@/lib/api-client";
+import { queryClient } from "@/lib/query-client";
 
 export default function AddProjectCard() {
   const navigate = useNavigate();
@@ -59,6 +61,9 @@ export default function AddProjectCard() {
         params: {
           projectId: data.data.id.toString(),
         },
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["PROJECTS"],
       });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "An error occurred");
@@ -92,17 +97,36 @@ export default function AddProjectCard() {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-            <div className="*:not-first:mt-2">
+            <div className="space-y-4 *:not-first:mt-2">
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Project Name</FormLabel>
+                    <FormLabel>Project Name *</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
                         type="text"
+                        placeholder="Project Name"
+                        className="w-full"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        rows={5}
                         placeholder="Project Name"
                         className="w-full"
                       />

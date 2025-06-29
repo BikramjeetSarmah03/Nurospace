@@ -1,5 +1,5 @@
 import { authClient } from "@/lib/auth-client";
-import { Button, type ButtonProps } from "../ui/button";
+import { Button, type ButtonProps } from "@/components/ui/button";
 import { useNavigate } from "@tanstack/react-router";
 
 export default function LogoutButton({ children, ...props }: ButtonProps) {
