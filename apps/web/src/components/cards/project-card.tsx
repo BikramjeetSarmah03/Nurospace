@@ -1,10 +1,24 @@
-import { Skeleton } from "../ui/skeleton";
+import { Link } from "@tanstack/react-router";
 
-export default function ProjectCard() {
+import { Skeleton } from "@/components/ui/skeleton";
+
+interface ProjectCardProps {
+  project: {
+    id: number;
+  };
+}
+
+export default function ProjectCard({ project }: ProjectCardProps) {
   return (
-    <div className="bg-white dark:bg-gray-900 hover:shadow-md p-4 border rounded-md h-40 transition-all duration-300">
+    <Link
+      to="/$projectId"
+      params={{
+        projectId: project.id.toString(),
+      }}
+      className="bg-white dark:bg-gray-900 hover:shadow-md p-4 border rounded-md h-40 transition-all duration-300"
+    >
       ProjectCard
-    </div>
+    </Link>
   );
 }
 

@@ -4,7 +4,7 @@ import Navbar from "@/components/common/navbar";
 
 import { authClient } from "@/lib/auth-client";
 
-export const Route = createFileRoute("/dashboard")({
+export const Route = createFileRoute("/_protected")({
   component: RouteComponent,
   loader: async () => {
     const user = await authClient.getSession();
