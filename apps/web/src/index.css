@@ -19,7 +19,7 @@ body {
   }
 }
 
-#app{
+#app {
   @apply h-full;
 }
 

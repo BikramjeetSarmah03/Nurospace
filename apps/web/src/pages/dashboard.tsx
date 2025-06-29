@@ -17,7 +17,7 @@ export const Route = createFileRoute("/dashboard")({
 
 function RouteComponent() {
   return (
-    <div className="h-full">
+    <div className="bg-gray-50 dark:bg-gray-950 h-full">
       <Navbar />
       <Outlet />
     </div>
