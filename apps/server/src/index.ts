@@ -5,22 +5,36 @@ import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { HTTPException } from "hono/http-exception";
 
-import type { ErrorResponse } from "@productify/types";
+import type { ErrorResponse } from "@productify/shared/types";
 
 import { auth } from "./lib/auth";
 
 import { appRouter } from "./routers";
+import type { Context } from "./config/context";
 
-const app = new Hono();
+const app = new Hono<Context>();
 
 app.use(logger());
 app.use(
-  "/*",
+  "*",
   cors({
     origin: process.env.CORS_ORIGIN || "",
     allowMethods: ["GET", "POST", "OPTIONS"],
     credentials: true,
   }),
+  async (c, next) => {
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+
+    if (!session) {
+      c.set("user", null);
+      c.set("session", null);
+      return next();
+    }
+
+    c.set("user", session.user);
+    c.set("session", session.session);
+    return next();
+  },
 );
 
 app.route("/", appRouter);

@@ -1,4 +1,4 @@
-# @productify/types
+# @productify/shared
 
 To install dependencies:
 

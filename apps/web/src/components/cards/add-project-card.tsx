@@ -1,5 +1,14 @@
-import { useState } from "react";
 import { FolderPlusIcon, PlusIcon } from "lucide-react";
+import { toast } from "sonner";
+import { useNavigate } from "@tanstack/react-router";
+
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+import {
+  ProjectSchema,
+  type ProjectSchemaType,
+} from "@productify/shared/schemas/project";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,11 +21,49 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+
+import { apiClient } from "@/lib/api-client";
 
 export default function AddProjectCard() {
-  const [projectName, setProjectName] = useState("");
+  const navigate = useNavigate();
+  const form = useForm<ProjectSchemaType>({
+    resolver: zodResolver(ProjectSchema),
+    defaultValues: {
+      name: "",
+    },
+  });
+
+  const onSubmit = async (values: ProjectSchemaType) => {
+    try {
+      const res = await apiClient.projects.$post({
+        json: values,
+      });
+
+      const data = await res.json();
+
+      if (!data.success)
+        throw new Error(data.message || "Failed to create project");
+
+      toast.success("Project created successfully");
+      navigate({
+        to: "/$projectId",
+        params: {
+          projectId: data.data.id.toString(),
+        },
+      });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "An error occurred");
+    }
+  };
 
   return (
     <Dialog>
@@ -43,27 +90,40 @@ export default function AddProjectCard() {
           </DialogHeader>
         </div>
 
-        <form className="space-y-5">
-          <div className="*:not-first:mt-2">
-            <Label>Project name</Label>
-            <Input
-              type="text"
-              placeholder="Project Name"
-              value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-            />
-          </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="outline" className="flex-1">
-                Cancel
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+            <div className="*:not-first:mt-2">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Project Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="text"
+                        placeholder="Project Name"
+                        className="w-full"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="outline" className="flex-1">
+                  Cancel
+                </Button>
+              </DialogClose>
+              <Button type="submit" className="flex-1">
+                Create
               </Button>
-            </DialogClose>
-            <Button type="button" className="flex-1">
-              Create
-            </Button>
-          </DialogFooter>
-        </form>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
