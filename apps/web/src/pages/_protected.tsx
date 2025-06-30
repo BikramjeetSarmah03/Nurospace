@@ -19,7 +19,10 @@ function RouteComponent() {
   return (
     <div className="bg-gray-50 dark:bg-gray-950 h-full">
       <Navbar />
-      <Outlet />
+
+      <main className="h-[calc(100%-3.55rem)]">
+        <Outlet />
+      </main>
     </div>
   );
 }

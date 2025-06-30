@@ -60,6 +60,39 @@ export const projectRoutes = new Hono()
       data: project,
     });
   })
+  .get(
+    "/:projectId",
+    isAuthenticated,
+    zValidator(
+      "param",
+      z.object({
+        projectId: z.string(),
+      }),
+    ),
+    async (c) => {
+      const { projectId } = c.req.valid("param");
+
+      const user = c.get("user");
+      if (!user) throw new HTTPException(401, { message: "Unauthorized" });
+
+      const project = await db
+        .select()
+        .from(projectsTable)
+        .where(
+          and(
+            eq(projectsTable.id, projectId),
+            eq(projectsTable.userId, user.id),
+          ),
+        )
+        .limit(1);
+
+      return c.json<SuccessResponse<IProject>>({
+        success: true,
+        message: "Project Deleted Successfully",
+        data: project[0],
+      });
+    },
+  )
   .delete(
     "/:projectId",
     isAuthenticated,
