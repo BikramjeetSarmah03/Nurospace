@@ -1,8 +1,16 @@
 import { Link } from "@tanstack/react-router";
-import { TrashIcon } from "lucide-react";
+import { EllipsisVerticalIcon, TrashIcon } from "lucide-react";
+
+import dayjs from "@/config/dayjs";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import type { IProject } from "@productify/shared/types";
 
@@ -33,21 +41,38 @@ export default function ProjectCard({
             </p>
           </div>
         </div>
+
+        <div>
+          <h3 className="text-muted-foreground">
+            {project.updatedAt === project.createdAt
+              ? `Created ${dayjs.utc(project.createdAt).local().fromNow()}`
+              : `Updated ${dayjs.utc(project.updatedAt).local().fromNow()}`}
+          </h3>
+        </div>
       </Link>
 
       {/* Delete button outside of <Link> to avoid navigation */}
-      <div className="top-2 right-2 absolute">
-        <Button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleDeleteProject?.();
-          }}
-          size="icon"
-          variant="destructive"
-        >
-          <TrashIcon className="w-4 h-4" />
-        </Button>
+      <div className="top-4 right-4 absolute">
+        <DropdownMenu>
+          <DropdownMenuTrigger className="cursor-pointer">
+            <EllipsisVerticalIcon />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="min-w-fit">
+            <DropdownMenuItem>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteProject?.();
+                }}
+                className="flex items-center gap-2 w-fit cursor-pointer"
+              >
+                <TrashIcon className="w-4 h-4 text-black" />
+                <span>Delete</span>
+              </button>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );
