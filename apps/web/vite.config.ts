@@ -11,6 +11,7 @@ export default defineConfig({
       routesDirectory: "./src/pages",
       autoCodeSplitting: true,
       routeFileIgnorePattern: "_components",
+      routeToken: "layout",
     }),
     react(),
   ],

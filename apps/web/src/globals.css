@@ -20,9 +20,7 @@ body {
   }
 }
 
-
 #app {
-  
   @apply h-full;
 }
 

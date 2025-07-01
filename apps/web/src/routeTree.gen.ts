@@ -15,6 +15,7 @@ import { Route as ProtectedRouteImport } from './pages/_protected'
 import { Route as WwwIndexRouteImport } from './pages/_www/index'
 import { Route as AuthRegisterRouteImport } from './pages/auth/register'
 import { Route as AuthLoginRouteImport } from './pages/auth/login'
+import { Route as ProtectedProjectIdLayoutRouteImport } from './pages/_protected/$projectId/layout'
 import { Route as ProtectedDashboardIndexRouteImport } from './pages/_protected/dashboard/index'
 import { Route as ProtectedProjectIdIndexRouteImport } from './pages/_protected/$projectId/index'
 
@@ -46,23 +47,30 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AuthRoute,
 } as any)
+const ProtectedProjectIdLayoutRoute =
+  ProtectedProjectIdLayoutRouteImport.update({
+    id: '/$projectId',
+    path: '/$projectId',
+    getParentRoute: () => ProtectedRoute,
+  } as any)
 const ProtectedDashboardIndexRoute = ProtectedDashboardIndexRouteImport.update({
   id: '/dashboard/',
   path: '/dashboard/',
   getParentRoute: () => ProtectedRoute,
 } as any)
 const ProtectedProjectIdIndexRoute = ProtectedProjectIdIndexRouteImport.update({
-  id: '/$projectId/',
-  path: '/$projectId/',
-  getParentRoute: () => ProtectedRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProtectedProjectIdLayoutRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/auth': typeof AuthRouteWithChildren
+  '/$projectId': typeof ProtectedProjectIdLayoutRouteWithChildren
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/': typeof WwwIndexRoute
-  '/$projectId': typeof ProtectedProjectIdIndexRoute
+  '/$projectId/': typeof ProtectedProjectIdIndexRoute
   '/dashboard': typeof ProtectedDashboardIndexRoute
 }
 export interface FileRoutesByTo {
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/_protected': typeof ProtectedRouteWithChildren
   '/_www': typeof WwwRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
+  '/_protected/$projectId': typeof ProtectedProjectIdLayoutRouteWithChildren
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/_www/': typeof WwwIndexRoute
@@ -88,10 +97,11 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/auth'
+    | '/$projectId'
     | '/auth/login'
     | '/auth/register'
     | '/'
-    | '/$projectId'
+    | '/$projectId/'
     | '/dashboard'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/_protected'
     | '/_www'
     | '/auth'
+    | '/_protected/$projectId'
     | '/auth/login'
     | '/auth/register'
     | '/_www/'
@@ -163,6 +174,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_protected/$projectId': {
+      id: '/_protected/$projectId'
+      path: '/$projectId'
+      fullPath: '/$projectId'
+      preLoaderRoute: typeof ProtectedProjectIdLayoutRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
     '/_protected/dashboard/': {
       id: '/_protected/dashboard/'
       path: '/dashboard'
@@ -172,21 +190,35 @@ declare module '@tanstack/react-router' {
     }
     '/_protected/$projectId/': {
       id: '/_protected/$projectId/'
-      path: '/$projectId'
-      fullPath: '/$projectId'
+      path: '/'
+      fullPath: '/$projectId/'
       preLoaderRoute: typeof ProtectedProjectIdIndexRouteImport
-      parentRoute: typeof ProtectedRoute
+      parentRoute: typeof ProtectedProjectIdLayoutRoute
     }
   }
 }
 
-interface ProtectedRouteChildren {
+interface ProtectedProjectIdLayoutRouteChildren {
   ProtectedProjectIdIndexRoute: typeof ProtectedProjectIdIndexRoute
+}
+
+const ProtectedProjectIdLayoutRouteChildren: ProtectedProjectIdLayoutRouteChildren =
+  {
+    ProtectedProjectIdIndexRoute: ProtectedProjectIdIndexRoute,
+  }
+
+const ProtectedProjectIdLayoutRouteWithChildren =
+  ProtectedProjectIdLayoutRoute._addFileChildren(
+    ProtectedProjectIdLayoutRouteChildren,
+  )
+
+interface ProtectedRouteChildren {
+  ProtectedProjectIdLayoutRoute: typeof ProtectedProjectIdLayoutRouteWithChildren
   ProtectedDashboardIndexRoute: typeof ProtectedDashboardIndexRoute
 }
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
-  ProtectedProjectIdIndexRoute: ProtectedProjectIdIndexRoute,
+  ProtectedProjectIdLayoutRoute: ProtectedProjectIdLayoutRouteWithChildren,
   ProtectedDashboardIndexRoute: ProtectedDashboardIndexRoute,
 }
 

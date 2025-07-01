@@ -5,8 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
 import { cn } from "@/lib/utils";
-
-import { useAutoResizeTextarea } from "@/hooks/use-auto-resize-textarea";
+import { useAutoResizeTextarea } from "../hooks/use-auto-resize-textarea";
 
 interface ChatBoxProps {
   onSubmit: (value: string) => void;
