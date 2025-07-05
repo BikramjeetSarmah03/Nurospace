@@ -1,8 +1,9 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
-import Navbar from "@/components/common/navbar";
-
 import { authClient } from "@/lib/auth-client";
+
+import { AppSidebar } from "@/components/sidebar/app-sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export const Route = createFileRoute("/_protected")({
   component: RouteComponent,
@@ -17,12 +18,11 @@ export const Route = createFileRoute("/_protected")({
 
 function RouteComponent() {
   return (
-    <div className="bg-gray-50 dark:bg-gray-950 h-full">
-      <Navbar />
-
-      <main className="h-[calc(100%-3.55rem)]">
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
         <Outlet />
-      </main>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

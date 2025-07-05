@@ -9,55 +9,55 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './pages/__root'
-import { Route as AuthRouteImport } from './pages/auth'
-import { Route as WwwRouteImport } from './pages/_www'
-import { Route as ProtectedRouteImport } from './pages/_protected'
+import { Route as AuthLayoutRouteImport } from './pages/auth/layout'
+import { Route as WwwLayoutRouteImport } from './pages/_www/layout'
+import { Route as ProtectedLayoutRouteImport } from './pages/_protected/layout'
 import { Route as WwwIndexRouteImport } from './pages/_www/index'
 import { Route as AuthRegisterRouteImport } from './pages/auth/register'
 import { Route as AuthLoginRouteImport } from './pages/auth/login'
+import { Route as ProtectedCreateRouteImport } from './pages/_protected/create'
 import { Route as ProtectedProjectIdLayoutRouteImport } from './pages/_protected/$projectId/layout'
-import { Route as ProtectedDashboardIndexRouteImport } from './pages/_protected/dashboard/index'
 import { Route as ProtectedProjectIdIndexRouteImport } from './pages/_protected/$projectId/index'
 
-const AuthRoute = AuthRouteImport.update({
+const AuthLayoutRoute = AuthLayoutRouteImport.update({
   id: '/auth',
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WwwRoute = WwwRouteImport.update({
+const WwwLayoutRoute = WwwLayoutRouteImport.update({
   id: '/_www',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProtectedRoute = ProtectedRouteImport.update({
+const ProtectedLayoutRoute = ProtectedLayoutRouteImport.update({
   id: '/_protected',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WwwIndexRoute = WwwIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => WwwRoute,
+  getParentRoute: () => WwwLayoutRoute,
 } as any)
 const AuthRegisterRoute = AuthRegisterRouteImport.update({
   id: '/register',
   path: '/register',
-  getParentRoute: () => AuthRoute,
+  getParentRoute: () => AuthLayoutRoute,
 } as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => AuthRoute,
+  getParentRoute: () => AuthLayoutRoute,
+} as any)
+const ProtectedCreateRoute = ProtectedCreateRouteImport.update({
+  id: '/create',
+  path: '/create',
+  getParentRoute: () => ProtectedLayoutRoute,
 } as any)
 const ProtectedProjectIdLayoutRoute =
   ProtectedProjectIdLayoutRouteImport.update({
     id: '/$projectId',
     path: '/$projectId',
-    getParentRoute: () => ProtectedRoute,
+    getParentRoute: () => ProtectedLayoutRoute,
   } as any)
-const ProtectedDashboardIndexRoute = ProtectedDashboardIndexRouteImport.update({
-  id: '/dashboard/',
-  path: '/dashboard/',
-  getParentRoute: () => ProtectedRoute,
-} as any)
 const ProtectedProjectIdIndexRoute = ProtectedProjectIdIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -65,69 +65,69 @@ const ProtectedProjectIdIndexRoute = ProtectedProjectIdIndexRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/auth': typeof AuthRouteWithChildren
+  '/auth': typeof AuthLayoutRouteWithChildren
   '/$projectId': typeof ProtectedProjectIdLayoutRouteWithChildren
+  '/create': typeof ProtectedCreateRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/': typeof WwwIndexRoute
   '/$projectId/': typeof ProtectedProjectIdIndexRoute
-  '/dashboard': typeof ProtectedDashboardIndexRoute
 }
 export interface FileRoutesByTo {
-  '/auth': typeof AuthRouteWithChildren
+  '/auth': typeof AuthLayoutRouteWithChildren
+  '/create': typeof ProtectedCreateRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/': typeof WwwIndexRoute
   '/$projectId': typeof ProtectedProjectIdIndexRoute
-  '/dashboard': typeof ProtectedDashboardIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/_protected': typeof ProtectedRouteWithChildren
-  '/_www': typeof WwwRouteWithChildren
-  '/auth': typeof AuthRouteWithChildren
+  '/_protected': typeof ProtectedLayoutRouteWithChildren
+  '/_www': typeof WwwLayoutRouteWithChildren
+  '/auth': typeof AuthLayoutRouteWithChildren
   '/_protected/$projectId': typeof ProtectedProjectIdLayoutRouteWithChildren
+  '/_protected/create': typeof ProtectedCreateRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/_www/': typeof WwwIndexRoute
   '/_protected/$projectId/': typeof ProtectedProjectIdIndexRoute
-  '/_protected/dashboard/': typeof ProtectedDashboardIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/auth'
     | '/$projectId'
+    | '/create'
     | '/auth/login'
     | '/auth/register'
     | '/'
     | '/$projectId/'
-    | '/dashboard'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
+    | '/create'
     | '/auth/login'
     | '/auth/register'
     | '/'
     | '/$projectId'
-    | '/dashboard'
   id:
     | '__root__'
     | '/_protected'
     | '/_www'
     | '/auth'
     | '/_protected/$projectId'
+    | '/_protected/create'
     | '/auth/login'
     | '/auth/register'
     | '/_www/'
     | '/_protected/$projectId/'
-    | '/_protected/dashboard/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  ProtectedRoute: typeof ProtectedRouteWithChildren
-  WwwRoute: typeof WwwRouteWithChildren
-  AuthRoute: typeof AuthRouteWithChildren
+  ProtectedLayoutRoute: typeof ProtectedLayoutRouteWithChildren
+  WwwLayoutRoute: typeof WwwLayoutRouteWithChildren
+  AuthLayoutRoute: typeof AuthLayoutRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -136,21 +136,21 @@ declare module '@tanstack/react-router' {
       id: '/auth'
       path: '/auth'
       fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
+      preLoaderRoute: typeof AuthLayoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_www': {
       id: '/_www'
       path: ''
       fullPath: ''
-      preLoaderRoute: typeof WwwRouteImport
+      preLoaderRoute: typeof WwwLayoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_protected': {
       id: '/_protected'
       path: ''
       fullPath: ''
-      preLoaderRoute: typeof ProtectedRouteImport
+      preLoaderRoute: typeof ProtectedLayoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_www/': {
@@ -158,35 +158,35 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof WwwIndexRouteImport
-      parentRoute: typeof WwwRoute
+      parentRoute: typeof WwwLayoutRoute
     }
     '/auth/register': {
       id: '/auth/register'
       path: '/register'
       fullPath: '/auth/register'
       preLoaderRoute: typeof AuthRegisterRouteImport
-      parentRoute: typeof AuthRoute
+      parentRoute: typeof AuthLayoutRoute
     }
     '/auth/login': {
       id: '/auth/login'
       path: '/login'
       fullPath: '/auth/login'
       preLoaderRoute: typeof AuthLoginRouteImport
-      parentRoute: typeof AuthRoute
+      parentRoute: typeof AuthLayoutRoute
+    }
+    '/_protected/create': {
+      id: '/_protected/create'
+      path: '/create'
+      fullPath: '/create'
+      preLoaderRoute: typeof ProtectedCreateRouteImport
+      parentRoute: typeof ProtectedLayoutRoute
     }
     '/_protected/$projectId': {
       id: '/_protected/$projectId'
       path: '/$projectId'
       fullPath: '/$projectId'
       preLoaderRoute: typeof ProtectedProjectIdLayoutRouteImport
-      parentRoute: typeof ProtectedRoute
-    }
-    '/_protected/dashboard/': {
-      id: '/_protected/dashboard/'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof ProtectedDashboardIndexRouteImport
-      parentRoute: typeof ProtectedRoute
+      parentRoute: typeof ProtectedLayoutRoute
     }
     '/_protected/$projectId/': {
       id: '/_protected/$projectId/'
@@ -212,46 +212,50 @@ const ProtectedProjectIdLayoutRouteWithChildren =
     ProtectedProjectIdLayoutRouteChildren,
   )
 
-interface ProtectedRouteChildren {
+interface ProtectedLayoutRouteChildren {
   ProtectedProjectIdLayoutRoute: typeof ProtectedProjectIdLayoutRouteWithChildren
-  ProtectedDashboardIndexRoute: typeof ProtectedDashboardIndexRoute
+  ProtectedCreateRoute: typeof ProtectedCreateRoute
 }
 
-const ProtectedRouteChildren: ProtectedRouteChildren = {
+const ProtectedLayoutRouteChildren: ProtectedLayoutRouteChildren = {
   ProtectedProjectIdLayoutRoute: ProtectedProjectIdLayoutRouteWithChildren,
-  ProtectedDashboardIndexRoute: ProtectedDashboardIndexRoute,
+  ProtectedCreateRoute: ProtectedCreateRoute,
 }
 
-const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
-  ProtectedRouteChildren,
+const ProtectedLayoutRouteWithChildren = ProtectedLayoutRoute._addFileChildren(
+  ProtectedLayoutRouteChildren,
 )
 
-interface WwwRouteChildren {
+interface WwwLayoutRouteChildren {
   WwwIndexRoute: typeof WwwIndexRoute
 }
 
-const WwwRouteChildren: WwwRouteChildren = {
+const WwwLayoutRouteChildren: WwwLayoutRouteChildren = {
   WwwIndexRoute: WwwIndexRoute,
 }
 
-const WwwRouteWithChildren = WwwRoute._addFileChildren(WwwRouteChildren)
+const WwwLayoutRouteWithChildren = WwwLayoutRoute._addFileChildren(
+  WwwLayoutRouteChildren,
+)
 
-interface AuthRouteChildren {
+interface AuthLayoutRouteChildren {
   AuthLoginRoute: typeof AuthLoginRoute
   AuthRegisterRoute: typeof AuthRegisterRoute
 }
 
-const AuthRouteChildren: AuthRouteChildren = {
+const AuthLayoutRouteChildren: AuthLayoutRouteChildren = {
   AuthLoginRoute: AuthLoginRoute,
   AuthRegisterRoute: AuthRegisterRoute,
 }
 
-const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+const AuthLayoutRouteWithChildren = AuthLayoutRoute._addFileChildren(
+  AuthLayoutRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
-  ProtectedRoute: ProtectedRouteWithChildren,
-  WwwRoute: WwwRouteWithChildren,
-  AuthRoute: AuthRouteWithChildren,
+  ProtectedLayoutRoute: ProtectedLayoutRouteWithChildren,
+  WwwLayoutRoute: WwwLayoutRouteWithChildren,
+  AuthLayoutRoute: AuthLayoutRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

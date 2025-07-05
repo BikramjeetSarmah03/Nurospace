@@ -20,7 +20,7 @@ export const chatRoutes = new Hono().post(
       const words = text.split(" ");
 
       for (const word of words) {
-        await stream.write(word + " ");
+        await stream.write(`${word} `);
         await stream.sleep(200); // 200ms between each word
       }
     });
