@@ -12,6 +12,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 
 import "../globals.css";
+import ModalProvider from "@/components/modals";
 
 export type RouterAppContext = { queryClient: QueryClient };
 
@@ -47,6 +48,8 @@ function RootComponent() {
         {isFetching ? <Loader /> : <Outlet />}
 
         <Toaster richColors />
+
+        <ModalProvider />
       </ThemeProvider>
       <TanStackRouterDevtools position="bottom-left" />
     </>
