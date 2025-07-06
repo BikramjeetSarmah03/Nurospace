@@ -15,9 +15,8 @@ import { Route as ProtectedLayoutRouteImport } from './pages/_protected/layout'
 import { Route as WwwIndexRouteImport } from './pages/_www/index'
 import { Route as AuthRegisterRouteImport } from './pages/auth/register'
 import { Route as AuthLoginRouteImport } from './pages/auth/login'
-import { Route as ProtectedCreateRouteImport } from './pages/_protected/create'
-import { Route as ProtectedProjectIdLayoutRouteImport } from './pages/_protected/$projectId/layout'
-import { Route as ProtectedProjectIdIndexRouteImport } from './pages/_protected/$projectId/index'
+import { Route as ProtectedUserLayoutRouteImport } from './pages/_protected/$user/layout'
+import { Route as ProtectedUserIndexRouteImport } from './pages/_protected/$user/index'
 
 const AuthLayoutRoute = AuthLayoutRouteImport.update({
   id: '/auth',
@@ -47,81 +46,64 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AuthLayoutRoute,
 } as any)
-const ProtectedCreateRoute = ProtectedCreateRouteImport.update({
-  id: '/create',
-  path: '/create',
+const ProtectedUserLayoutRoute = ProtectedUserLayoutRouteImport.update({
+  id: '/$user',
+  path: '/$user',
   getParentRoute: () => ProtectedLayoutRoute,
 } as any)
-const ProtectedProjectIdLayoutRoute =
-  ProtectedProjectIdLayoutRouteImport.update({
-    id: '/$projectId',
-    path: '/$projectId',
-    getParentRoute: () => ProtectedLayoutRoute,
-  } as any)
-const ProtectedProjectIdIndexRoute = ProtectedProjectIdIndexRouteImport.update({
+const ProtectedUserIndexRoute = ProtectedUserIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => ProtectedProjectIdLayoutRoute,
+  getParentRoute: () => ProtectedUserLayoutRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/auth': typeof AuthLayoutRouteWithChildren
-  '/$projectId': typeof ProtectedProjectIdLayoutRouteWithChildren
-  '/create': typeof ProtectedCreateRoute
+  '/$user': typeof ProtectedUserLayoutRouteWithChildren
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/': typeof WwwIndexRoute
-  '/$projectId/': typeof ProtectedProjectIdIndexRoute
+  '/$user/': typeof ProtectedUserIndexRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthLayoutRouteWithChildren
-  '/create': typeof ProtectedCreateRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/': typeof WwwIndexRoute
-  '/$projectId': typeof ProtectedProjectIdIndexRoute
+  '/$user': typeof ProtectedUserIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_protected': typeof ProtectedLayoutRouteWithChildren
   '/_www': typeof WwwLayoutRouteWithChildren
   '/auth': typeof AuthLayoutRouteWithChildren
-  '/_protected/$projectId': typeof ProtectedProjectIdLayoutRouteWithChildren
-  '/_protected/create': typeof ProtectedCreateRoute
+  '/_protected/$user': typeof ProtectedUserLayoutRouteWithChildren
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/_www/': typeof WwwIndexRoute
-  '/_protected/$projectId/': typeof ProtectedProjectIdIndexRoute
+  '/_protected/$user/': typeof ProtectedUserIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/auth'
-    | '/$projectId'
-    | '/create'
+    | '/$user'
     | '/auth/login'
     | '/auth/register'
     | '/'
-    | '/$projectId/'
+    | '/$user/'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/auth'
-    | '/create'
-    | '/auth/login'
-    | '/auth/register'
-    | '/'
-    | '/$projectId'
+  to: '/auth' | '/auth/login' | '/auth/register' | '/' | '/$user'
   id:
     | '__root__'
     | '/_protected'
     | '/_www'
     | '/auth'
-    | '/_protected/$projectId'
-    | '/_protected/create'
+    | '/_protected/$user'
     | '/auth/login'
     | '/auth/register'
     | '/_www/'
-    | '/_protected/$projectId/'
+    | '/_protected/$user/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -174,52 +156,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof AuthLayoutRoute
     }
-    '/_protected/create': {
-      id: '/_protected/create'
-      path: '/create'
-      fullPath: '/create'
-      preLoaderRoute: typeof ProtectedCreateRouteImport
+    '/_protected/$user': {
+      id: '/_protected/$user'
+      path: '/$user'
+      fullPath: '/$user'
+      preLoaderRoute: typeof ProtectedUserLayoutRouteImport
       parentRoute: typeof ProtectedLayoutRoute
     }
-    '/_protected/$projectId': {
-      id: '/_protected/$projectId'
-      path: '/$projectId'
-      fullPath: '/$projectId'
-      preLoaderRoute: typeof ProtectedProjectIdLayoutRouteImport
-      parentRoute: typeof ProtectedLayoutRoute
-    }
-    '/_protected/$projectId/': {
-      id: '/_protected/$projectId/'
+    '/_protected/$user/': {
+      id: '/_protected/$user/'
       path: '/'
-      fullPath: '/$projectId/'
-      preLoaderRoute: typeof ProtectedProjectIdIndexRouteImport
-      parentRoute: typeof ProtectedProjectIdLayoutRoute
+      fullPath: '/$user/'
+      preLoaderRoute: typeof ProtectedUserIndexRouteImport
+      parentRoute: typeof ProtectedUserLayoutRoute
     }
   }
 }
 
-interface ProtectedProjectIdLayoutRouteChildren {
-  ProtectedProjectIdIndexRoute: typeof ProtectedProjectIdIndexRoute
+interface ProtectedUserLayoutRouteChildren {
+  ProtectedUserIndexRoute: typeof ProtectedUserIndexRoute
 }
 
-const ProtectedProjectIdLayoutRouteChildren: ProtectedProjectIdLayoutRouteChildren =
-  {
-    ProtectedProjectIdIndexRoute: ProtectedProjectIdIndexRoute,
-  }
+const ProtectedUserLayoutRouteChildren: ProtectedUserLayoutRouteChildren = {
+  ProtectedUserIndexRoute: ProtectedUserIndexRoute,
+}
 
-const ProtectedProjectIdLayoutRouteWithChildren =
-  ProtectedProjectIdLayoutRoute._addFileChildren(
-    ProtectedProjectIdLayoutRouteChildren,
-  )
+const ProtectedUserLayoutRouteWithChildren =
+  ProtectedUserLayoutRoute._addFileChildren(ProtectedUserLayoutRouteChildren)
 
 interface ProtectedLayoutRouteChildren {
-  ProtectedProjectIdLayoutRoute: typeof ProtectedProjectIdLayoutRouteWithChildren
-  ProtectedCreateRoute: typeof ProtectedCreateRoute
+  ProtectedUserLayoutRoute: typeof ProtectedUserLayoutRouteWithChildren
 }
 
 const ProtectedLayoutRouteChildren: ProtectedLayoutRouteChildren = {
-  ProtectedProjectIdLayoutRoute: ProtectedProjectIdLayoutRouteWithChildren,
-  ProtectedCreateRoute: ProtectedCreateRoute,
+  ProtectedUserLayoutRoute: ProtectedUserLayoutRouteWithChildren,
 }
 
 const ProtectedLayoutRouteWithChildren = ProtectedLayoutRoute._addFileChildren(

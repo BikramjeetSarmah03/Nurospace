@@ -8,7 +8,13 @@ export const Route = createFileRoute("/auth")({
     const user = await authClient.getSession();
 
     if (user.data) {
-      redirect({ to: "/", throw: true, replace: true });
+      redirect({
+        to: "/$user",
+        params: {
+          user: user.data.user.username || user.data.user.name,
+        },
+        throw: true,
+      });
     }
   },
 });

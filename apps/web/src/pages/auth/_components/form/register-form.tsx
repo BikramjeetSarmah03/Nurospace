@@ -23,9 +23,12 @@ import {
 import { authClient } from "@/lib/auth-client";
 
 const registerForm = z.object({
-  name: z.string({ message: "Please enter name" }),
+  name: z
+    .string({ message: "Please enter name" })
+    .min(3, { message: "Name must be more then 3 characters" }),
   email: z.string().email({ message: "Please enter a valid email" }),
   password: z.string(),
+  username: z.string().optional(),
 });
 
 type IRegisterForm = z.infer<typeof registerForm>;
@@ -38,15 +41,22 @@ export default function RegisterForm() {
       name: "",
       email: "",
       password: "",
+      username: "",
     },
   });
 
   const onSubmit = async (values: IRegisterForm) => {
+    const username = values.name
+      .toLowerCase()
+      .replace(/\s+/g, "_")
+      .replace(/[^a-z0-9_]/g, "");
+
     try {
       const res = await authClient.signUp.email({
         name: values.name,
         email: values.email,
         password: values.password,
+        username,
       });
 
       if (!res.data) throw Error(res.error.message);
@@ -86,7 +96,7 @@ export default function RegisterForm() {
               </p>
             </motion.div>
 
-            {/* Email Input */}
+            {/* Name Input */}
             <motion.div
               className="space-y-2"
               initial={{ opacity: 0, y: 20 }}
