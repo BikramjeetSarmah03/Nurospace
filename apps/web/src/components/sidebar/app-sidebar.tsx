@@ -10,7 +10,7 @@ import {
 
 import { NavMain } from "@/components/sidebar/nav-main";
 import { NavUser } from "@/components/sidebar/nav-user";
-import { ProjectSwitcher } from "@/components/sidebar/team-switcher";
+import { ProjectSwitcher } from "@/components/sidebar/workspace-switcher";
 import {
   Sidebar,
   SidebarContent,
