@@ -10,6 +10,9 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 import { useWorkspaceModal } from "@/hooks/use-workspace-modal";
 
+import { WORKSPACE_KEYS } from "@/config/querykeys";
+import { useWorkspaceStore } from "@/hooks/use-workspace";
+
 export const Route = createFileRoute("/_protected")({
   component: RouteComponent,
   loader: async () => {
@@ -23,9 +26,10 @@ export const Route = createFileRoute("/_protected")({
 
 function RouteComponent() {
   const workspaceModal = useWorkspaceModal();
+  const workspace = useWorkspaceStore();
 
   const { isLoading, data: projects } = useQuery({
-    queryKey: ["PROJECTS"],
+    queryKey: [WORKSPACE_KEYS.ALL],
     queryFn: async () => {
       return (await apiClient.projects.$get()).json();
     },
@@ -34,8 +38,11 @@ function RouteComponent() {
   useEffect(() => {
     if (!isLoading && projects && projects.data.length === 0) {
       workspaceModal.onOpen();
+      workspace.setWorkspaces([]);
+    } else {
+      workspace.setWorkspaces(projects?.data || []);
     }
-  }, [isLoading, projects, workspaceModal.onOpen]);
+  }, [isLoading, projects, workspaceModal.onOpen, workspace.setWorkspaces]);
 
   return (
     <SidebarProvider>

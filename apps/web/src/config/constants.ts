@@ -1,0 +1,3 @@
+export const LOCALSTORAGE_KEYS = {
+  WORKSPACE: "WORKSPACE",
+};

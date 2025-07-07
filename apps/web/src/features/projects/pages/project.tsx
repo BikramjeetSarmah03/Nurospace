@@ -58,13 +58,7 @@ export default function ChatPage() {
   };
 
   return (
-    <section className="flex flex-col bg-white w-full h-full">
-      {/* Header */}
-      <div className="flex justify-between items-center shadow-md p-4 w-full">
-        <h1>{"PROJECT NAME"}</h1>
-        <button type="button">Personalities</button>
-      </div>
-
+    <div>
       {/* Chat area */}
       <div
         className="flex flex-col flex-grow space-y-4 bg-gray-50/20 shadow-inner p-4 w-full overflow-y-auto"
@@ -106,6 +100,6 @@ export default function ChatPage() {
         onSubmit={handleSendChat}
         className="mx-auto mb-4 max-w-[calc(100%-2rem)]"
       />
-    </section>
+    </div>
   );
 }

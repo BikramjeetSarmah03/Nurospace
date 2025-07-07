@@ -1,6 +1,5 @@
-import * as React from "react";
-import { ChevronsUpDown, Loader2Icon, Plus, Trash2 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { ChevronsUpDown, GalleryVerticalEnd, Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 import {
   DropdownMenu,
@@ -16,36 +15,71 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
 
 import { apiClient } from "@/lib/api-client";
+import { queryClient } from "@/lib/query-client";
+import { cn } from "@/lib/utils";
+
 import { useWorkspaceModal } from "@/hooks/use-workspace-modal";
 
-type Project = {
-  id: string;
-  name: string;
-};
+import type { SuccessResponse } from "@productify/shared/types";
+
+import { useWorkspaceStore } from "@/hooks/use-workspace";
+
+import { WORKSPACE_KEYS } from "@/config/querykeys";
+import { LOCALSTORAGE_KEYS } from "@/config/constants";
 
 export function ProjectSwitcher() {
   const { isMobile } = useSidebar();
 
   const workspaceModal = useWorkspaceModal();
+  const workspace = useWorkspaceStore();
 
-  const { isLoading, data: projects } = useQuery({
-    queryKey: ["PROJECTS"],
-    queryFn: async () => {
-      return (await apiClient.projects.$get()).json();
-    },
-  });
+  const handleDeleteWorkspace = async (id: string) => {
+    try {
+      const project = (await (
+        await apiClient.projects[":projectId"].$delete({
+          param: {
+            projectId: id,
+          },
+        })
+      ).json()) as SuccessResponse;
 
-  const [activeProject, setActiveProject] = React.useState<Project | null>(
-    null,
-  );
+      if (project.success) {
+        if (id === workspace.activeWorkspaceId) {
+          const remainingProjects =
+            workspace.workspaces.filter((p) => p.id !== id) || [];
 
-  React.useEffect(() => {
-    if (!isLoading && projects && projects.data.length === 0) {
-      workspaceModal.onOpen();
+          if (remainingProjects.length > 0) {
+            const firstProject = remainingProjects[0];
+            localStorage.setItem(LOCALSTORAGE_KEYS.WORKSPACE, firstProject.id);
+            workspace.setActiveWorkspace(firstProject.id);
+          } else {
+            localStorage.removeItem(LOCALSTORAGE_KEYS.WORKSPACE);
+            workspace.setActiveWorkspace("");
+          }
+        }
+
+        queryClient.invalidateQueries({
+          queryKey: [WORKSPACE_KEYS.ALL],
+        });
+
+        toast.success("Workspace Deleted Successfully");
+      }
+    } catch (error) {
+      toast.error((error as Error).message);
     }
-  }, [isLoading, projects, workspaceModal.onOpen]);
+  };
+
+  const handleActiveWorkspace = (projectId: string) => {
+    localStorage.setItem(LOCALSTORAGE_KEYS.WORKSPACE, projectId);
+    workspace.setActiveWorkspace(projectId);
+  };
+
+  const activeProject = workspace.workspaces?.find(
+    (project) => project.id === workspace.activeWorkspaceId,
+  );
 
   return (
     <SidebarMenu>
@@ -56,12 +90,15 @@ export function ProjectSwitcher() {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
+              <div className="flex justify-center items-center bg-sidebar-primary rounded-lg size-8 aspect-square text-sidebar-primary-foreground">
+                <GalleryVerticalEnd className="size-4" />
+              </div>
               <div className="flex-1 grid text-sm text-left leading-tight">
                 <span className="font-medium truncate">
                   {activeProject?.name ?? "Select Project"}
                 </span>
                 <span className="text-muted-foreground text-xs truncate">
-                  {projects?.data.length ?? 0} projects
+                  {workspace.workspaces.length ?? 0} projects
                 </span>
               </div>
               <ChevronsUpDown className="ml-auto" />
@@ -77,28 +114,30 @@ export function ProjectSwitcher() {
               Projects
             </DropdownMenuLabel>
 
-            {isLoading ? (
-              <div className="place-items-center grid h-20">
-                <Loader2Icon className="animate-spin" />
-              </div>
-            ) : (
-              projects?.data?.map((project) => (
-                <DropdownMenuItem
-                  key={project.id}
-                  onClick={() => setActiveProject(project)}
-                  className="group justify-between gap-2 p-2"
+            {workspace.workspaces?.map((project) => (
+              <DropdownMenuItem
+                key={project.id}
+                onClick={() => handleActiveWorkspace(project.id)}
+                className={cn(
+                  "group justify-between gap-2 p-2 hover:bg-gray-300 cursor-pointer",
+                  workspace.activeWorkspaceId === project.id && "bg-gray-200",
+                )}
+              >
+                <span className="w-full truncate">{project.name}</span>
+                <Button
+                  variant={"ghost"}
+                  type="button"
+                  className="bg-red-400 hover:bg-red-500 p-1 size-8 text-white"
+                  size={"sm"}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteWorkspace(project.id);
+                  }}
                 >
-                  <span className="truncate">{project.name}</span>
-                  <Trash2
-                    className="size-4 text-muted-foreground hover:text-destructive"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // handleDeleteProject(project.id);
-                    }}
-                  />
-                </DropdownMenuItem>
-              ))
-            )}
+                  <Trash2 className="!size-3 text-white hover:text-destructive" />
+                </Button>
+              </DropdownMenuItem>
+            ))}
 
             <DropdownMenuSeparator />
 

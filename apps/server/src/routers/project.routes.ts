@@ -20,11 +20,14 @@ export const projectRoutes = new Hono()
 
     // Fetch projects from the database
     const projects = await db
-      .select()
+      .select({
+        id: projectsTable.id,
+        name: projectsTable.name,
+      })
       .from(projectsTable)
       .where(eq(projectsTable.userId, user.id));
 
-    return c.json<SuccessResponse<IProject[]>>({
+    return c.json<SuccessResponse<{ id: string; name: string }[]>>({
       message: "Project Fetched",
       success: true,
       data: projects,
