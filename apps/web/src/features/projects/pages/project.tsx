@@ -58,10 +58,10 @@ export default function ChatPage() {
   };
 
   return (
-    <div>
+    <div className="flex flex-col h-full">
       {/* Chat area */}
       <div
-        className="flex flex-col flex-grow space-y-4 bg-gray-50/20 shadow-inner p-4 w-full overflow-y-auto"
+        className="flex flex-col flex-grow space-y-4 bg-gray-50/20 shadow-inner p-4 w-full max-h-[calc(100vh-13rem)] overflow-y-auto"
         style={{
           scrollbarWidth: "none",
         }}
