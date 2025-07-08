@@ -1,31 +1,31 @@
-import { Link } from "@tanstack/react-router";
-import { LogOutIcon } from "lucide-react";
+import { PanelRightIcon } from "lucide-react";
 
-import { ModeToggle } from "../mode-toggle";
-import LogoutButton from "../buttons/logout-button";
-
-const links = [{ to: "/", label: "Home" }];
+import { useSidebar } from "@/components/ui/sidebar";
+import { useWorkspaceStore } from "@/hooks/use-workspace";
+import { cn } from "@/lib/utils";
 
 export default function Navbar() {
-  return (
-    <header className="top-0 z-10 sticky flex flex-row justify-between items-center bg-background px-4 py-2 border-b">
-      <nav className="flex gap-4 text-lg">
-        {links.map(({ to, label }) => {
-          return (
-            <Link key={to} to={to}>
-              {label}
-            </Link>
-          );
-        })}
-      </nav>
-      <div className="flex items-center gap-2">
-        <ModeToggle />
+  const { open: openSidebar, toggleSidebar } = useSidebar();
+  const currentWorkspace = useWorkspaceStore((state) =>
+    state.workspaces.find((w) => w.id === state.activeWorkspaceId),
+  );
 
-        <LogoutButton variant={"outline"}>
-          <LogOutIcon />
-          Logout
-        </LogoutButton>
-      </div>
+  return (
+    <header className="top-0 z-10 sticky flex justify-between items-center bg-white shadow-md p-4 w-full">
+      <button
+        type="button"
+        onClick={() => toggleSidebar()}
+        className={cn(
+          "duration-500 cursor-pointer",
+          openSidebar && "rotate-180",
+        )}
+      >
+        <PanelRightIcon />
+      </button>
+
+      <h1>{currentWorkspace?.name ?? "Loading..."}</h1>
+
+      <button type="button">Personalities</button>
     </header>
   );
 }

@@ -12,6 +12,7 @@ import { useWorkspaceModal } from "@/hooks/use-workspace-modal";
 
 import { WORKSPACE_KEYS } from "@/config/querykeys";
 import { useWorkspaceStore } from "@/hooks/use-workspace";
+import Navbar from "@/components/common/navbar";
 
 export const Route = createFileRoute("/_protected")({
   component: RouteComponent,
@@ -48,7 +49,11 @@ function RouteComponent() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <Outlet />
+        <section className="flex flex-col bg-white w-full h-full">
+          <Navbar />
+
+          <Outlet />
+        </section>
       </SidebarInset>
     </SidebarProvider>
   );

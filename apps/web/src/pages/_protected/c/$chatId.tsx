@@ -1,3 +1,4 @@
+import ChatPage from "@/features/chats/pages/chat";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_protected/c/$chatId")({
@@ -5,5 +6,5 @@ export const Route = createFileRoute("/_protected/c/$chatId")({
 });
 
 function RouteComponent() {
-  return <div>Hello "/_protected/c/$chatId"!</div>;
+  return <ChatPage />;
 }

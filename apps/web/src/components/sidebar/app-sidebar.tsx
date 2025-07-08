@@ -19,7 +19,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { Separator } from "../ui/separator";
+import { Separator } from "@/components/ui/separator";
 import type { LinkProps } from "@tanstack/react-router";
 
 export interface NavItem {
