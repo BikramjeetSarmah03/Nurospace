@@ -15,8 +15,9 @@ import { Route as ProtectedLayoutRouteImport } from './pages/_protected/layout'
 import { Route as WwwIndexRouteImport } from './pages/_www/index'
 import { Route as AuthRegisterRouteImport } from './pages/auth/register'
 import { Route as AuthLoginRouteImport } from './pages/auth/login'
-import { Route as ProtectedUserLayoutRouteImport } from './pages/_protected/$user/layout'
+import { Route as ProtectedCIndexRouteImport } from './pages/_protected/c/index'
 import { Route as ProtectedUserIndexRouteImport } from './pages/_protected/$user/index'
+import { Route as ProtectedCChatIdRouteImport } from './pages/_protected/c/$chatId'
 
 const AuthLayoutRoute = AuthLayoutRouteImport.update({
   id: '/auth',
@@ -46,64 +47,82 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AuthLayoutRoute,
 } as any)
-const ProtectedUserLayoutRoute = ProtectedUserLayoutRouteImport.update({
-  id: '/$user',
-  path: '/$user',
+const ProtectedCIndexRoute = ProtectedCIndexRouteImport.update({
+  id: '/c/',
+  path: '/c/',
   getParentRoute: () => ProtectedLayoutRoute,
 } as any)
 const ProtectedUserIndexRoute = ProtectedUserIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => ProtectedUserLayoutRoute,
+  id: '/$user/',
+  path: '/$user/',
+  getParentRoute: () => ProtectedLayoutRoute,
+} as any)
+const ProtectedCChatIdRoute = ProtectedCChatIdRouteImport.update({
+  id: '/c/$chatId',
+  path: '/c/$chatId',
+  getParentRoute: () => ProtectedLayoutRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/auth': typeof AuthLayoutRouteWithChildren
-  '/$user': typeof ProtectedUserLayoutRouteWithChildren
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/': typeof WwwIndexRoute
-  '/$user/': typeof ProtectedUserIndexRoute
+  '/c/$chatId': typeof ProtectedCChatIdRoute
+  '/$user': typeof ProtectedUserIndexRoute
+  '/c': typeof ProtectedCIndexRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthLayoutRouteWithChildren
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/': typeof WwwIndexRoute
+  '/c/$chatId': typeof ProtectedCChatIdRoute
   '/$user': typeof ProtectedUserIndexRoute
+  '/c': typeof ProtectedCIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_protected': typeof ProtectedLayoutRouteWithChildren
   '/_www': typeof WwwLayoutRouteWithChildren
   '/auth': typeof AuthLayoutRouteWithChildren
-  '/_protected/$user': typeof ProtectedUserLayoutRouteWithChildren
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/_www/': typeof WwwIndexRoute
+  '/_protected/c/$chatId': typeof ProtectedCChatIdRoute
   '/_protected/$user/': typeof ProtectedUserIndexRoute
+  '/_protected/c/': typeof ProtectedCIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/auth'
-    | '/$user'
     | '/auth/login'
     | '/auth/register'
     | '/'
-    | '/$user/'
+    | '/c/$chatId'
+    | '/$user'
+    | '/c'
   fileRoutesByTo: FileRoutesByTo
-  to: '/auth' | '/auth/login' | '/auth/register' | '/' | '/$user'
+  to:
+    | '/auth'
+    | '/auth/login'
+    | '/auth/register'
+    | '/'
+    | '/c/$chatId'
+    | '/$user'
+    | '/c'
   id:
     | '__root__'
     | '/_protected'
     | '/_www'
     | '/auth'
-    | '/_protected/$user'
     | '/auth/login'
     | '/auth/register'
     | '/_www/'
+    | '/_protected/c/$chatId'
     | '/_protected/$user/'
+    | '/_protected/c/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -156,40 +175,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof AuthLayoutRoute
     }
-    '/_protected/$user': {
-      id: '/_protected/$user'
-      path: '/$user'
-      fullPath: '/$user'
-      preLoaderRoute: typeof ProtectedUserLayoutRouteImport
+    '/_protected/c/': {
+      id: '/_protected/c/'
+      path: '/c'
+      fullPath: '/c'
+      preLoaderRoute: typeof ProtectedCIndexRouteImport
       parentRoute: typeof ProtectedLayoutRoute
     }
     '/_protected/$user/': {
       id: '/_protected/$user/'
-      path: '/'
-      fullPath: '/$user/'
+      path: '/$user'
+      fullPath: '/$user'
       preLoaderRoute: typeof ProtectedUserIndexRouteImport
-      parentRoute: typeof ProtectedUserLayoutRoute
+      parentRoute: typeof ProtectedLayoutRoute
+    }
+    '/_protected/c/$chatId': {
+      id: '/_protected/c/$chatId'
+      path: '/c/$chatId'
+      fullPath: '/c/$chatId'
+      preLoaderRoute: typeof ProtectedCChatIdRouteImport
+      parentRoute: typeof ProtectedLayoutRoute
     }
   }
 }
 
-interface ProtectedUserLayoutRouteChildren {
-  ProtectedUserIndexRoute: typeof ProtectedUserIndexRoute
-}
-
-const ProtectedUserLayoutRouteChildren: ProtectedUserLayoutRouteChildren = {
-  ProtectedUserIndexRoute: ProtectedUserIndexRoute,
-}
-
-const ProtectedUserLayoutRouteWithChildren =
-  ProtectedUserLayoutRoute._addFileChildren(ProtectedUserLayoutRouteChildren)
-
 interface ProtectedLayoutRouteChildren {
-  ProtectedUserLayoutRoute: typeof ProtectedUserLayoutRouteWithChildren
+  ProtectedCChatIdRoute: typeof ProtectedCChatIdRoute
+  ProtectedUserIndexRoute: typeof ProtectedUserIndexRoute
+  ProtectedCIndexRoute: typeof ProtectedCIndexRoute
 }
 
 const ProtectedLayoutRouteChildren: ProtectedLayoutRouteChildren = {
-  ProtectedUserLayoutRoute: ProtectedUserLayoutRouteWithChildren,
+  ProtectedCChatIdRoute: ProtectedCChatIdRoute,
+  ProtectedUserIndexRoute: ProtectedUserIndexRoute,
+  ProtectedCIndexRoute: ProtectedCIndexRoute,
 }
 
 const ProtectedLayoutRouteWithChildren = ProtectedLayoutRoute._addFileChildren(

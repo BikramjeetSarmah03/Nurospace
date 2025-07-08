@@ -61,7 +61,7 @@ export default function ChatPage() {
     <div className="flex flex-col h-full">
       {/* Chat area */}
       <div
-        className="flex flex-col flex-grow space-y-4 bg-gray-50/20 shadow-inner p-4 w-full max-h-[calc(100vh-13rem)] overflow-y-auto"
+        className="flex flex-col flex-grow space-y-4 bg-gray-50/20 shadow-inner p-4 w-full max-h-[calc(100vh-16rem)] overflow-y-auto"
         style={{
           scrollbarWidth: "none",
         }}
@@ -95,11 +95,12 @@ export default function ChatPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Chat input */}
-      <ChatBox
-        onSubmit={handleSendChat}
-        className="mx-auto mb-4 max-w-[calc(100%-2rem)]"
-      />
+      <div className="space-y-4 mx-auto mb-4 w-full max-w-[calc(100%-2rem)]">
+        <div className="p-2 border rounded-md">project</div>
+
+        {/* Chat input */}
+        <ChatBox onSubmit={handleSendChat} />
+      </div>
     </div>
   );
 }

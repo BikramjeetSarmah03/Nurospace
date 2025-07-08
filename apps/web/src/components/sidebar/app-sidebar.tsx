@@ -6,6 +6,7 @@ import {
   UserCog,
   Plug,
   Settings2,
+  type LucideIcon,
 } from "lucide-react";
 
 import { NavMain } from "@/components/sidebar/nav-main";
@@ -19,17 +20,26 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { Separator } from "../ui/separator";
+import type { LinkProps } from "@tanstack/react-router";
 
-const navItems = [
+export interface NavItem {
+  title: string;
+  url: LinkProps["to"];
+  icon: LucideIcon;
+  isActive?: boolean;
+  items?: { title: string; url: string }[];
+}
+
+const navItems: NavItem[] = [
   {
     title: "Chats",
-    url: "/chats",
+    url: "/c",
     icon: SquareTerminal,
     isActive: true,
     items: [
-      { title: "Feature Q&A", url: "/chats/feature-qa" },
-      { title: "Market Research", url: "/chats/market-research" },
-      { title: "User Interview", url: "/chats/user-interview" },
+      { title: "Feature Q&A", url: "/c/feature-qa" },
+      { title: "Market Research", url: "/c/market-research" },
+      { title: "User Interview", url: "/c/user-interview" },
     ],
   },
   {
