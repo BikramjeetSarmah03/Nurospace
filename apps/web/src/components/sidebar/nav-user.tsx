@@ -26,6 +26,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import LogoutButton from "../buttons/logout-button";
+import { ModeToggle } from "../mode-toggle";
 
 export function NavUser({
   user,
@@ -97,12 +98,15 @@ export function NavUser({
                 <Bell />
                 Notifications
               </DropdownMenuItem>
+              <DropdownMenuItem>
+                <ModeToggle />
+              </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <LogoutButton
               variant={"ghost"}
               asChild
-              className="justify-start w-full"
+              className="justify-start -ml-2 w-full"
             >
               <DropdownMenuItem>
                 <LogOut />

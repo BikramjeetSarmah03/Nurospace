@@ -11,7 +11,7 @@ export default function Navbar() {
   );
 
   return (
-    <header className="top-0 z-10 sticky flex justify-between items-center bg-white shadow-md p-4 w-full">
+    <header className="top-0 z-10 sticky flex justify-between items-center bg-white dark:bg-background/90 shadow-md p-4 w-full">
       <button
         type="button"
         onClick={() => toggleSidebar()}

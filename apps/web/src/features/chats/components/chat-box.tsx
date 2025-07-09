@@ -33,7 +33,7 @@ export function ChatBox({ onSubmit, className }: ChatBoxProps) {
   return (
     <div
       className={cn(
-        "relative bg-white border border-border rounded-xl w-full",
+        "relative bg-white dark:bg-background/90 overflow-hidden border border-border rounded-xl w-full",
         className,
       )}
     >

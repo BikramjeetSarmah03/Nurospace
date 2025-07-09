@@ -11,7 +11,9 @@ import {
 
 import { NavMain } from "@/components/sidebar/nav-main";
 import { NavUser } from "@/components/sidebar/nav-user";
+
 import { ProjectSwitcher } from "@/components/sidebar/workspace-switcher";
+
 import {
   Sidebar,
   SidebarContent,
@@ -20,11 +22,11 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
-import type { LinkProps } from "@tanstack/react-router";
 
 export interface NavItem {
   title: string;
-  url: LinkProps["to"];
+  // url: LinkProps["to"];
+  url: string;
   icon: LucideIcon;
   isActive?: boolean;
   items?: { title: string; url: string }[];
@@ -84,21 +86,21 @@ const navSecondary = [
     title: "Integrations",
     url: "/integrations",
     icon: Plug,
-    // items: [
-    //   { title: "Notion", url: "/integrations/notion" },
-    //   { title: "Slack", url: "/integrations/slack" },
-    //   { title: "GitHub", url: "/integrations/github" },
-    // ],
+    items: [
+      { title: "Notion", url: "/integrations/notion" },
+      { title: "Slack", url: "/integrations/slack" },
+      { title: "GitHub", url: "/integrations/github" },
+    ],
   },
   {
     title: "Settings",
     url: "/settings",
     icon: Settings2,
-    // items: [
-    //   { title: "Project Settings", url: "/settings/project" },
-    //   { title: "LLM Choice", url: "/settings/model" },
-    //   { title: "Permissions", url: "/settings/permissions" },
-    // ],
+    items: [
+      { title: "Project Settings", url: "/settings/project" },
+      { title: "LLM Choice", url: "/settings/model" },
+      { title: "Permissions", url: "/settings/permissions" },
+    ],
   },
 ];
 
