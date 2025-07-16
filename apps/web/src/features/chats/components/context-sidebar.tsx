@@ -23,6 +23,8 @@ import { useQuery } from "@tanstack/react-query";
 import { RESOURCES_KEYS } from "@/config/querykeys";
 
 import { apiClient } from "@/lib/api-client";
+import { toast } from "sonner";
+import { queryClient } from "@/lib/query-client";
 
 export default function ResourcesSidebar({ ...props }: DialogProps) {
   const { data, isLoading, error } = useQuery({
@@ -36,6 +38,28 @@ export default function ResourcesSidebar({ ...props }: DialogProps) {
       return json.data; // assuming this contains the array of resources
     },
   });
+
+  const handleDeleteResource = async (id: string) => {
+    try {
+      const res = await apiClient.resources[":id"].$delete({
+        param: {
+          id,
+        },
+      });
+
+      const data = await res.json();
+
+      if (!data.success) throw Error(data.message);
+
+      toast.success("Resource Deleted Successfully");
+
+      queryClient.invalidateQueries({
+        queryKey: [RESOURCES_KEYS.ALL_RESOURCES],
+      });
+    } catch (error) {
+      toast.error((error as Error).message);
+    }
+  };
 
   return (
     <Sheet {...props}>
@@ -72,7 +96,17 @@ export default function ResourcesSidebar({ ...props }: DialogProps) {
                   key={res.id || i}
                   className="bg-white dark:bg-background/40 shadow-sm hover:shadow-xl border rounded-lg overflow-hidden transition-shadow duration-200 cursor-pointer"
                 >
-                  <h1 className="p-2 text-xs">{res.name.slice(0, 25)}</h1>
+                  <div className="relative">
+                    <h1 className="p-2 text-xs">{res.name.slice(0, 25)}</h1>
+
+                    <button
+                      type="button"
+                      className="top-0 right-0 absolute bg-red-500 hover:bg-red-500/90 p-1.5 transition-colors duration-300 cursor-pointer"
+                      onClick={() => handleDeleteResource(res.id)}
+                    >
+                      <XIcon size={18} />
+                    </button>
+                  </div>
                   <div className="flex justify-center items-center bg-gray-200/70 dark:bg-gray-900 p-4 h-24">
                     <Icon size={32} />
                   </div>

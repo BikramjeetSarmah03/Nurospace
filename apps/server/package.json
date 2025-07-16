@@ -7,6 +7,7 @@
     "check-types": "tsc --noEmit",
     "compile": "bun build --compile --minify --sourcemap --bytecode ./src/index.ts --outfile server",
     "dev": "bun run --hot src/index.ts",
+    "dev:worker": "bun run --hot src/queues/resource.worker.ts",
     "start": "bun run dist/src/index.js",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
@@ -16,6 +17,7 @@
   "dependencies": {
     "@hono/zod-validator": "^0.7.0",
     "better-auth": "^1.2.12",
+    "bullmq": "^5.56.4",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.44.2",
     "hono": "^4.8.2",

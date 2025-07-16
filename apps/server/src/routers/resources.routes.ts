@@ -7,8 +7,65 @@ import { db } from "@/db";
 import { resourcesTable } from "@/db/schema/resource";
 import { isAuthenticated } from "@/middleware/auth";
 import { eq } from "drizzle-orm";
+import { resourceQueue } from "@/queues/init";
+import { RESOURCE_QUEUE_KEYS } from "@/queues/keys";
+import { streamToBuffer } from "@/lib/utils";
 
 export const resourcesRoutes = new Hono()
+
+  .get("/", isAuthenticated, async (c) => {
+    const userId = c.get("user")?.id;
+
+    if (!userId) throw new Error("Unauthorized");
+
+    const resources = await db
+      .select()
+      .from(resourcesTable)
+      .where(eq(resourcesTable.userId, userId));
+
+    return c.json({
+      success: true,
+      data: resources,
+    });
+  })
+  .delete("/:id", isAuthenticated, async (c) => {
+    const userId = c.get("user")?.id;
+    const id = c.req.param("id");
+
+    if (!userId) {
+      return c.json({ success: false, message: "Unauthorized" }, 401);
+    }
+
+    // Optional: Check ownership before deletion
+    const resource = await db.query.resourcesTable.findFirst({
+      where: (res, { eq }) => eq(res.id, id),
+    });
+
+    if (!resource || resource.userId !== userId) {
+      return c.json(
+        { success: false, message: "Not found or not allowed" },
+        404,
+      );
+    }
+
+    // Optional: Remove uploaded file if applicable
+    if (resource.type === "pdf" || resource.type === "image") {
+      const localPath = path.join(process.cwd(), resource.url);
+      try {
+        fs.unlinkSync(localPath);
+      } catch (err) {
+        console.warn("⚠️ File deletion error:", err);
+      }
+    }
+
+    // Delete from DB
+    await db.delete(resourcesTable).where(eq(resourcesTable.id, id));
+
+    return c.json({
+      success: true,
+      message: "Resource deleted successfully",
+    });
+  })
   .post("/upload", isAuthenticated, async (c) => {
     const body = await c.req.parseBody();
 
@@ -82,39 +139,16 @@ export const resourcesRoutes = new Hono()
       userId,
     });
 
+    await resourceQueue.add(RESOURCE_QUEUE_KEYS.PROCESS_NAME, {
+      type,
+      name,
+      url,
+      content,
+      userId,
+    });
+
     return c.json<SuccessResponse>({
       success: true,
       message: "Resource uploaded and saved!",
     });
-  })
-  .get("/", isAuthenticated, async (c) => {
-    const userId = c.get("user")?.id;
-
-    if (!userId) throw new Error("Unauthorized");
-
-    const resources = await db
-      .select()
-      .from(resourcesTable)
-      .where(eq(resourcesTable.userId, userId));
-
-    return c.json({
-      success: true,
-      data: resources,
-    });
   });
-
-// 🔧 Utility to read a stream into buffer
-export async function streamToBuffer(
-  stream: ReadableStream<Uint8Array>,
-): Promise<Buffer> {
-  const reader = stream.getReader();
-  const chunks: Uint8Array[] = [];
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    if (value) chunks.push(value);
-  }
-
-  return Buffer.concat(chunks);
-}
