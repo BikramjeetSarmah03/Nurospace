@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
-import ChatBox from "../components/chat-box";
 import { apiClient } from "@/lib/api-client";
+
+import ChatBox from "@/features/chats/components/chat-box";
+import { ResourceToolbar } from "@/features/chats/components/resource-toolbar";
 
 // Example message type
 type Message = {
@@ -58,10 +60,10 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col bg-sidebar h-full">
       {/* Chat area */}
       <div
-        className="flex flex-col flex-grow space-y-4 bg-gray-50/20 shadow-inner p-4 w-full max-h-[calc(100vh-16rem)] overflow-y-auto"
+        className="flex flex-col flex-grow space-y-4 shadow-inner p-4 w-full max-h-[calc(100vh-16rem)] overflow-y-auto"
         style={{
           scrollbarWidth: "none",
         }}
@@ -75,10 +77,8 @@ export default function ChatPage() {
         {messages.map((msg, i) => (
           <div
             key={msg.role + i.toString()}
-            className={`w-fit max-w-[90%] p-3 rounded-lg text-sm whitespace-pre-wrap ${
-              msg.role === "user"
-                ? "self-end bg-blue-100 text-right"
-                : "self-start bg-gray-100"
+            className={`w-fit max-w-[90%] p-3 rounded-lg bg-gray-100 dark:bg-background/40 text-sm border whitespace-pre-wrap ${
+              msg.role === "user" ? "self-end text-right" : "self-start "
             }`}
           >
             {msg.content}
@@ -96,7 +96,7 @@ export default function ChatPage() {
       </div>
 
       <div className="space-y-4 mx-auto mb-4 w-full max-w-[calc(100%-2rem)]">
-        <div className="p-2 border rounded-md">project</div>
+        <ResourceToolbar />
 
         {/* Chat input */}
         <ChatBox onSubmit={handleSendChat} />

@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 
 import {
@@ -17,6 +16,7 @@ import {
 } from "@/components/ui/sidebar";
 
 import type { NavItem } from "./app-sidebar";
+import { Link } from "@tanstack/react-router";
 
 export function NavMain({ items }: { items: NavItem[] }) {
   return (
@@ -33,11 +33,16 @@ export function NavMain({ items }: { items: NavItem[] }) {
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton tooltip={item.title} asChild>
-                    <Link to={item.url}>
-                      {item.icon && <item.icon />}
-                      <span>{item.title}</span>
+                    <div>
+                      <Link
+                        className="flex items-center gap-2 w-full"
+                        to={item.url}
+                      >
+                        {item.icon && <item.icon size={16} />}
+                        <span>{item.title}</span>
+                      </Link>
                       <ChevronRight className="ml-auto group-data-[state=open]/collapsible:rotate-90 transition-transform duration-200" />
-                    </Link>
+                    </div>
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
@@ -45,9 +50,9 @@ export function NavMain({ items }: { items: NavItem[] }) {
                     {item.items.map((subItem) => (
                       <SidebarMenuSubItem key={subItem.title}>
                         <SidebarMenuSubButton asChild>
-                          <a href={subItem.url}>
+                          <Link to={subItem.url}>
                             <span>{subItem.title}</span>
-                          </a>
+                          </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                     ))}
@@ -58,10 +63,10 @@ export function NavMain({ items }: { items: NavItem[] }) {
           ) : (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild tooltip={item.title}>
-                <a href={item.url} className="flex items-center gap-2 w-full">
+                <Link to={item.url} className="flex items-center gap-2 w-full">
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ),

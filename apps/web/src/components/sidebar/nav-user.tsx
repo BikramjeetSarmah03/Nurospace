@@ -25,8 +25,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import LogoutButton from "../buttons/logout-button";
-import { ModeToggle } from "../mode-toggle";
+import LogoutButton from "@/components/buttons/logout-button";
+import { ModeToggle } from "@/components/mode-toggle";
 
 export function NavUser({
   user,

@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 
 import ChatBox from "@/features/chats/components/chat-box";
-import { ResourceToolbar } from "../components/resource-toolbar";
+import { ResourceToolbar } from "@/features/chats/components/resource-toolbar";
 
 export default function NewChat() {
   const navigate = useNavigate();

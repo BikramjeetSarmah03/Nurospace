@@ -9,10 +9,10 @@ export const Route = createFileRoute("/_www")({
 
     if (user.data) {
       redirect({
-        to: "/$user",
-        params: {
-          user: user.data.user.username || user.data.user.name,
-        },
+        to: "/dashboard",
+        // params: {
+        //   user: user.data.user.username || user.data.user.name,
+        // },
         throw: true,
       });
     }

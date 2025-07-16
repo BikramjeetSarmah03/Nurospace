@@ -51,7 +51,7 @@ function RootComponent() {
 
         <ModalProvider />
       </ThemeProvider>
-      <TanStackRouterDevtools position="bottom-left" />
+      <TanStackRouterDevtools position="bottom-right" />
     </>
   );
 }
