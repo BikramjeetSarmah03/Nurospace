@@ -3,25 +3,41 @@ import { Hono } from "hono";
 import { streamText } from "hono/streaming";
 import { z } from "zod";
 
+import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { getLLM, SupportedModels } from "@/lib/llm";
+import { RunnableSequence } from "@langchain/core/runnables";
+import { StringOutputParser } from "@langchain/core/output_parsers";
+
 const NewChatSchema = z.object({
   message: z.string(),
+  model: z.enum(SupportedModels).optional(),
 });
 
 export const chatRoutes = new Hono().post(
   "/",
   zValidator("json", NewChatSchema),
   async (c) => {
-    const { message } = c.req.valid("json");
+    const { message, model = "gemini-2.5-pro" } = c.req.valid("json");
 
-    const text =
-      "Lorem ipsum dolor sit amet consectetur adipisicing elit. Adipisci enim et eum voluptatem ab, omnis doloribus molestiae asperiores itaque dolor quaerat molestias ea eaque ipsa tempora libero sunt provident sequi fuga voluptatibus, ullam facere vitae. Sed delectus, aliquid soluta temporibus impedit quos explicabo quidem et quis rerum, corrupti dolore beatae at enim, in earum adipisci omnis odio natus nemo? Quaerat amet eos voluptatibus? Odio quod nemo repellat maiores perspiciatis, qui similique, debitis voluptate, minima hic aperiam accusantium dolorum cupiditate? Dicta modi doloremque, alias molestias temporibus quia, sapiente sequi aspernatur dolor enim in vel expedita illo cum veniam cupiditate voluptatibus nulla!";
+    const llm = getLLM(model);
 
-    return streamText(c, async (stream) => {
-      const words = text.split(" ");
+    const prompt = ChatPromptTemplate.fromMessages([
+      ["system", "You are a helpful AI assistant."],
+      ["user", "{input}"],
+    ]);
 
-      for (const word of words) {
-        await stream.write(`${word} `);
-        await stream.sleep(200); // 200ms between each word
+    console.log({ prompt: prompt.promptMessages });
+    const chain = RunnableSequence.from([
+      prompt,
+      llm,
+      new StringOutputParser(),
+    ]);
+
+    const stream = await chain.stream({ input: message });
+
+    return streamText(c, async (writer) => {
+      for await (const chunk of stream) {
+        await writer.write(chunk);
       }
     });
   },
