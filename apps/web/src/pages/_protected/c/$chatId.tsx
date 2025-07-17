@@ -6,5 +6,7 @@ export const Route = createFileRoute("/_protected/c/$chatId")({
 });
 
 function RouteComponent() {
-  return <ChatPage />;
+  const params = Route.useParams();
+
+  return <ChatPage slug={params.chatId} />;
 }

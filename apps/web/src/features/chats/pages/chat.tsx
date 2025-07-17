@@ -10,7 +10,7 @@ type Message = {
   content: string;
 };
 
-export default function ChatPage() {
+export default function ChatPage({ slug }: { slug: string }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -31,6 +31,7 @@ export default function ChatPage() {
     const res = await apiClient.chat.$post({
       json: {
         message: value,
+        slug,
       },
     });
 

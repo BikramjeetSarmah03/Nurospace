@@ -131,13 +131,16 @@ export const resourcesRoutes = new Hono()
     }
 
     // ✅ Save to DB
-    await db.insert(resourcesTable).values({
-      name,
-      url,
-      content,
-      type,
-      userId,
-    });
+    const resourceId = await db
+      .insert(resourcesTable)
+      .values({
+        name,
+        url,
+        content,
+        type,
+        userId,
+      })
+      .returning({ id: resourcesTable.id });
 
     await resourceQueue.add(RESOURCE_QUEUE_KEYS.PROCESS_NAME, {
       type,
@@ -145,6 +148,7 @@ export const resourcesRoutes = new Hono()
       url,
       content,
       userId,
+      resourceId: resourceId[0].id,
     });
 
     return c.json<SuccessResponse>({

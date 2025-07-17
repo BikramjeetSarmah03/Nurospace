@@ -7,10 +7,14 @@ export default function NewChat() {
   const navigate = useNavigate();
 
   const handleSendChat = async (value: string) => {
+    const slug = value.toLowerCase().slice(0, 10).replaceAll(" ", "-");
     navigate({
       to: "/c/$chatId",
       params: {
-        chatId: value.toLowerCase().slice(0, 10).replaceAll(" ", "-"),
+        chatId: slug,
+      },
+      search: {
+        message: value,
       },
     });
   };
