@@ -54,6 +54,8 @@ productify/
 ├── apps/
 │   ├── web/         # Frontend application (React + TanStack Router)
 │   └── server/      # Backend API (Hono)
+├── packages/
+│   ├── shared/         # Shared Packages
 ```
 
 ## Available Scripts
@@ -66,3 +68,10 @@ productify/
 - `bun db:push`: Push schema changes to database
 - `bun db:studio`: Open database studio UI
 - `bun check`: Run Biome formatting and linting
+
+
+## To run the project
+
+- Install all dependencies ```.  bun install```
+- Start Docker ```.  docker compose up -d```
+- Set Env Files ```.  Set the env files both in server and web```
