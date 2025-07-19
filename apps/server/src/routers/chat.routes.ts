@@ -31,6 +31,53 @@ export const chatRoutes = new Hono().post(
 
     if (!userId) throw new Error("Unauthorized");
 
+    // === Custom logic for current time requests ===
+    const lowerMsg = message.toLowerCase();
+    if (
+      lowerMsg.includes("current time") ||
+      lowerMsg.includes("what time is it") ||
+      lowerMsg.includes("time now") ||
+      lowerMsg.match(/\btime\b.*\bnow\b/)
+    ) {
+      let chatId: { id: string };
+      if (!slug) {
+        const newSlug = message.toLowerCase().slice(0, 10).replaceAll(" ", "-");
+        const data = await db
+          .insert(chats)
+          .values({ userId, title: message.slice(0, 50), slug: newSlug })
+          .returning({ id: chats.id });
+        chatId = data[0];
+      } else {
+        const data = await db
+          .select({ id: chats.id })
+          .from(chats)
+          .where(sql`slug = ${slug} AND user_id = ${userId}`)
+          .limit(1);
+        if (!data[0]) {
+          throw new Error("Chat not found");
+        }
+        chatId = data[0];
+      }
+      const now = new Date();
+      const timeString = now.toLocaleTimeString();
+      const dateString = now.toLocaleDateString();
+      const response = `The current server time is ${timeString} on ${dateString}.`;
+      // Store user's message
+      await db.insert(messages).values({
+        chatId: chatId.id,
+        role: "user",
+        content: message,
+      });
+      // Store assistant's response
+      await db.insert(messages).values({
+        chatId: chatId.id,
+        role: "assistant",
+        content: response,
+      });
+      return c.text(response);
+    }
+    // === End custom logic ===
+
     const llm = getLLM(model);
 
     const contextChunks = await retrieveRelevantChunks(message, userId); // no resourceId

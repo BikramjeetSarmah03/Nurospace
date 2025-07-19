@@ -39,7 +39,7 @@ const navItems: NavItem[] = [
     icon: SquareTerminal,
     isActive: true,
     items: [
-      { title: "Feature Q&A", url: "/c/feature-qa" },
+      { title: "Feature Q&A", url: "/c/hello" },
       { title: "Market Research", url: "/c/market-research" },
       { title: "User Interview", url: "/c/user-interview" },
     ],
