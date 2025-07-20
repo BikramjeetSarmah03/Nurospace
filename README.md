@@ -75,5 +75,5 @@ productify/
 - Install all dependencies ```.  bun install```
 - Start Docker ```.  docker compose up -d```
 - Set Env Files ```.  Set the env files both in server and web```
-- start worker ```. bun dev:worker```
+- start worker ```. bun dev:worker``` inside the server folder
 - db studio ```. bun db:studio```

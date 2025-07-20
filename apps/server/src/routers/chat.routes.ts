@@ -2,23 +2,24 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { streamText } from "hono/streaming";
 import { z } from "zod";
-
-import { getLLM, SupportedModels } from "@/lib/llm";
-
-import { ChatPromptTemplate } from "@langchain/core/prompts";
-import { RunnableSequence } from "@langchain/core/runnables";
-import { StringOutputParser } from "@langchain/core/output_parsers";
-import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
+import { HumanMessage } from "@langchain/core/messages";
+import { createAgent } from "@/lib/agent";
+import { chats, messages } from "@/db/schema/chat";
 import { db } from "@/db";
-import { resourceEmbeddings } from "@/db/schema";
 import { sql } from "drizzle-orm";
 import { isAuthenticated } from "@/middleware/auth";
-import { chats, messages } from "@/db/schema/chat";
+import { resourceEmbeddings } from "@/db/schema/resource";
+import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
+import {
+  retrieveRelevantChunks,
+  retrieveRelevantChunksTool,
+} from "@/tool/retrieveRelevantChunks";
+import type { ToolRunnableConfig } from "@langchain/core/tools";
 
 const NewChatSchema = z.object({
   message: z.string(),
-  model: z.enum(SupportedModels).optional(),
-  slug: z.string(),
+  model: z.string().optional(),
+  slug: z.string().optional(),
 });
 
 export const chatRoutes = new Hono().post(
@@ -26,146 +27,114 @@ export const chatRoutes = new Hono().post(
   isAuthenticated,
   zValidator("json", NewChatSchema),
   async (c) => {
-    const { message, model = "gemini-2.5-pro", slug } = c.req.valid("json");
-    const userId = c.get("user")?.id;
+    try {
+      const { message, slug } = c.req.valid("json");
+      const userId = c.get("user")?.id;
+      console.log("[DEBUG] User ID:", userId);
+      if (!userId) throw new Error("Unauthorized");
 
-    if (!userId) throw new Error("Unauthorized");
+      // Debug: Manually invoke the tool to verify it works
+      // Note: ToolRunnableConfig does not accept userId, so we remove it from the config
+      const toolContext = await retrieveRelevantChunksTool.invoke(message, {
+        userId,
+      } as ToolRunnableConfig & { userId: string });
+      console.log("[DEBUG] Tool manual call result:", toolContext);
 
-    // === Custom logic for current time requests ===
-    const lowerMsg = message.toLowerCase();
-    if (
-      lowerMsg.includes("current time") ||
-      lowerMsg.includes("what time is it") ||
-      lowerMsg.includes("time now") ||
-      lowerMsg.match(/\btime\b.*\bnow\b/)
-    ) {
+      // Retrieve context chunks for the message and user
+      const contextChunks = await retrieveRelevantChunks(message, userId); // no resourceId
+      const context = contextChunks.join("\n\n");
+      console.log("[DEBUG] Retrieved context chunks:", contextChunks);
+
       let chatId: { id: string };
+      let finalSlug = slug;
+
+      // 🧠 Create or find chat
       if (!slug) {
-        const newSlug = message.toLowerCase().slice(0, 10).replaceAll(" ", "-");
-        const data = await db
+        finalSlug = message.toLowerCase().slice(0, 10).replaceAll(" ", "-");
+        const [data] = await db
           .insert(chats)
-          .values({ userId, title: message.slice(0, 50), slug: newSlug })
+          .values({ userId, title: message.slice(0, 50), slug: finalSlug })
           .returning({ id: chats.id });
-        chatId = data[0];
+        chatId = data;
+        console.log("[DEBUG] Created new chat:", chatId, "Slug:", finalSlug);
       } else {
-        const data = await db
+        const [data] = await db
           .select({ id: chats.id })
           .from(chats)
           .where(sql`slug = ${slug} AND user_id = ${userId}`)
           .limit(1);
-        if (!data[0]) {
-          throw new Error("Chat not found");
-        }
-        chatId = data[0];
+        if (!data) throw new Error("Chat not found");
+        chatId = data;
+        console.log("[DEBUG] Found existing chat:", chatId, "Slug:", slug);
       }
-      const now = new Date();
-      const timeString = now.toLocaleTimeString();
-      const dateString = now.toLocaleDateString();
-      const response = `The current server time is ${timeString} on ${dateString}.`;
-      // Store user's message
+
+      // 💬 Save user message
       await db.insert(messages).values({
         chatId: chatId.id,
         role: "user",
         content: message,
       });
-      // Store assistant's response
-      await db.insert(messages).values({
-        chatId: chatId.id,
-        role: "assistant",
-        content: response,
+      console.log("[DEBUG] Saved user message for chat:", chatId.id);
+
+      const agent = createAgent();
+      console.log("[DEBUG] Starting agent stream...");
+      const stream = await agent.stream(
+        {
+          messages: [new HumanMessage(message)],
+        },
+        {
+          configurable: {
+            thread_id: finalSlug,
+            userId: userId,
+          },
+        },
+      );
+
+      const response = "";
+
+      return streamText(c, async (writer) => {
+        let response = "";
+
+        for await (const chunk of stream) {
+          console.log("[DEBUG] Agent chunk:", chunk);
+
+          // ✅ Handles both string and LangGraph object streaming
+          if (typeof chunk === "string") {
+            response += chunk;
+            await writer.write(chunk);
+          } else if (
+            typeof chunk === "object" &&
+            chunk !== null &&
+            "agent" in chunk &&
+            Array.isArray(chunk.agent.messages)
+          ) {
+            for (const msg of chunk.agent.messages) {
+              if (
+                typeof msg === "object" &&
+                msg !== null &&
+                "content" in msg &&
+                typeof (msg as any).content === "string"
+              ) {
+                response += (msg as any).content;
+                await writer.write((msg as any).content);
+              }
+            }
+          }
+        }
+        console.log("[DEBUG] Response:", response);
+
+        // ✅ Save only the final accumulated response
+        await db.insert(messages).values({
+          chatId: chatId.id,
+          role: "assistant",
+          content: response,
+        });
+
+        console.log("[DEBUG] Saved assistant response for chat:", chatId.id);
       });
-      return c.text(response);
+    } catch (error) {
+      console.error("[ERROR] chatRoutes handler:", error);
+      throw error;
     }
-    // === End custom logic ===
-
-    const llm = getLLM(model);
-
-    const contextChunks = await retrieveRelevantChunks(message, userId); // no resourceId
-    const context = contextChunks.join("\n\n");
-
-    let chatId: { id: string };
-
-    // 📝 1. Create a new chat or find existing by slug
-    if (!slug) {
-      const newSlug = message.toLowerCase().slice(0, 10).replaceAll(" ", "-");
-
-      const data = await db
-        .insert(chats)
-        .values({ userId, title: message.slice(0, 50), slug: newSlug })
-        .returning({ id: chats.id });
-      chatId = data[0];
-    } else {
-      // Find the chat by slug and userId
-      const data = await db
-        .select({ id: chats.id })
-        .from(chats)
-        .where(sql`slug = ${slug} AND user_id = ${userId}`)
-        .limit(1);
-      if (!data[0]) {
-        throw new Error("Chat not found");
-      }
-      chatId = data[0];
-    }
-
-    // 💬 2. Store user's message
-    await db.insert(messages).values({
-      chatId: chatId.id,
-      role: "user",
-      content: message,
-    });
-
-    const prompt = ChatPromptTemplate.fromMessages([
-      [
-        "system",
-        "You are a helpful AI assistant. Use the provided context to answer the user's question.",
-      ],
-      ["user", "Context:\n{context}\n\nQuestion:\n{input}"],
-    ]);
-
-    const chain = RunnableSequence.from([
-      prompt,
-      llm,
-      new StringOutputParser(),
-    ]);
-
-    const stream = await chain.stream({ input: message, context });
-    let response = "";
-
-    return streamText(c, async (writer) => {
-      for await (const chunk of stream) {
-        response += chunk;
-        await writer.write(chunk);
-      }
-
-      await db.insert(messages).values({
-        chatId: chatId.id,
-        role: "assistant",
-        content: response,
-      });
-    });
   },
 );
-
-export async function retrieveRelevantChunks(
-  query: string,
-  userId: string,
-  topK = 5,
-) {
-  const embeddingModel = new GoogleGenerativeAIEmbeddings({
-    modelName: "embedding-001",
-    apiKey: process.env.GOOGLE_API_KEY,
-  });
-
-  const queryEmbedding = await embeddingModel.embedQuery(query);
-
-  const results = await db
-    .select({ content: resourceEmbeddings.content })
-    .from(resourceEmbeddings)
-    .where(sql`user_id = ${userId}`)
-    .orderBy(
-      sql`embedding <-> ${sql.raw(`'[${queryEmbedding.join(",")}]'::vector`)}`,
-    ) // cosine distance
-    .limit(topK);
-
-  return results.map((r) => r.content);
-}

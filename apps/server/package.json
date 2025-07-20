@@ -20,6 +20,7 @@
     "@langchain/community": "^0.3.49",
     "@langchain/core": "^0.3.64",
     "@langchain/google-genai": "^0.2.15",
+    "@langchain/langgraph": "^0.3.10",
     "better-auth": "^1.2.12",
     "bullmq": "^5.56.4",
     "dotenv": "^16.4.7",

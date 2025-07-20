@@ -2,6 +2,7 @@
 import { DynamicTool } from "@langchain/core/tools";
 import { getCurrentWeather } from "./weatherTool";
 import { getCurrentDateTime } from "./currentDateTool";
+import { retrieveRelevantChunksTool } from "./retrieveRelevantChunks";
 
 export const toolset = [
   new DynamicTool({
@@ -24,4 +25,6 @@ export const toolset = [
       return `Date: ${res.date}, Time: ${res.time}`;
     },
   }),
+
+  retrieveRelevantChunksTool,
 ];
