@@ -2,19 +2,17 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { streamText } from "hono/streaming";
 import { z } from "zod";
-import { HumanMessage } from "@langchain/core/messages";
+import {
+  HumanMessage,
+  SystemMessage,
+  type BaseMessage,
+} from "@langchain/core/messages";
 import { createAgent } from "@/lib/agent";
 import { chats, messages } from "@/db/schema/chat";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import { isAuthenticated } from "@/middleware/auth";
-import { resourceEmbeddings } from "@/db/schema/resource";
-import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
-import {
-  retrieveRelevantChunks,
-  retrieveRelevantChunksTool,
-} from "@/tool/retrieveRelevantChunks";
-import type { ToolRunnableConfig } from "@langchain/core/tools";
+import { checkRateLimit, getRateLimitInfo } from "@/lib/utils";
 
 const NewChatSchema = z.object({
   message: z.string(),
@@ -33,17 +31,21 @@ export const chatRoutes = new Hono().post(
       console.log("[DEBUG] User ID:", userId);
       if (!userId) throw new Error("Unauthorized");
 
-      // Debug: Manually invoke the tool to verify it works
-      // Note: ToolRunnableConfig does not accept userId, so we remove it from the config
-      const toolContext = await retrieveRelevantChunksTool.invoke(message, {
-        userId,
-      } as ToolRunnableConfig & { userId: string });
-      console.log("[DEBUG] Tool manual call result:", toolContext);
-
-      // Retrieve context chunks for the message and user
-      const contextChunks = await retrieveRelevantChunks(message, userId); // no resourceId
-      const context = contextChunks.join("\n\n");
-      console.log("[DEBUG] Retrieved context chunks:", contextChunks);
+      // Check rate limit
+      if (!checkRateLimit(userId, 10, 60000)) {
+        // 10 requests per minute
+        const rateLimitInfo = getRateLimitInfo(userId);
+        return c.json(
+          {
+            success: false,
+            error: "Rate limit exceeded",
+            message:
+              "Too many requests. Please wait a moment before trying again.",
+            rateLimitInfo,
+          },
+          429,
+        );
+      }
 
       let chatId: { id: string };
       let finalSlug = slug;
@@ -76,11 +78,24 @@ export const chatRoutes = new Hono().post(
       });
       console.log("[DEBUG] Saved user message for chat:", chatId.id);
 
-      const agent = createAgent();
+      let agent = createAgent();
       console.log("[DEBUG] Starting agent stream...");
+
+      // Add system message only for new conversations
+      const agentMessages: BaseMessage[] = [];
+      if (!slug) {
+        // Only add system message for new conversations
+        agentMessages.push(
+          new SystemMessage(
+            "You are a helpful AI assistant with access to the user's uploaded documents and resources. IMPORTANT: When the user asks about documents, files, or any uploaded content, ALWAYS use the 'retrieveRelevantChunks' tool first to search through their documents before answering. Do not ask them to specify which document - just search through all their uploaded content automatically. Only ask for clarification if the search results don't provide enough information to answer their question.",
+          ),
+        );
+      }
+      agentMessages.push(new HumanMessage(message));
+
       const stream = await agent.stream(
         {
-          messages: [new HumanMessage(message)],
+          messages: agentMessages,
         },
         {
           configurable: {
@@ -90,47 +105,120 @@ export const chatRoutes = new Hono().post(
         },
       );
 
-      const response = "";
-
       return streamText(c, async (writer) => {
         let response = "";
 
-        for await (const chunk of stream) {
-          console.log("[DEBUG] Agent chunk:", chunk);
+        try {
+          for await (const chunk of stream) {
+            console.log("[DEBUG] Agent chunk type:", typeof chunk);
+            console.log("[DEBUG] Agent chunk:", JSON.stringify(chunk, null, 2));
 
-          // ✅ Handles both string and LangGraph object streaming
-          if (typeof chunk === "string") {
-            response += chunk;
-            await writer.write(chunk);
-          } else if (
-            typeof chunk === "object" &&
-            chunk !== null &&
-            "agent" in chunk &&
-            Array.isArray(chunk.agent.messages)
-          ) {
-            for (const msg of chunk.agent.messages) {
-              if (
-                typeof msg === "object" &&
-                msg !== null &&
-                "content" in msg &&
-                typeof (msg as any).content === "string"
-              ) {
-                response += (msg as any).content;
-                await writer.write((msg as any).content);
+            // ✅ Handles both string and LangGraph object streaming
+            if (typeof chunk === "string") {
+              response += chunk;
+              await writer.write(chunk);
+            } else if (
+              typeof chunk === "object" &&
+              chunk !== null &&
+              "agent" in chunk &&
+              Array.isArray(chunk.agent.messages)
+            ) {
+              for (const msg of chunk.agent.messages) {
+                if (
+                  typeof msg === "object" &&
+                  msg !== null &&
+                  "content" in msg &&
+                  typeof (msg as any).content === "string"
+                ) {
+                  response += (msg as any).content;
+                  await writer.write((msg as any).content);
+                }
               }
+            } else if (
+              typeof chunk === "object" &&
+              chunk !== null &&
+              "content" in chunk &&
+              typeof (chunk as any).content === "string"
+            ) {
+              // Handle direct message objects
+              response += (chunk as any).content;
+              await writer.write((chunk as any).content);
             }
           }
+        } catch (streamError) {
+          console.error("[ERROR] Streaming error:", streamError);
+
+          // Check if it's a rate limit error
+          const errorMessage = (streamError as any)?.message || "";
+          const isRateLimitError =
+            errorMessage.includes("429") ||
+            errorMessage.includes("Too Many Requests") ||
+            errorMessage.includes("Quota exceeded");
+
+          if (isRateLimitError) {
+            await writer.write(
+              "I'm currently experiencing high demand. Please wait a moment and try again. If this persists, you may need to wait a few minutes before making another request.",
+            );
+            return;
+          }
+
+          // If streaming fails, try with fallback model
+          try {
+            console.log("[DEBUG] Trying fallback model...");
+            agent = createAgent(true); // Use fallback model
+
+            const directResponse = await agent.invoke(
+              {
+                messages: agentMessages,
+              },
+              {
+                configurable: {
+                  thread_id: finalSlug,
+                  userId: userId,
+                },
+              },
+            );
+
+            if (
+              directResponse &&
+              typeof directResponse === "object" &&
+              "agent" in directResponse
+            ) {
+              const agentResponse = directResponse as {
+                agent: { messages: any[] };
+              };
+              const messages = agentResponse.agent.messages;
+              for (const msg of messages) {
+                if (
+                  msg &&
+                  typeof msg === "object" &&
+                  "content" in msg &&
+                  typeof (msg as any).content === "string"
+                ) {
+                  response += (msg as any).content;
+                  await writer.write((msg as any).content);
+                }
+              }
+            }
+          } catch (fallbackError) {
+            console.error("[ERROR] Fallback error:", fallbackError);
+            await writer.write(
+              "I apologize, but I'm currently experiencing technical difficulties. Please try again in a few minutes.",
+            );
+          }
         }
-        console.log("[DEBUG] Response:", response);
+
+        console.log("[DEBUG] Final response:", response);
 
         // ✅ Save only the final accumulated response
-        await db.insert(messages).values({
-          chatId: chatId.id,
-          role: "assistant",
-          content: response,
-        });
-
-        console.log("[DEBUG] Saved assistant response for chat:", chatId.id);
+        if (response.trim()) {
+          await db.insert(messages).values({
+            chatId: chatId.id,
+            role: "assistant",
+            content: response,
+          });
+          console.log("[DEBUG] Saved assistant response for chat:", chatId.id);
+        }
       });
     } catch (error) {
       console.error("[ERROR] chatRoutes handler:", error);

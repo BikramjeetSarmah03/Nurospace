@@ -17,9 +17,33 @@ export const getLLM = (model: ISupportedModels = "gemini-2.5-pro") => {
         temperature: 0.7,
         apiKey: env.GOOGLE_API_KEY,
         streaming: true,
+        maxRetries: 3,
+        maxConcurrency: 1,
+      });
+
+    case "gemini-2.5-flash":
+      return new ChatGoogleGenerativeAI({
+        model: "gemini-2.5-flash",
+        temperature: 0.7,
+        apiKey: env.GOOGLE_API_KEY,
+        streaming: true,
+        maxRetries: 3,
+        maxConcurrency: 1,
       });
 
     default:
       throw new Error(`Unsupported model: ${model}`);
   }
+};
+
+// Fallback LLM for when primary model fails
+export const getFallbackLLM = () => {
+  return new ChatGoogleGenerativeAI({
+    model: "gemini-2.5-flash",
+    temperature: 0.7,
+    apiKey: env.GOOGLE_API_KEY,
+    streaming: true,
+    maxRetries: 1,
+    maxConcurrency: 1,
+  });
 };

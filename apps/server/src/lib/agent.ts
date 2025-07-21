@@ -1,16 +1,12 @@
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { MemorySaver } from "@langchain/langgraph";
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { toolset } from "@/tool/tool.index";
+import { getLLM, getFallbackLLM } from "./llm";
 
 const memorySaver = new MemorySaver();
 
-export function createAgent() {
-  const llm = new ChatGoogleGenerativeAI({
-    model: "gemini-1.5-flash",
-    apiKey: process.env.GOOGLE_API_KEY!,
-    temperature: 0,
-  });
+export function createAgent(useFallback = false) {
+  const llm = useFallback ? getFallbackLLM() : getLLM("gemini-2.5-pro");
 
   return createReactAgent({
     llm,

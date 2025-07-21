@@ -5,6 +5,7 @@ const EnvSchema = z.object({
   REDIS_PORT: z.coerce.number().default(6379),
   DATABASE_URL: z.string(),
   GOOGLE_API_KEY: z.string(),
+  TAVILY_API_KEY: z.string().optional(),
   CORS_ORIGIN: z.string(),
   BETTER_AUTH_SECRET: z.string(),
   BETTER_AUTH_URL: z.string(),
