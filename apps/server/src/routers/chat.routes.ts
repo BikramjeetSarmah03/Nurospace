@@ -20,7 +20,89 @@ const NewChatSchema = z.object({
   slug: z.string().optional(),
 });
 
-export const chatRoutes = new Hono().post(
+export const chatRoutes = new Hono()
+  .get("/", isAuthenticated, async (c) => {
+    try {
+      const userId = c.get("user")?.id;
+      if (!userId) throw new Error("Unauthorized");
+
+      // Get all chats for the user
+      const userChats = await db
+        .select({
+          id: chats.id,
+          title: chats.title,
+          slug: chats.slug,
+          createdAt: chats.createdAt,
+        })
+        .from(chats)
+        .where(sql`user_id = ${userId}`)
+        .orderBy(sql`created_at DESC`);
+
+      return c.json({
+        success: true,
+        chats: userChats,
+      });
+    } catch (error) {
+      console.error("[ERROR] Failed to fetch chats:", error);
+      return c.json({
+        success: false,
+        error: "Failed to fetch chats",
+      }, 500);
+    }
+  })
+  .get("/:slug", isAuthenticated, async (c) => {
+    try {
+      const userId = c.get("user")?.id;
+      const slug = c.req.param("slug");
+      
+      if (!userId) throw new Error("Unauthorized");
+      if (!slug) throw new Error("Chat slug required");
+
+      // Get the specific chat
+      const [chat] = await db
+        .select({
+          id: chats.id,
+          title: chats.title,
+          slug: chats.slug,
+          createdAt: chats.createdAt,
+        })
+        .from(chats)
+        .where(sql`slug = ${slug} AND user_id = ${userId}`)
+        .limit(1);
+
+      if (!chat) {
+        return c.json({
+          success: false,
+          error: "Chat not found",
+        }, 404);
+      }
+
+      // Get all messages for this chat
+      const chatMessages = await db
+        .select({
+          id: messages.id,
+          role: messages.role,
+          content: messages.content,
+          createdAt: messages.createdAt,
+        })
+        .from(messages)
+        .where(sql`chat_id = ${chat.id}`)
+        .orderBy(sql`created_at ASC`);
+
+      return c.json({
+        success: true,
+        chat,
+        messages: chatMessages,
+      });
+    } catch (error) {
+      console.error("[ERROR] Failed to fetch chat:", error);
+      return c.json({
+        success: false,
+        error: "Failed to fetch chat",
+      }, 500);
+    }
+  })
+  .post(
   "/",
   isAuthenticated,
   zValidator("json", NewChatSchema),
@@ -60,16 +142,34 @@ export const chatRoutes = new Hono().post(
         chatId = data;
         console.log("[DEBUG] Created new chat:", chatId, "Slug:", finalSlug);
       } else {
-        const [data] = await db
+        // Try to find existing chat first
+        let [data] = await db
           .select({ id: chats.id })
           .from(chats)
           .where(sql`slug = ${slug} AND user_id = ${userId}`)
           .limit(1);
-        if (!data) throw new Error("Chat not found");
+        
+        if (!data) {
+          // Chat doesn't exist, create it
+          finalSlug = slug;
+          [data] = await db
+            .insert(chats)
+            .values({ userId, title: message.slice(0, 50), slug: finalSlug })
+            .returning({ id: chats.id });
+          console.log("[DEBUG] Created new chat with provided slug:", data, "Slug:", finalSlug);
+        } else {
+          console.log("[DEBUG] Found existing chat:", data, "Slug:", slug);
+        }
         chatId = data;
-        console.log("[DEBUG] Found existing chat:", chatId, "Slug:", slug);
       }
 
+      // Check if this is a new conversation by looking for existing messages
+      const existingMessages = await db
+        .select({ id: messages.id })
+        .from(messages)
+        .where(sql`chat_id = ${chatId.id}`)
+        .limit(1);
+      
       // 💬 Save user message
       await db.insert(messages).values({
         chatId: chatId.id,
@@ -81,16 +181,53 @@ export const chatRoutes = new Hono().post(
       let agent = createAgent();
       console.log("[DEBUG] Starting agent stream...");
 
-      // Add system message only for new conversations
+      // For existing conversations, let LangGraph memory handle context
+      // For new conversations, add system message
       const agentMessages: BaseMessage[] = [];
-      if (!slug) {
-        // Only add system message for new conversations
+      
+      if (existingMessages.length === 0) {
+        // This is a new conversation, add system message
         agentMessages.push(
           new SystemMessage(
-            "You are a helpful AI assistant with access to the user's uploaded documents and resources. IMPORTANT: When the user asks about documents, files, or any uploaded content, ALWAYS use the 'retrieveRelevantChunks' tool first to search through their documents before answering. Do not ask them to specify which document - just search through all their uploaded content automatically. Only ask for clarification if the search results don't provide enough information to answer their question.",
+            `You are an intelligent AI assistant with advanced reasoning capabilities and access to multiple tools and the user's uploaded documents.
+
+🎯 CAPABILITIES:
+• Document Analysis: Use 'retrieveRelevantChunks' to search through user's uploaded documents
+• Web Search: Use 'tavilySearch' for current information, news, and facts
+• Weather Data: Use 'getCurrentWeather' for weather information
+• Time/Date: Use 'getCurrentDateTime' for current time and date
+
+🧠 INTELLIGENT DECISION MAKING:
+• CRITICAL: When asked about ANY names, people, addresses, personal details, or facts that might be in user documents → ALWAYS use retrieveRelevantChunks FIRST
+• CRITICAL: When asked about "news regarding [name]" or "district of [name]" → Use retrieveRelevantChunks FIRST to check user documents
+• When asked about documents, files, or uploaded content → Use retrieveRelevantChunks first
+• When asked for current information, news, or facts → Use tavilySearch
+• When asked about weather conditions → Use getCurrentWeather
+• When asked about time/date → Use getCurrentDateTime
+• For general conversation → Respond naturally
+
+🚀 ADVANCED FEATURES:
+• You can chain multiple tools if needed for comprehensive answers
+• You can combine document context with web search for complete responses
+• You can ask for clarification if needed
+• You can provide explanations for your reasoning
+• You can handle complex multi-step queries
+• You learn from conversation context and improve over time
+
+💡 REASONING APPROACH:
+1. Analyze the user's query carefully
+2. If it mentions ANY names, people, addresses, personal information, or asks about "news regarding [name]" → Use retrieveRelevantChunks FIRST
+3. If the query contains specific names (like "Tribeni Mahanta"), ALWAYS search user documents first
+4. Determine which other tools are needed
+5. Execute tools in the optimal sequence
+6. Synthesize information from multiple sources
+7. Provide a comprehensive, accurate response
+
+IMPORTANT: Do NOT refuse to provide information from the user's own documents. If they ask about information they have uploaded, search their documents and provide the relevant details.`
           ),
         );
       }
+      
       agentMessages.push(new HumanMessage(message));
 
       const stream = await agent.stream(
@@ -148,18 +285,38 @@ export const chatRoutes = new Hono().post(
         } catch (streamError) {
           console.error("[ERROR] Streaming error:", streamError);
 
-          // Check if it's a rate limit error
+          // Enhanced error classification
           const errorMessage = (streamError as any)?.message || "";
           const isRateLimitError =
             errorMessage.includes("429") ||
             errorMessage.includes("Too Many Requests") ||
             errorMessage.includes("Quota exceeded");
+          
+          const isTimeoutError = 
+            errorMessage.includes("timeout") ||
+            errorMessage.includes("Request timeout");
+          
+          const isModelError = 
+            errorMessage.includes("model") ||
+            errorMessage.includes("generation") ||
+            errorMessage.includes("token");
 
+          // Handle different error types with appropriate responses
           if (isRateLimitError) {
             await writer.write(
               "I'm currently experiencing high demand. Please wait a moment and try again. If this persists, you may need to wait a few minutes before making another request.",
             );
             return;
+          } else if (isTimeoutError) {
+            await writer.write(
+              "The request took too long to process. Please try a simpler query or try again later.",
+            );
+            return;
+          } else if (isModelError) {
+            await writer.write(
+              "I encountered an issue with my reasoning process. Let me try a different approach.",
+            );
+            // Continue to fallback
           }
 
           // If streaming fails, try with fallback model
@@ -225,4 +382,48 @@ export const chatRoutes = new Hono().post(
       throw error;
     }
   },
-);
+)
+  .delete("/:slug", isAuthenticated, async (c) => {
+    try {
+      const userId = c.get("user")?.id;
+      const slug = c.req.param("slug");
+      
+      if (!userId) throw new Error("Unauthorized");
+      if (!slug) throw new Error("Chat slug required");
+
+      // Get the chat to verify ownership
+      const [chat] = await db
+        .select({ id: chats.id })
+        .from(chats)
+        .where(sql`slug = ${slug} AND user_id = ${userId}`)
+        .limit(1);
+
+      if (!chat) {
+        return c.json({
+          success: false,
+          error: "Chat not found",
+        }, 404);
+      }
+
+      // Delete all messages first (foreign key constraint)
+      await db
+        .delete(messages)
+        .where(sql`chat_id = ${chat.id}`);
+
+      // Delete the chat
+      await db
+        .delete(chats)
+        .where(sql`id = ${chat.id}`);
+
+      return c.json({
+        success: true,
+        message: "Chat deleted successfully",
+      });
+    } catch (error) {
+      console.error("[ERROR] Failed to delete chat:", error);
+      return c.json({
+        success: false,
+        error: "Failed to delete chat",
+      }, 500);
+    }
+  });

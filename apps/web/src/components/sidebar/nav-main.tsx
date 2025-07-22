@@ -17,13 +17,14 @@ import {
 
 import type { NavItem } from "./app-sidebar";
 import { Link } from "@tanstack/react-router";
+import { ChatHistoryList } from "./chat-history-list";
 
 export function NavMain({ items }: { items: NavItem[] }) {
   return (
     <SidebarGroup>
       <SidebarMenu>
         {items.map((item) =>
-          item.items?.length ? (
+          item.items?.length || item.dynamicContent ? (
             <Collapsible
               key={item.title}
               asChild
@@ -47,15 +48,21 @@ export function NavMain({ items }: { items: NavItem[] }) {
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <SidebarMenuSub>
-                    {item.items.map((subItem) => (
-                      <SidebarMenuSubItem key={subItem.title}>
-                        <SidebarMenuSubButton asChild>
-                          <Link to={subItem.url}>
-                            <span>{subItem.title}</span>
-                          </Link>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    ))}
+                    {item.dynamicContent ? (
+                      <div className="px-2 py-1">
+                        <ChatHistoryList />
+                      </div>
+                    ) : (
+                      item.items?.map((subItem) => (
+                        <SidebarMenuSubItem key={subItem.title}>
+                          <SidebarMenuSubButton asChild>
+                            <Link to={subItem.url}>
+                              <span>{subItem.title}</span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))
+                    )}
                   </SidebarMenuSub>
                 </CollapsibleContent>
               </SidebarMenuItem>

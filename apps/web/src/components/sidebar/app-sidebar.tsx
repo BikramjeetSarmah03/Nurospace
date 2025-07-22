@@ -30,19 +30,16 @@ export interface NavItem {
   icon: LucideIcon;
   isActive?: boolean;
   items?: { title: string; url: string }[];
+  dynamicContent?: boolean;
 }
 
 const navItems: NavItem[] = [
   {
-    title: "Chats",
+    title: "Chat",
     url: "/c",
     icon: SquareTerminal,
     isActive: true,
-    items: [
-      { title: "Feature Q&A", url: "/c/hello" },
-      { title: "Market Research", url: "/c/market-research" },
-      { title: "User Interview", url: "/c/user-interview" },
-    ],
+    dynamicContent: true,
   },
   {
     title: "Resources",

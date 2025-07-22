@@ -5,7 +5,12 @@ import { getCurrentDateTime } from "./currentDateTool";
 import { retrieveRelevantChunksTool } from "./retrieveRelevantChunks";
 import { tavilySearch, formatSearchResults } from "./tavilySearchTool";
 
+//schedule email tool
+
+
 export const toolset = [
+  retrieveRelevantChunksTool,
+
   new DynamicTool({
     name: "getCurrentWeather",
     description:
@@ -27,8 +32,6 @@ export const toolset = [
       return `Date: ${res.date}, Time: ${res.time}`;
     },
   }),
-
-  retrieveRelevantChunksTool,
 
   new DynamicTool({
     name: "tavilySearch",
