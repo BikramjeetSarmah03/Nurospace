@@ -24,7 +24,7 @@
   },
   "lint-staged": {
     "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
-      "biome format --write . && biome check --write ."
+      "biome format --write . && biome check ."
     ]
   },
   "packageManager": "bun@1.2.17"
