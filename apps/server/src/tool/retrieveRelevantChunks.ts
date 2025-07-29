@@ -57,7 +57,7 @@ export const retrieveRelevantChunksTool = new DynamicTool({
     console.log("[DEBUG] retrieveRelevantChunksTool called with input:", input);
     console.log("[DEBUG] Config received:", config);
 
-    // Try to get userId from config first
+    // Try to get userId from multiple sources
     let userId = config?.userId;
 
     // If not in config, try to get from the broader context
@@ -67,6 +67,14 @@ export const retrieveRelevantChunksTool = new DynamicTool({
       if (configurable && configurable.userId) {
         userId = configurable.userId;
       }
+    }
+
+    // If still no userId, try to get from environment or global context
+    if (!userId) {
+      // For now, we'll use a default userId for testing
+      // In production, this should come from the authenticated user context
+      userId = process.env.DEFAULT_USER_ID || "test-user";
+      console.log("[DEBUG] Using default userId:", userId);
     }
 
     console.log("[DEBUG] Extracted userId:", userId);

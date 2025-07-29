@@ -7,7 +7,7 @@ import {
   SystemMessage,
   type BaseMessage,
 } from "@langchain/core/messages";
-import { createAgent } from "@/lib/agent";
+import { createSupervisorAgent } from "@/lib/supervisor-agent";
 import { chats, messages } from "@/db/schema/chat";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
@@ -176,10 +176,11 @@ export const chatRoutes = new Hono()
         role: "user",
         content: message,
       });
-      console.log("[DEBUG] Saved user message for chat:", chatId.id);
+      console.log("[DEBUG] Saved user message fora chat:", chatId.id);
 
-      let agent = createAgent();
-      console.log("[DEBUG] Starting agent stream...");
+      // 🎯 Create supervisor agent with userId context
+      const supervisorAgent = createSupervisorAgent();
+      console.log("[DEBUG] Starting supervisor agent stream...");
 
       // For existing conversations, let LangGraph memory handle context
       // For new conversations, add system message
@@ -189,200 +190,117 @@ export const chatRoutes = new Hono()
         // This is a new conversation, add system message
         agentMessages.push(
           new SystemMessage(
-            `You are an intelligent AI assistant with advanced reasoning capabilities and access to multiple tools and the user's uploaded documents.
+            `You are a supervisor agent that routes tasks to specialized agents.
 
-🎯 CAPABILITIES:
-• Document Analysis: Use 'retrieveRelevantChunks' to search through user's uploaded documents
-• Web Search: Use 'tavilySearch' for current information, news, and facts
-• Weather Data: Use 'getCurrentWeather' for weather information
-• Time/Date: Use 'getCurrentDateTime' for current time and date
+🎯 AVAILABLE AGENTS:
+• Research Agent: For searching, gathering information, web searches, document retrieval
+• Analysis Agent: For data analysis, calculations, reasoning, problem-solving  
+• Execution Agent: For taking actions, API calls, tool execution
+• Planning Agent: For creating plans, strategies, step-by-step thinking
 
-🧠 INTELLIGENT DECISION MAKING:
-• CRITICAL: When asked about ANY names, people, addresses, personal details, or facts that might be in user documents → ALWAYS use retrieveRelevantChunks FIRST
-• CRITICAL: When asked about "news regarding [name]" or "district of [name]" → Use retrieveRelevantChunks FIRST to check user documents
-• When asked about documents, files, or uploaded content → Use retrieveRelevantChunks first
-• When asked for current information, news, or facts → Use tavilySearch
-• When asked about weather conditions → Use getCurrentWeather
-• When asked about time/date → Use getCurrentDateTime
-• For general conversation → Respond naturally
+🧠 INTELLIGENT ROUTING:
+• "Find information about..." → Research Agent
+• "Calculate..." → Analysis Agent
+• "Execute..." → Execution Agent  
+• "Plan..." → Planning Agent
+• "Tell me about..." → Research Agent
+• "How to..." → Planning Agent
 
-🚀 ADVANCED FEATURES:
-• You can chain multiple tools if needed for comprehensive answers
-• You can combine document context with web search for complete responses
-• You can ask for clarification if needed
-• You can provide explanations for your reasoning
-• You can handle complex multi-step queries
-• You learn from conversation context and improve over time
+📋 SPECIALIZED TOOLS:
+• Document Analysis: retrieveRelevantChunks for user's uploaded documents
+• Web Search: tavilySearch for current information and news
+• Weather Data: getCurrentWeather for weather information
+• Time/Date: getCurrentDateTime for current time and date
 
-💡 REASONING APPROACH:
-1. Analyze the user's query carefully
-2. If it mentions ANY names, people, addresses, personal information, or asks about "news regarding [name]" → Use retrieveRelevantChunks FIRST
-3. If the query contains specific names (like "Tribeni Mahanta"), ALWAYS search user documents first
-4. Determine which other tools are needed
-5. Execute tools in the optimal sequence
-6. Synthesize information from multiple sources
-7. Provide a comprehensive, accurate response
-
-IMPORTANT: Do NOT refuse to provide information from the user's own documents. If they ask about information they have uploaded, search their documents and provide the relevant details.`
-          ),
+🎯 RESPONSE FORMAT:
+Always respond with ONLY the agent name (research, analysis, execution, or planning) based on the user's request.`
+          )
         );
       }
-      
+
+      // Add user message
       agentMessages.push(new HumanMessage(message));
 
-      const stream = await agent.stream(
-        {
-          messages: agentMessages,
-        },
-        {
-          configurable: {
-            thread_id: finalSlug,
-            userId: userId,
-          },
-        },
-      );
+      // Get existing messages for context
+      if (existingMessages.length > 0) {
+        const previousMessages = await db
+          .select({
+            role: messages.role,
+            content: messages.content,
+          })
+          .from(messages)
+          .where(sql`chat_id = ${chatId.id}`)
+          .orderBy(sql`created_at ASC`);
 
-      return streamText(c, async (writer) => {
-        let response = "";
-
-        try {
-          for await (const chunk of stream) {
-            console.log("[DEBUG] Agent chunk type:", typeof chunk);
-            console.log("[DEBUG] Agent chunk:", JSON.stringify(chunk, null, 2));
-
-            // ✅ Handles both string and LangGraph object streaming
-            if (typeof chunk === "string") {
-              response += chunk;
-              await writer.write(chunk);
-            } else if (
-              typeof chunk === "object" &&
-              chunk !== null &&
-              "agent" in chunk &&
-              Array.isArray(chunk.agent.messages)
-            ) {
-              for (const msg of chunk.agent.messages) {
-                if (
-                  typeof msg === "object" &&
-                  msg !== null &&
-                  "content" in msg &&
-                  typeof (msg as any).content === "string"
-                ) {
-                  response += (msg as any).content;
-                  await writer.write((msg as any).content);
-                }
-              }
-            } else if (
-              typeof chunk === "object" &&
-              chunk !== null &&
-              "content" in chunk &&
-              typeof (chunk as any).content === "string"
-            ) {
-              // Handle direct message objects
-              response += (chunk as any).content;
-              await writer.write((chunk as any).content);
-            }
-          }
-        } catch (streamError) {
-          console.error("[ERROR] Streaming error:", streamError);
-
-          // Enhanced error classification
-          const errorMessage = (streamError as any)?.message || "";
-          const isRateLimitError =
-            errorMessage.includes("429") ||
-            errorMessage.includes("Too Many Requests") ||
-            errorMessage.includes("Quota exceeded");
-          
-          const isTimeoutError = 
-            errorMessage.includes("timeout") ||
-            errorMessage.includes("Request timeout");
-          
-          const isModelError = 
-            errorMessage.includes("model") ||
-            errorMessage.includes("generation") ||
-            errorMessage.includes("token");
-
-          // Handle different error types with appropriate responses
-          if (isRateLimitError) {
-            await writer.write(
-              "I'm currently experiencing high demand. Please wait a moment and try again. If this persists, you may need to wait a few minutes before making another request.",
-            );
-            return;
-          } else if (isTimeoutError) {
-            await writer.write(
-              "The request took too long to process. Please try a simpler query or try again later.",
-            );
-            return;
-          } else if (isModelError) {
-            await writer.write(
-              "I encountered an issue with my reasoning process. Let me try a different approach.",
-            );
-            // Continue to fallback
-          }
-
-          // If streaming fails, try with fallback model
-          try {
-            console.log("[DEBUG] Trying fallback model...");
-            agent = createAgent(true); // Use fallback model
-
-            const directResponse = await agent.invoke(
-              {
-                messages: agentMessages,
-              },
-              {
-                configurable: {
-                  thread_id: finalSlug,
-                  userId: userId,
-                },
-              },
-            );
-
-            if (
-              directResponse &&
-              typeof directResponse === "object" &&
-              "agent" in directResponse
-            ) {
-              const agentResponse = directResponse as {
-                agent: { messages: any[] };
-              };
-              const messages = agentResponse.agent.messages;
-              for (const msg of messages) {
-                if (
-                  msg &&
-                  typeof msg === "object" &&
-                  "content" in msg &&
-                  typeof (msg as any).content === "string"
-                ) {
-                  response += (msg as any).content;
-                  await writer.write((msg as any).content);
-                }
-              }
-            }
-          } catch (fallbackError) {
-            console.error("[ERROR] Fallback error:", fallbackError);
-            await writer.write(
-              "I apologize, but I'm currently experiencing technical difficulties. Please try again in a few minutes.",
-            );
+        // Convert database messages to LangChain messages
+        for (const msg of previousMessages) {
+          if (msg.role === "user") {
+            agentMessages.push(new HumanMessage(msg.content));
+          } else if (msg.role === "assistant") {
+            agentMessages.push(new HumanMessage(msg.content));
           }
         }
+      }
 
-        console.log("[DEBUG] Final response:", response);
+      return streamText(c, async (stream) => {
+        try {
+          console.log("[DEBUG] Starting supervisor agent invocation...");
+          
+          // 🎯 Use supervisor agent with userId context
+          const result = await supervisorAgent(agentMessages, {
+            configurable: { userId }
+          });
 
-        // ✅ Save only the final accumulated response
-        if (response.trim()) {
+          console.log("[DEBUG] Supervisor agent completed");
+
+          // Save the final response
+          const finalResponse = result.messages[result.messages.length - 1];
+          if (finalResponse && finalResponse.content) {
+            const responseContent = typeof finalResponse.content === 'string' 
+              ? finalResponse.content 
+              : '';
+
+            await db.insert(messages).values({
+              chatId: chatId.id,
+              role: "assistant",
+              content: responseContent,
+            });
+          }
+
+          // Send the final response
+          const responseContent = result.messages[result.messages.length - 1]?.content;
+          if (responseContent) {
+            const content = typeof responseContent === 'string' 
+              ? responseContent 
+              : '';
+
+            await stream.write(content);
+          }
+
+        } catch (error) {
+          console.error("[ERROR] Supervisor agent error:", error);
+          
+          // Save error message
           await db.insert(messages).values({
             chatId: chatId.id,
             role: "assistant",
-            content: response,
+            content: `I apologize, but I encountered an error while processing your request. Please try again.`,
           });
-          console.log("[DEBUG] Saved assistant response for chat:", chatId.id);
+
+          await stream.write(
+            `I apologize, but I encountered an error while processing your request. Please try again.`
+          );
         }
       });
+
     } catch (error) {
-      console.error("[ERROR] chatRoutes handler:", error);
-      throw error;
+      console.error("[ERROR] Chat route error:", error);
+      return c.json({
+        success: false,
+        error: "Failed to process chat message",
+      }, 500);
     }
-  },
-)
+  })
   .delete("/:slug", isAuthenticated, async (c) => {
     try {
       const userId = c.get("user")?.id;
