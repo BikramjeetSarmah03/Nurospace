@@ -48,7 +48,7 @@
         "noInferrableTypes": "error",
         "noUselessElse": "error",
         "useImportType": {
-          "level": "on",
+          "level": "info",
           "options": {
             "style": "auto"
           }

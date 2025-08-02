@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: root
-      POSTGRES_DB: productify
+      POSTGRES_DB: nurospace
     ports:
       - "5433:5432"
     volumes:

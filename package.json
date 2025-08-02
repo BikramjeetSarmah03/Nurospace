@@ -27,5 +27,8 @@
       "biome format --write . && biome check ."
     ]
   },
-  "packageManager": "bun@1.2.17"
+  "packageManager": "bun@1.2.17",
+  "dependencies": {
+    "dotenv": "^17.2.1"
+  }
 }
