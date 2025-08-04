@@ -3,7 +3,7 @@ import type { Context } from "hono";
 
 import { auth } from "./auth.config";
 
-@Controller("auth/**")
+@Controller("auth/*")
 export default class AuthController {
   @All("")
   async handleAuth(@Ctx() ctx: Context) {

@@ -1,8 +1,4 @@
-import {
-  type MiddlewareConfig,
-  type NextRequest,
-  NextResponse,
-} from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 import { rootDomain } from "@/lib/utils";
 
@@ -50,7 +46,21 @@ export async function middleware(request: NextRequest) {
   const subdomain = extractSubdomain(request);
 
   if (subdomain) {
-    // For the root path on a subdomain, rewrite to the subdomain page
+    // ✅ Avoid infinite redirect loop
+    // if (!sessionCookie) {
+    //   if (pathname !== "/auth/login") {
+    //     const mainHost = request.headers
+    //       .get("host")
+    //       ?.replace(`${subdomain}.`, "");
+    //     const loginUrl = new URL("/auth/login", request.url);
+    //     loginUrl.hostname = mainHost || "localhost";
+
+    //     return NextResponse.redirect(loginUrl);
+    //   }
+    //   return NextResponse.next(); // Let /login page load without auth
+    // }
+
+    // ✅ Rewrite root "/" to "/u/:subdomain"
     if (pathname === "/") {
       return NextResponse.rewrite(new URL(`/u/${subdomain}`, request.url));
     }
@@ -69,6 +79,7 @@ export const config = {
      * 3. all root files inside /public (e.g. /favicon.ico)
      */
     "/((?!api|_next|[\\w-]+\\.\\w+).*)",
-    "/u/:path*",
+    // "/(protected)/:path*",
+    "/auth/:path*",
   ],
-} as MiddlewareConfig;
+};

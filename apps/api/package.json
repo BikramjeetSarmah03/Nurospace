@@ -7,7 +7,11 @@
     "dev": "bun run --watch src/main.ts",
     "start": "bun dist/main.js",
     "build:bun": "bun build src/main.ts --outdir ./dist --target bun",
-    "build:node": "bun build src/main.ts --outdir ./dist --target node"
+    "build:node": "bun build src/main.ts --outdir ./dist --target node",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
     "@honestjs/class-validator-pipe": "^1.1.0",
