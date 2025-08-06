@@ -113,6 +113,8 @@ ANALYSIS AGENT:
 - Statistical processing and reasoning
 - Time-based analysis and computations
 - Mathematical calculations and formulas
+- Current date and time queries
+- Time calculations and date operations
 
 EXECUTION AGENT:
 - Taking actions and API interactions
@@ -128,6 +130,8 @@ IMPORTANT ROUTING RULES:
 - ANY question about personal information, people, addresses, facts from documents → RESEARCH AGENT
 - Questions about "age of", "tell me about", "what is", "find information about" → RESEARCH AGENT
 - Questions about specific names, people, personal details → RESEARCH AGENT
+- Questions about current date, time, "what day is it", "current date" → ANALYSIS AGENT
+- Mathematical calculations, formulas, or complex analysis → ANALYSIS AGENT
 - Only mathematical calculations, formulas, or complex analysis → ANALYSIS AGENT
 
 Analyze the user's request and respond with ONLY the agent name (research, analysis, execution, or planning).
@@ -136,10 +140,12 @@ Examples:
 - "Find information about..." → research
 - "What is the age of..." → research
 - "Tell me about..." → research
+- "Current date?" → analysis
+- "What time is it?" → analysis
+- "What day is today?" → analysis
 - "Calculate..." → analysis  
 - "Execute..." → execution
 - "Plan..." → planning
-- "Tell me about..." → research
 - "How to..." → planning`;
 
 /**

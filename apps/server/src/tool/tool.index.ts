@@ -26,10 +26,10 @@ export const toolset = [
   new DynamicTool({
     name: "getCurrentDateTime",
     description:
-      "Use this tool when the user asks about the current date, time, or what day it is today. No input required.",
+      "Use this tool when the user asks about the current date, time, or what day it is today. This tool provides the current date and time with timezone information. No input required.",
     func: async (_input: string) => {
       const res = getCurrentDateTime();
-      return `Date: ${res.date}, Time: ${res.time}`;
+      return `Current Date: ${res.date}\nCurrent Time: ${res.time}\nTimezone: ${res.timezone}\nISO: ${res.iso}`;
     },
   }),
 
@@ -42,7 +42,6 @@ export const toolset = [
       if (!apiKey) {
         return "Tavily API key not configured. Please set TAVILY_API_KEY environment variable to enable web search functionality.";
       }
-
       try {
         const searchResults = await tavilySearch(input, apiKey, "basic", 5);
         return formatSearchResults(searchResults.results);
