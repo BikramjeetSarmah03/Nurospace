@@ -4,7 +4,9 @@ import { authQueries } from "@/queries/auth.query";
 
 import { useAuthStore } from "@/hooks/use-auth";
 
-import Header from "@/components/common/header";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+
+import { AppSidebar } from "@/components/sidebar/app-sidebar";
 
 export const Route = createFileRoute("/_protected")({
   component: RouteComponent,
@@ -35,13 +37,17 @@ export const Route = createFileRoute("/_protected")({
 });
 
 function RouteComponent() {
-  const loaderData = Route.useLoaderData();
-
   return (
-    <div>
-      <Header user={loaderData.user} />
+    <SidebarProvider>
+      <AppSidebar />
 
-      <Outlet />
-    </div>
+      <main className="w-full">
+        <div className="flex bg-white px-4 py-2 border-b">
+          <SidebarTrigger />
+        </div>
+
+        <Outlet />
+      </main>
+    </SidebarProvider>
   );
 }
