@@ -1,17 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+import z from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-import z from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth/client";
 import {
   Form,
   FormControl,
@@ -20,11 +22,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useRouter } from "next/navigation";
 
 const LoginSchema = z.object({
-  email: z.email(),
-  password: z.string(),
+  email: z
+    .string({ message: "Please enter email" })
+    .email({ message: "Please enter a valid email" }),
+  password: z.string({ message: "Please enter a password" }),
 });
 
 type ILoginSchema = z.infer<typeof LoginSchema>;

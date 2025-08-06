@@ -4,6 +4,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "@/index.css";
 
 import Providers from "@/components/providers";
+import Header from "@/components/header";
+import { serverSession } from "@/lib/auth/server";
+import { headers } from "next/headers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,17 +23,22 @@ export const metadata: Metadata = {
   description: "nurospace",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await serverSession(headers());
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          <Header user={session.data?.user} />
+          {children}
+        </Providers>
       </body>
     </html>
   );

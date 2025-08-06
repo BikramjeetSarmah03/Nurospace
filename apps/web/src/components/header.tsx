@@ -1,8 +1,10 @@
 "use client";
-import Link from "next/link";
 
-import { ModeToggle } from "./mode-toggle";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
 import { Button } from "./ui/button";
+import LogoutButton from "./auth/logout-button";
 
 interface HeaderProps {
   user?: {
@@ -17,6 +19,8 @@ interface HeaderProps {
 }
 
 export default function Header({ user }: HeaderProps) {
+  const pathname = usePathname();
+
   const links = [{ to: "/", label: "Home" }];
 
   return (
@@ -32,10 +36,14 @@ export default function Header({ user }: HeaderProps) {
           })}
         </nav>
         <div className="flex items-center gap-2">
-          <ModeToggle />
-
-          {user ? (
-            <Button>Logout</Button>
+          {pathname === "/" ? (
+            <Button variant={"outline"} size={"sm"} asChild>
+              <Link href={`/u/${user?.name}`}>Go to Dashboard</Link>
+            </Button>
+          ) : user ? (
+            <LogoutButton>
+              <span>Logout</span>
+            </LogoutButton>
           ) : (
             <div>
               <Button asChild>
