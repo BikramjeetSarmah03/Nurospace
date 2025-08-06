@@ -1,26 +1,15 @@
-"use client";
-
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
 import LogoutButton from "@/components/auth/logout-button";
 
+import type { IUser } from "@/config/types";
+
 interface HeaderProps {
-  user?: {
-    id: string;
-    email: string;
-    emailVerified: boolean;
-    name: string;
-    createdAt: Date;
-    updatedAt: Date;
-    image?: string | null | undefined;
-  } | null;
+  user: IUser;
 }
 
 export default function Header({ user }: HeaderProps) {
-  const pathname = usePathname();
-
   const links = [{ to: "/", label: "Home" }];
 
   return (
@@ -29,7 +18,7 @@ export default function Header({ user }: HeaderProps) {
         <nav className="flex gap-4 text-lg">
           {links.map(({ to, label }) => {
             return (
-              <Link key={to} href={to}>
+              <Link key={to} to={to}>
                 {label}
               </Link>
             );
@@ -37,18 +26,12 @@ export default function Header({ user }: HeaderProps) {
         </nav>
         <div className="flex items-center gap-2">
           {user ? (
-            pathname === "/" ? (
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/dashboard">Go to Dashboard</Link>
-              </Button>
-            ) : (
-              <LogoutButton>
-                <span>Logout</span>
-              </LogoutButton>
-            )
+            <LogoutButton>
+              <span>Logout</span>
+            </LogoutButton>
           ) : (
             <Button asChild>
-              <Link href="/auth/login">Login</Link>
+              <Link to="/auth/login">Login</Link>
             </Button>
           )}
         </div>

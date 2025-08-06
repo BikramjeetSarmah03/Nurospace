@@ -9,50 +9,169 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './pages/__root'
-import { Route as IndexRouteImport } from './pages/index'
+import { Route as AuthLayoutRouteImport } from './pages/auth/layout'
+import { Route as ProtectedLayoutRouteImport } from './pages/_protected/layout'
+import { Route as ProtectedIndexRouteImport } from './pages/_protected/index'
+import { Route as AuthRegisterIndexRouteImport } from './pages/auth/register/index'
+import { Route as AuthLoginIndexRouteImport } from './pages/auth/login/index'
+import { Route as AuthPasswordForgotRouteImport } from './pages/auth/password/forgot'
 
-const IndexRoute = IndexRouteImport.update({
+const AuthLayoutRoute = AuthLayoutRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProtectedLayoutRoute = ProtectedLayoutRouteImport.update({
+  id: '/_protected',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProtectedIndexRoute = ProtectedIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => ProtectedLayoutRoute,
+} as any)
+const AuthRegisterIndexRoute = AuthRegisterIndexRouteImport.update({
+  id: '/register/',
+  path: '/register/',
+  getParentRoute: () => AuthLayoutRoute,
+} as any)
+const AuthLoginIndexRoute = AuthLoginIndexRouteImport.update({
+  id: '/login/',
+  path: '/login/',
+  getParentRoute: () => AuthLayoutRoute,
+} as any)
+const AuthPasswordForgotRoute = AuthPasswordForgotRouteImport.update({
+  id: '/password/forgot',
+  path: '/password/forgot',
+  getParentRoute: () => AuthLayoutRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/auth': typeof AuthLayoutRouteWithChildren
+  '/': typeof ProtectedIndexRoute
+  '/auth/password/forgot': typeof AuthPasswordForgotRoute
+  '/auth/login': typeof AuthLoginIndexRoute
+  '/auth/register': typeof AuthRegisterIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/auth': typeof AuthLayoutRouteWithChildren
+  '/': typeof ProtectedIndexRoute
+  '/auth/password/forgot': typeof AuthPasswordForgotRoute
+  '/auth/login': typeof AuthLoginIndexRoute
+  '/auth/register': typeof AuthRegisterIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_protected': typeof ProtectedLayoutRouteWithChildren
+  '/auth': typeof AuthLayoutRouteWithChildren
+  '/_protected/': typeof ProtectedIndexRoute
+  '/auth/password/forgot': typeof AuthPasswordForgotRoute
+  '/auth/login/': typeof AuthLoginIndexRoute
+  '/auth/register/': typeof AuthRegisterIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/auth'
+    | '/'
+    | '/auth/password/forgot'
+    | '/auth/login'
+    | '/auth/register'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/auth' | '/' | '/auth/password/forgot' | '/auth/login' | '/auth/register'
+  id:
+    | '__root__'
+    | '/_protected'
+    | '/auth'
+    | '/_protected/'
+    | '/auth/password/forgot'
+    | '/auth/login/'
+    | '/auth/register/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  ProtectedLayoutRoute: typeof ProtectedLayoutRouteWithChildren
+  AuthLayoutRoute: typeof AuthLayoutRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthLayoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_protected': {
+      id: '/_protected'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof ProtectedLayoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_protected/': {
+      id: '/_protected/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof ProtectedIndexRouteImport
+      parentRoute: typeof ProtectedLayoutRoute
+    }
+    '/auth/register/': {
+      id: '/auth/register/'
+      path: '/register'
+      fullPath: '/auth/register'
+      preLoaderRoute: typeof AuthRegisterIndexRouteImport
+      parentRoute: typeof AuthLayoutRoute
+    }
+    '/auth/login/': {
+      id: '/auth/login/'
+      path: '/login'
+      fullPath: '/auth/login'
+      preLoaderRoute: typeof AuthLoginIndexRouteImport
+      parentRoute: typeof AuthLayoutRoute
+    }
+    '/auth/password/forgot': {
+      id: '/auth/password/forgot'
+      path: '/password/forgot'
+      fullPath: '/auth/password/forgot'
+      preLoaderRoute: typeof AuthPasswordForgotRouteImport
+      parentRoute: typeof AuthLayoutRoute
     }
   }
 }
 
+interface ProtectedLayoutRouteChildren {
+  ProtectedIndexRoute: typeof ProtectedIndexRoute
+}
+
+const ProtectedLayoutRouteChildren: ProtectedLayoutRouteChildren = {
+  ProtectedIndexRoute: ProtectedIndexRoute,
+}
+
+const ProtectedLayoutRouteWithChildren = ProtectedLayoutRoute._addFileChildren(
+  ProtectedLayoutRouteChildren,
+)
+
+interface AuthLayoutRouteChildren {
+  AuthPasswordForgotRoute: typeof AuthPasswordForgotRoute
+  AuthLoginIndexRoute: typeof AuthLoginIndexRoute
+  AuthRegisterIndexRoute: typeof AuthRegisterIndexRoute
+}
+
+const AuthLayoutRouteChildren: AuthLayoutRouteChildren = {
+  AuthPasswordForgotRoute: AuthPasswordForgotRoute,
+  AuthLoginIndexRoute: AuthLoginIndexRoute,
+  AuthRegisterIndexRoute: AuthRegisterIndexRoute,
+}
+
+const AuthLayoutRouteWithChildren = AuthLayoutRoute._addFileChildren(
+  AuthLayoutRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  ProtectedLayoutRoute: ProtectedLayoutRouteWithChildren,
+  AuthLayoutRoute: AuthLayoutRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

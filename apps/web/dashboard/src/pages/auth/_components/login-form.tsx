@@ -1,19 +1,12 @@
-"use client";
-
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-
 import z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-
-import { cn } from "@/lib/utils";
+import { Link, useNavigate } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-import { authClient } from "@/lib/auth/client";
 import {
   Form,
   FormControl,
@@ -22,20 +15,32 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import type { AuthSearchParams } from "../login";
+
+import { cn } from "@/lib/utils";
+import { authClient } from "@/lib/auth-client";
+import { queryClient } from "@/lib/query-client";
+
+import { USER_KEYS } from "@/config/query-keys";
+
+const fallback = "/" as const;
 
 const LoginSchema = z.object({
-  email: z
-    .string({ message: "Please enter email" })
-    .email({ message: "Please enter a valid email" }),
+  email: z.email({ message: "Please enter a valid email" }),
   password: z.string({ message: "Please enter a password" }),
 });
 
 type ILoginSchema = z.infer<typeof LoginSchema>;
 
+interface LoginFormProps extends React.ComponentProps<"form"> {
+  searchParams?: z.infer<typeof AuthSearchParams>;
+}
+
 export function LoginForm({
+  searchParams,
   className,
   ...props
-}: React.ComponentProps<"form">) {
+}: LoginFormProps) {
   const form = useForm<ILoginSchema>({
     resolver: zodResolver(LoginSchema),
     defaultValues: {
@@ -43,7 +48,7 @@ export function LoginForm({
       password: "",
     },
   });
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const onSubmit = async (values: ILoginSchema) => {
     try {
@@ -52,10 +57,17 @@ export function LoginForm({
         password: values.password,
       });
 
-      if (!res.data) throw Error(res.error.message);
+      if (res.error) throw Error(res.error.message);
 
-      toast.success("Login Successfull");
-      router.replace("/dashboard");
+      queryClient
+        .refetchQueries({
+          queryKey: [USER_KEYS.MY_PROFILE],
+        })
+        .then(() => {
+          navigate({ to: searchParams?.redirect || fallback }).then(() => {
+            toast.success("Login Successfull");
+          });
+        });
     } catch (error) {
       toast.error((error as Error).message);
     }
@@ -105,7 +117,7 @@ export function LoginForm({
             />
 
             <Link
-              href="/auth/password/forgot"
+              to="/auth/password/forgot"
               className="ml-auto text-sm hover:underline underline-offset-4"
             >
               Forgot your password?
@@ -132,7 +144,7 @@ export function LoginForm({
         </div>
         <div className="text-sm text-center">
           Don&apos;t have an account?{" "}
-          <Link href="/auth/register" className="underline underline-offset-4">
+          <Link to="/auth/register" className="underline underline-offset-4">
             Sign up
           </Link>
         </div>

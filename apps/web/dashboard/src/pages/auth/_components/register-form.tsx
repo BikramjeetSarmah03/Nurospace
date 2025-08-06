@@ -1,17 +1,13 @@
-"use client";
-
-import Link from "next/link";
+import z from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-import z from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
-import { authClient } from "@/lib/auth/client";
 import {
   Form,
   FormControl,
@@ -20,6 +16,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { authClient } from "@/lib/auth-client";
+import { Link } from "@tanstack/react-router";
 
 const RegisterSchema = z.object({
   name: z.string(),
@@ -116,7 +114,7 @@ export function RegisterForm({
             />
 
             <Link
-              href="/auth/password/forgot"
+              to="/auth/password/forgot"
               className="ml-auto text-sm hover:underline underline-offset-4"
             >
               Forgot your password?
@@ -143,7 +141,7 @@ export function RegisterForm({
         </div>
         <div className="text-sm text-center">
           Already have an account?{" "}
-          <Link href="/auth/login" className="underline underline-offset-4">
+          <Link to="/auth/login" className="underline underline-offset-4">
             Login
           </Link>
         </div>
