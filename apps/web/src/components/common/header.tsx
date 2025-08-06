@@ -36,20 +36,20 @@ export default function Header({ user }: HeaderProps) {
           })}
         </nav>
         <div className="flex items-center gap-2">
-          {pathname === "/" ? (
-            <Button variant={"outline"} size={"sm"} asChild>
-              <Link href={`/u/${user?.name}`}>Go to Dashboard</Link>
-            </Button>
-          ) : user ? (
-            <LogoutButton>
-              <span>Logout</span>
-            </LogoutButton>
-          ) : (
-            <div>
-              <Button asChild>
-                <Link href={"/auth/login"}>Login</Link>
+          {user ? (
+            pathname === "/" ? (
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/dashboard">Go to Dashboard</Link>
               </Button>
-            </div>
+            ) : (
+              <LogoutButton>
+                <span>Logout</span>
+              </LogoutButton>
+            )
+          ) : (
+            <Button asChild>
+              <Link href="/auth/login">Login</Link>
+            </Button>
           )}
         </div>
       </div>

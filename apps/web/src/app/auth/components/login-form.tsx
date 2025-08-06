@@ -55,9 +55,7 @@ export function LoginForm({
       if (!res.data) throw Error(res.error.message);
 
       toast.success("Login Successfull");
-      router.replace(
-        `/u/${res.data.user.name.toLowerCase().replaceAll(" ", "-")}`,
-      );
+      router.replace("/dashboard");
     } catch (error) {
       toast.error((error as Error).message);
     }
