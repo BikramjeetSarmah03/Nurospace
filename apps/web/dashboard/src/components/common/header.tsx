@@ -10,33 +10,25 @@ interface HeaderProps {
 }
 
 export default function Header({ user }: HeaderProps) {
-  const links = [{ to: "/", label: "Home" }];
-
   return (
-    <div>
-      <div className="flex flex-row justify-between items-center px-2 py-1">
-        <nav className="flex gap-4 text-lg">
-          {links.map(({ to, label }) => {
-            return (
-              <Link key={to} to={to}>
-                {label}
-              </Link>
-            );
-          })}
-        </nav>
-        <div className="flex items-center gap-2">
-          {user ? (
-            <LogoutButton>
-              <span>Logout</span>
-            </LogoutButton>
-          ) : (
-            <Button asChild>
-              <Link to="/auth/login">Login</Link>
-            </Button>
-          )}
-        </div>
+    <div className="flex flex-row justify-between items-center px-2 py-1 border-b">
+      <div className="flex items-center gap-2">
+        <img src="/logo_dark.svg" alt="" className="size-8 text-primary" />
+
+        <h1 className="font-semibold text-primary text-lg">Nurospace</h1>
       </div>
-      <hr />
+
+      <div className="flex items-center gap-2">
+        {user ? (
+          <LogoutButton>
+            <span>Logout</span>
+          </LogoutButton>
+        ) : (
+          <Button asChild>
+            <Link to="/auth/login">Login</Link>
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

@@ -30,13 +30,13 @@ bun dev
 Open [http://localhost:3001](http://localhost:3001) in your browser to see the web application.
 
 
-
 ## Project Structure
 
 ```
 nurospace/
 ├── apps/
 │   ├── web/         # Frontend application (Next.js + Tailwind + Shadcn)
+│   ├── dashboard/   # Frontend main dashboard ( vite + tailwind + tanstack router) 
 │   ├── api/         # Backend application (Nest.js + Fastify)
 ```
 
