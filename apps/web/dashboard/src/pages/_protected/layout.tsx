@@ -41,12 +41,14 @@ function RouteComponent() {
     <SidebarProvider>
       <AppSidebar />
 
-      <main className="w-full">
-        <div className="flex bg-white px-4 py-2 border-b">
+      <main className="bg-sidebar dark:bg-gray-900 w-full">
+        <div className="flex bg-sidebar px-4 py-2 border-b">
           <SidebarTrigger />
         </div>
 
-        <Outlet />
+        <section className="bg-accent h-full">
+          <Outlet />
+        </section>
       </main>
     </SidebarProvider>
   );

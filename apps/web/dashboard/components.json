@@ -6,7 +6,7 @@
   "tailwind": {
     "config": "",
     "css": "src/styles/globals.css",
-    "baseColor": "rose",
+    "baseColor": "stone",
     "cssVariables": true,
     "prefix": ""
   },

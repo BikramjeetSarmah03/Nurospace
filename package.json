@@ -13,9 +13,9 @@
     "dev": "turbo dev",
     "build": "turbo build",
     "check-types": "turbo check-types",
-    "dev:native": "turbo -F native dev",
-    "dev:web": "turbo -F web dev",
-    "dev:server": "turbo -F server dev"
+    "dev:www": "turbo -F @apps/www dev",
+    "dev:api": "turbo -F @apps/api dev",
+    "dev:dashboard": "turbo run dev --filter=@apps/api --filter=@apps/dashboard"
   },
   "devDependencies": {
     "turbo": "^2.5.5",
