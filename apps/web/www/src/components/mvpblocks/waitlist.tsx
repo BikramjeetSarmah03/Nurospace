@@ -16,26 +16,35 @@ import { useTheme } from "next-themes";
 import { Bricolage_Grotesque } from "next/font/google";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { createClient } from "@/lib/supabase/client";
 
 const brico = Bricolage_Grotesque({
   subsets: ["latin"],
 });
 
 // Sample users for the waitlist display
-const users = [
-  { imgUrl: "https://avatars.githubusercontent.com/u/111780029" },
-  { imgUrl: "https://avatars.githubusercontent.com/u/123104247" },
-  { imgUrl: "https://avatars.githubusercontent.com/u/115650165" },
-  { imgUrl: "https://avatars.githubusercontent.com/u/71373838" },
-];
+// const users = [
+//   { imgUrl: "https://avatar.iran.liara.run/public/" },
+//   { imgUrl: "https://avatar.iran.liara.run/public/" },
+//   { imgUrl: "https://avatar.iran.liara.run/public/" },
+//   { imgUrl: "https://avatar.iran.liara.run/public/" },
+// ];
 
-export default function WaitlistPage() {
+interface WaitlistPageProps {
+  count?: number | null;
+}
+
+export default function WaitlistPage({ count }: WaitlistPageProps) {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { resolvedTheme } = useTheme();
   const [color, setColor] = useState("#ffffff");
+
+  const users = Array.from({ length: 4 }, () => ({
+    imgUrl: `https://avatar.iran.liara.run/public/${Math.floor(Math.random() * 88)}`,
+  }));
 
   useEffect(() => {
     setColor(resolvedTheme === "dark" ? "#ffffff" : "#e60a64");
@@ -46,10 +55,24 @@ export default function WaitlistPage() {
     setIsSubmitting(true);
     setError(null);
 
-    // Your form submission logic here
-    // For now, let's just simulate a delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setSubmitted(true);
+    try {
+      const { data, error, status } = await createClient()
+        .from("waitlist")
+        .insert([{ email }]);
+
+      if (error) {
+        if (error.code === "23505") {
+          setError("You're already on the waitlist!");
+        } else {
+          setError("Error while joining waitlist");
+        }
+      } else if (status === 201 || data) {
+        setSubmitted(true);
+      }
+    } catch {
+      setError("Unexpected error while joining waitlist");
+    }
+
     setIsSubmitting(false);
   };
 
@@ -237,28 +260,31 @@ export default function WaitlistPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 1 }}
-          className="flex justify-center items-center gap-1 mt-10"
+          className="flex justify-center items-center gap-1 mt-14"
         >
           <div className="flex -space-x-3">
-            {users.map((user, i) => (
-              <motion.div
-                key={i.toString()}
-                initial={{ scale: 0, x: -10 }}
-                animate={{ scale: 1, x: 0 }}
-                transition={{ duration: 0.4, delay: 1 + i * 0.2 }}
-                className="bg-gradient-to-r from-primary to-rose-500 p-[2px] border-2 border-background rounded-full size-10"
-              >
-                <div className="relative rounded-full overflow-hidden">
-                  <Image
-                    src={user.imgUrl}
-                    alt="Avatar"
-                    className="rounded-full hover:rotate-6 hover:scale-110 transition-all duration-300"
-                    width={40}
-                    height={40}
-                  />
-                </div>
-              </motion.div>
-            ))}
+            {/* {users.map((user, i) => ( */}
+            {users
+              ? users.map((user, i) => (
+                  <motion.div
+                    key={i.toString()}
+                    initial={{ scale: 0, x: -10 }}
+                    animate={{ scale: 1, x: 0 }}
+                    transition={{ duration: 0.4, delay: 1 + i * 0.2 }}
+                    className="bg-gradient-to-r from-primary to-rose-500 p-[2px] border-2 border-background rounded-full size-10"
+                  >
+                    <div className="relative rounded-full overflow-hidden">
+                      <Image
+                        src={user.imgUrl}
+                        alt="Avatar"
+                        className="rounded-full hover:rotate-6 hover:scale-110 transition-all duration-300"
+                        width={40}
+                        height={40}
+                      />
+                    </div>
+                  </motion.div>
+                ))
+              : null}
           </div>
           <motion.span
             initial={{ opacity: 0, x: -10 }}
@@ -266,8 +292,8 @@ export default function WaitlistPage() {
             transition={{ duration: 0.5, delay: 1.3 }}
             className="ml-2 text-muted-foreground"
           >
-            <span className="font-semibold text-primary">100+</span> already
-            joined ✨
+            <span className="font-semibold text-primary">{count || 5}+</span>{" "}
+            already joined ✨
           </motion.span>
         </motion.div>
       </div>
