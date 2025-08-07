@@ -292,7 +292,9 @@ export default function WaitlistPage({ count }: WaitlistPageProps) {
             transition={{ duration: 0.5, delay: 1.3 }}
             className="ml-2 text-muted-foreground"
           >
-            <span className="font-semibold text-primary">{count || 5}+</span>{" "}
+            <span className="font-semibold text-primary">
+              {(count || 0) > 5 ? count : 5}+
+            </span>{" "}
             already joined ✨
           </motion.span>
         </motion.div>
