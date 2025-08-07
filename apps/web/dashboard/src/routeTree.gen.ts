@@ -14,7 +14,9 @@ import { Route as ProtectedLayoutRouteImport } from './pages/_protected/layout'
 import { Route as ProtectedIndexRouteImport } from './pages/_protected/index'
 import { Route as AuthRegisterIndexRouteImport } from './pages/auth/register/index'
 import { Route as AuthLoginIndexRouteImport } from './pages/auth/login/index'
+import { Route as ProtectedRIndexRouteImport } from './pages/_protected/r/index'
 import { Route as AuthPasswordForgotRouteImport } from './pages/auth/password/forgot'
+import { Route as ProtectedCNewRouteImport } from './pages/_protected/c/new'
 
 const AuthLayoutRoute = AuthLayoutRouteImport.update({
   id: '/auth',
@@ -40,23 +42,37 @@ const AuthLoginIndexRoute = AuthLoginIndexRouteImport.update({
   path: '/login/',
   getParentRoute: () => AuthLayoutRoute,
 } as any)
+const ProtectedRIndexRoute = ProtectedRIndexRouteImport.update({
+  id: '/r/',
+  path: '/r/',
+  getParentRoute: () => ProtectedLayoutRoute,
+} as any)
 const AuthPasswordForgotRoute = AuthPasswordForgotRouteImport.update({
   id: '/password/forgot',
   path: '/password/forgot',
   getParentRoute: () => AuthLayoutRoute,
 } as any)
+const ProtectedCNewRoute = ProtectedCNewRouteImport.update({
+  id: '/c/new',
+  path: '/c/new',
+  getParentRoute: () => ProtectedLayoutRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/auth': typeof AuthLayoutRouteWithChildren
   '/': typeof ProtectedIndexRoute
+  '/c/new': typeof ProtectedCNewRoute
   '/auth/password/forgot': typeof AuthPasswordForgotRoute
+  '/r': typeof ProtectedRIndexRoute
   '/auth/login': typeof AuthLoginIndexRoute
   '/auth/register': typeof AuthRegisterIndexRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthLayoutRouteWithChildren
   '/': typeof ProtectedIndexRoute
+  '/c/new': typeof ProtectedCNewRoute
   '/auth/password/forgot': typeof AuthPasswordForgotRoute
+  '/r': typeof ProtectedRIndexRoute
   '/auth/login': typeof AuthLoginIndexRoute
   '/auth/register': typeof AuthRegisterIndexRoute
 }
@@ -65,7 +81,9 @@ export interface FileRoutesById {
   '/_protected': typeof ProtectedLayoutRouteWithChildren
   '/auth': typeof AuthLayoutRouteWithChildren
   '/_protected/': typeof ProtectedIndexRoute
+  '/_protected/c/new': typeof ProtectedCNewRoute
   '/auth/password/forgot': typeof AuthPasswordForgotRoute
+  '/_protected/r/': typeof ProtectedRIndexRoute
   '/auth/login/': typeof AuthLoginIndexRoute
   '/auth/register/': typeof AuthRegisterIndexRoute
 }
@@ -74,17 +92,28 @@ export interface FileRouteTypes {
   fullPaths:
     | '/auth'
     | '/'
+    | '/c/new'
     | '/auth/password/forgot'
+    | '/r'
     | '/auth/login'
     | '/auth/register'
   fileRoutesByTo: FileRoutesByTo
-  to: '/auth' | '/' | '/auth/password/forgot' | '/auth/login' | '/auth/register'
+  to:
+    | '/auth'
+    | '/'
+    | '/c/new'
+    | '/auth/password/forgot'
+    | '/r'
+    | '/auth/login'
+    | '/auth/register'
   id:
     | '__root__'
     | '/_protected'
     | '/auth'
     | '/_protected/'
+    | '/_protected/c/new'
     | '/auth/password/forgot'
+    | '/_protected/r/'
     | '/auth/login/'
     | '/auth/register/'
   fileRoutesById: FileRoutesById
@@ -131,6 +160,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginIndexRouteImport
       parentRoute: typeof AuthLayoutRoute
     }
+    '/_protected/r/': {
+      id: '/_protected/r/'
+      path: '/r'
+      fullPath: '/r'
+      preLoaderRoute: typeof ProtectedRIndexRouteImport
+      parentRoute: typeof ProtectedLayoutRoute
+    }
     '/auth/password/forgot': {
       id: '/auth/password/forgot'
       path: '/password/forgot'
@@ -138,15 +174,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthPasswordForgotRouteImport
       parentRoute: typeof AuthLayoutRoute
     }
+    '/_protected/c/new': {
+      id: '/_protected/c/new'
+      path: '/c/new'
+      fullPath: '/c/new'
+      preLoaderRoute: typeof ProtectedCNewRouteImport
+      parentRoute: typeof ProtectedLayoutRoute
+    }
   }
 }
 
 interface ProtectedLayoutRouteChildren {
   ProtectedIndexRoute: typeof ProtectedIndexRoute
+  ProtectedCNewRoute: typeof ProtectedCNewRoute
+  ProtectedRIndexRoute: typeof ProtectedRIndexRoute
 }
 
 const ProtectedLayoutRouteChildren: ProtectedLayoutRouteChildren = {
   ProtectedIndexRoute: ProtectedIndexRoute,
+  ProtectedCNewRoute: ProtectedCNewRoute,
+  ProtectedRIndexRoute: ProtectedRIndexRoute,
 }
 
 const ProtectedLayoutRouteWithChildren = ProtectedLayoutRoute._addFileChildren(

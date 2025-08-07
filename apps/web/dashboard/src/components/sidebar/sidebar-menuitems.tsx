@@ -1,14 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import {
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
-} from "../ui/sidebar";
 
 import {
   BotIcon,
@@ -18,11 +8,22 @@ import {
   LayoutDashboardIcon,
   SquareTerminalIcon,
 } from "lucide-react";
+
+import {
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+} from "@/components/ui/sidebar";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "../ui/collapsible";
+} from "@/components/ui/collapsible";
 
 export default function SidebarMenuItems() {
   return (
@@ -43,7 +44,10 @@ export default function SidebarMenuItems() {
               <CollapsibleTrigger asChild>
                 <SidebarMenuButton tooltip={"Chats"} asChild>
                   <div>
-                    <Link to="/" className="flex items-center gap-2 w-full">
+                    <Link
+                      to="/c/new"
+                      className="flex items-center gap-2 w-full"
+                    >
                       <SquareTerminalIcon className="size-4" />
                       Chats
                     </Link>
@@ -68,7 +72,7 @@ export default function SidebarMenuItems() {
 
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link to="/">
+              <Link to="/r">
                 <FileTextIcon />
                 Resources
               </Link>

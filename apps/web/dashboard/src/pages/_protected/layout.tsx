@@ -42,7 +42,7 @@ function RouteComponent() {
       <AppSidebar />
 
       <main className="bg-sidebar dark:bg-gray-900 w-full">
-        <div className="flex bg-sidebar px-4 py-2 border-b">
+        <div className="top-0 sticky flex bg-sidebar px-4 py-2 border-b">
           <SidebarTrigger />
         </div>
 
