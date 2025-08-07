@@ -1,3 +1,5 @@
+import AnimatedAIChat from "@/components/mvpblocks/animated-ai-chat";
+// import VercelV0Chat from "@/components/mvpblocks/v0-chat";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_protected/c/new")({
@@ -5,5 +7,10 @@ export const Route = createFileRoute("/_protected/c/new")({
 });
 
 function RouteComponent() {
-  return <div>Hello "/_protected/c/new"!</div>;
+  return (
+    <div>
+      <AnimatedAIChat />
+      {/* <VercelV0Chat /> */}
+    </div>
+  );
 }
