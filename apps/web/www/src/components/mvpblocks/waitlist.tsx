@@ -9,7 +9,7 @@ import {
   FolderKanbanIcon,
   BrainCircuitIcon,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { Particles } from "@/components/ui/particles";
 import { Spotlight } from "@/components/ui/spotlight";
 import { useTheme } from "next-themes";
