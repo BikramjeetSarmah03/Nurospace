@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { ArrowUpIcon, Paperclip } from "lucide-react";
+import { ArrowUpIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 import { useAutoResizeTextarea } from "@/hooks/use-auto-resize-textarea";
 
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 
 export function VercelV0Chat() {
   const [value, setValue] = useState("");
@@ -27,7 +26,7 @@ export function VercelV0Chat() {
 
   return (
     <div className="flex flex-col items-center space-y-4 sm:space-y-8 mx-auto p-4 py-24 w-full max-w-4xl h-full">
-      <h1 className="pb-1 font-medium text-3xl tracking-tight">
+      <h1 className="pb-1 h-full font-medium text-3xl tracking-tight">
         How can I help today?
       </h1>
 
@@ -61,19 +60,7 @@ export function VercelV0Chat() {
           </div>
 
           <div className="flex justify-between items-center p-3">
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="group flex items-center gap-1 hover:bg-secondary/50 p-2 rounded-lg"
-              >
-                <Paperclip className="w-4 h-4" />
-                <span className="hidden group-hover:inline text-xs transition-opacity">
-                  Attach
-                </span>
-              </Button>
-            </div>
+            <div />
             <div className="flex items-center gap-2">
               <button
                 type="button"

@@ -16,54 +16,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import * as React from "react";
-
-interface UseAutoResizeTextareaProps {
-  minHeight: number;
-  maxHeight?: number;
-}
-
-function useAutoResizeTextarea({
-  minHeight,
-  maxHeight,
-}: UseAutoResizeTextareaProps) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  const adjustHeight = useCallback(
-    (reset?: boolean) => {
-      const textarea = textareaRef.current;
-      if (!textarea) return;
-
-      if (reset) {
-        textarea.style.height = `${minHeight}px`;
-        return;
-      }
-
-      textarea.style.height = `${minHeight}px`;
-      const newHeight = Math.max(
-        minHeight,
-        Math.min(textarea.scrollHeight, maxHeight ?? Number.POSITIVE_INFINITY),
-      );
-
-      textarea.style.height = `${newHeight}px`;
-    },
-    [minHeight, maxHeight],
-  );
-
-  useEffect(() => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-      textarea.style.height = `${minHeight}px`;
-    }
-  }, [minHeight]);
-
-  useEffect(() => {
-    const handleResize = () => adjustHeight();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [adjustHeight]);
-
-  return { textareaRef, adjustHeight };
-}
+import { useAutoResizeTextarea } from "@/hooks/use-auto-resize-textarea";
 
 interface CommandSuggestion {
   icon: React.ReactNode;
@@ -286,8 +239,8 @@ export default function AnimatedAIChat() {
   };
 
   return (
-    <div className="flex w-full overflow-x-hidden">
-      <div className="relative flex flex-col justify-center items-center bg-transparent p-6 w-full min-h-screen overflow-hidden text-foreground">
+    <div className="flex w-full h-full overflow-x-hidden">
+      <div className="relative flex flex-col justify-center items-center bg-transparent p-6 w-full h-full overflow-hidden text-foreground">
         <div className="absolute inset-0 w-full h-full overflow-hidden">
           <div className="top-0 left-1/4 absolute bg-primary/10 blur-[128px] rounded-full w-96 h-96 animate-pulse mix-blend-normal filter" />
           <div className="right-1/4 bottom-0 absolute bg-secondary/10 blur-[128px] rounded-full w-96 h-96 animate-pulse delay-700 mix-blend-normal filter" />
