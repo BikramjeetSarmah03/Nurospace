@@ -2,8 +2,9 @@ import { ClassValidatorPipe } from "@honestjs/class-validator-pipe";
 import { Application } from "honestjs";
 import "reflect-metadata";
 
+import env from "@packages/env/server";
+
 import AppModule from "@/app.module";
-import env from "@/config/env";
 
 import { CorsPlugin } from "@/plugins/cors.plugin";
 import { LoggerPlugin } from "@/plugins/logger.plugin";

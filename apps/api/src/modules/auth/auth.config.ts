@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
-import env from "@/config/env";
+import env from "@packages/env/server";
 
 import { db } from "@/db";
 

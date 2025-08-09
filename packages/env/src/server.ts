@@ -4,7 +4,7 @@ import path from "node:path";
 import dotenv from "dotenv";
 
 dotenv.config({
-  path: path.resolve(process.cwd()),
+  path: path.resolve(path.join(process.cwd(), "../../.env.server")),
 });
 
 const EnvSchema = z.object({
@@ -19,9 +19,7 @@ const EnvSchema = z.object({
 
 export type env = z.infer<typeof EnvSchema>;
 
-const { data: env, error } = EnvSchema.safeParse(
-  process.env.NODE_ENV === "production" ? process.env : import.meta.env,
-);
+const { data: env, error } = EnvSchema.safeParse(process.env);
 
 if (error) {
   console.error("❌ Invalid env:");

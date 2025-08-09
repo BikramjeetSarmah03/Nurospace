@@ -1,0 +1,21 @@
+{
+  "name": "@packages/llm",
+  "module": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./prompts": "./src/prompts/*",
+    "./types": "./src/types/index.ts",
+    "./models": "./src/models/index.ts",
+    "./models/google": "./src/models/google.ts"
+  },
+  "type": "module",
+  "dependencies": {
+    "@packages/env": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
