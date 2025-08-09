@@ -383,7 +383,7 @@ export default function AnimatedAIChat() {
                   onKeyDown={handleKeyDown}
                   onFocus={() => setInputFocused(true)}
                   onBlur={() => setInputFocused(false)}
-                  placeholder="Ask mvp.ai a question..."
+                  placeholder="Ask any question..."
                   containerClassName="w-full"
                   className={cn(
                     "px-4 py-3 w-full",
@@ -524,7 +524,7 @@ export default function AnimatedAIChat() {
         <AnimatePresence>
           {isTyping && (
             <motion.div
-              className="bottom-8 fixed bg-background/80 shadow-lg backdrop-blur-2xl mx-auto px-4 py-2 border border-border rounded-full -translate-x-1/2 transform"
+              className="bottom-8 z-50 fixed bg-background/80 shadow-lg backdrop-blur-2xl mx-auto px-4 py-2 border border-border rounded-full transform"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}

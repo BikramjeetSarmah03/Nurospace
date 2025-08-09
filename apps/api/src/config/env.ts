@@ -14,6 +14,7 @@ const EnvSchema = z.object({
   CORS_ORIGIN: z.string(),
   BETTER_AUTH_SECRET: z.string(),
   BETTER_AUTH_URL: z.string(),
+  GOOGLE_API_KEY: z.string(),
 });
 
 export type env = z.infer<typeof EnvSchema>;

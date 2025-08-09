@@ -1,9 +1,10 @@
 import { Module } from "honestjs";
-import UsersModule from "./modules/users/users.module";
+
 import AuthModule from "./modules/auth/auth.module";
+import ChatModule from "./modules/chat/chat.module";
 
 @Module({
-  imports: [UsersModule, AuthModule],
+  imports: [AuthModule, ChatModule],
 })
 class AppModule {}
 
