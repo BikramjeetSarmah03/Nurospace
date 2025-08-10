@@ -1,0 +1,66 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "HonestJS API",
+    "version": "1.0.0",
+    "description": "Auto-generated API documentation from HonestJS routes."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local server"
+    }
+  ],
+  "paths": {
+    "/api/v1/auth/*": {
+      "all": {
+        "tags": ["AuthController"],
+        "summary": "handleAuth endpoint",
+        "operationId": "AuthController_handleAuth",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "parameters": [
+          {
+            "name": "context",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/chat": {
+      "post": {
+        "tags": ["ChatController"],
+        "summary": "newChat endpoint",
+        "operationId": "ChatController_newChat",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "body": {
+                    "type": "string"
+                  }
+                },
+                "required": ["body"]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
