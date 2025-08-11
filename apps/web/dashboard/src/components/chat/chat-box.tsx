@@ -7,7 +7,11 @@ import { useAutoResizeTextarea } from "@/hooks/use-auto-resize-textarea";
 
 import { Textarea } from "@/components/ui/textarea";
 
-export default function ChatBox() {
+interface ChatBoxProps {
+  onSubmit: (value: string) => void;
+}
+
+export default function ChatBox({ onSubmit }: ChatBoxProps) {
   const [value, setValue] = useState("");
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
     minHeight: 60,
@@ -17,6 +21,8 @@ export default function ChatBox() {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
+
+      onSubmit(value);
 
       if (value.trim()) {
         setValue("");

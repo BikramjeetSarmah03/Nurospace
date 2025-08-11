@@ -48,19 +48,15 @@ export default class ChatService {
     try {
       // const res = await google.invoke("Hi are you working");
 
-      // const data = {
-      //   success: true,
-      //   data: {
-      //     chatId: body.msg,
-      //     // msg: res,
-      //   },
-      // };
+      const rawSlug = body.msg?.slice(0, 30).toLowerCase() ?? "new-chat";
 
-      const slug =
-        (body.msg?.slice(0, 30).toLowerCase().replaceAll(" ", "-") ??
-          "new-chat") +
-        "-" +
-        uuidV4();
+      // Remove special characters except spaces, then replace spaces with "-"
+      const sanitizedSlug = rawSlug
+        .replace(/[^a-z0-9\s-]/g, "") // keep a-z, 0-9, space, and hyphen
+        .trim()
+        .replace(/\s+/g, "-"); // replace spaces with "-"
+
+      const slug = `${sanitizedSlug}-${uuidV4()}`;
 
       const chat = await db
         .insert(chats)
@@ -72,7 +68,8 @@ export default class ChatService {
         .returning();
 
       return {
-        chat,
+        success: true,
+        data: chat[0],
       };
     } catch (error) {
       console.log({ error });

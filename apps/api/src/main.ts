@@ -20,7 +20,7 @@ import { generateOpenAPISpec } from "./common/docs/generate-openapi";
 const { hono, app } = await Application.create(AppModule, {
   plugins: [new CorsPlugin([env.CORS_ORIGIN]), new LoggerPlugin()],
   hono: {
-    strict: true,
+    strict: false,
   },
   routing: {
     prefix: "api",

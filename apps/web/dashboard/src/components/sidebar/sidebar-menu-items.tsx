@@ -1,4 +1,4 @@
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -45,6 +45,7 @@ import { CHAT_QUERY } from "@/config/query-keys/chat";
 
 export default function SidebarMenuItems() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
 
   const { isLoading: isChatsLoading, data: chatsData } = useQuery({
     queryKey: [CHAT_QUERY.CHATS],
@@ -55,6 +56,25 @@ export default function SidebarMenuItems() {
 
   const isActive = (slug: string) => {
     return pathname.split("/c/")[1] === slug;
+  };
+
+  const handleDeleteChat = async (chatId: string) => {
+    try {
+      const res = await chatService.deleteChat(chatId);
+
+      if (!res.success) throw Error(res.message);
+
+      queryClient.invalidateQueries({
+        queryKey: [CHAT_QUERY.CHATS],
+      });
+      toast.success("Chat Deleted Successfully");
+
+      if (pathname !== "/c/new") {
+        navigate({ to: "/c/new" });
+      }
+    } catch (error) {
+      toast.error((error as Error).message);
+    }
   };
 
   return (
@@ -100,27 +120,26 @@ export default function SidebarMenuItems() {
                     <Loader2Icon className="ml-2 size-4 animate-spin" />
                   ) : chats.length > 0 ? (
                     chats.map((chat) => (
-                      <SidebarMenuSubItem
-                        className={cn(
-                          "flex justify-between items-center pr-2",
-                          isActive(chat.slug)
-                            ? "bg-sidebar-accent rounded-md"
-                            : "",
-                        )}
-                        key={chat.id}
-                      >
+                      <SidebarMenuSubItem key={chat.id}>
                         <SidebarMenuSubButton asChild>
                           <Link
                             to={"/c/$slug"}
                             params={{
                               slug: chat.slug,
                             }}
+                            className={cn(
+                              "flex justify-between items-center pr-2",
+                              isActive(chat.slug)
+                                ? "bg-sidebar-accent rounded-md"
+                                : "",
+                            )}
                           >
                             <span>{chat.title}</span>
+                            <ChatDropdown
+                              onDelete={() => handleDeleteChat(chat.id)}
+                            />
                           </Link>
                         </SidebarMenuSubButton>
-
-                        <ChatDropdown chatId={chat.id} />
                       </SidebarMenuSubItem>
                     ))
                   ) : null}
@@ -161,22 +180,7 @@ export default function SidebarMenuItems() {
   );
 }
 
-function ChatDropdown({ chatId }: { chatId: string }) {
-  const handleDeleteChat = async () => {
-    try {
-      const res = await chatService.deleteChat(chatId);
-
-      if (!res.success) throw Error(res.message);
-
-      queryClient.invalidateQueries({
-        queryKey: [CHAT_QUERY.CHATS],
-      });
-      toast.success("Chat Deleted Successfully");
-    } catch (error) {
-      toast.error((error as Error).message);
-    }
-  };
-
+function ChatDropdown({ onDelete }: { onDelete: () => void }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="cursor-pointer">
@@ -189,7 +193,10 @@ function ChatDropdown({ chatId }: { chatId: string }) {
         </DropdownMenuItem>
         <DropdownMenuItem
           className="text-xs cursor-pointer"
-          onClick={handleDeleteChat}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
         >
           <TrashIcon className="size-3" />
           Delete

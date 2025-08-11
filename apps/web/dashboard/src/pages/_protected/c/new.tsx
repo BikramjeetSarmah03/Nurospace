@@ -1,9 +1,16 @@
-import { createFileRoute } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  useNavigate,
+  useRouter,
+} from "@tanstack/react-router";
 
 // import AnimatedAIChat from "@/components/mvpblocks/animated-ai-chat";
 import ChatBox from "@/components/chat/chat-box";
 import ChatMessages from "@/components/chat/chat-messages";
 import { useState } from "react";
+import { chatService } from "@/services/chat/chat.service";
+import { queryClient } from "@/lib/query-client";
+import { CHAT_QUERY } from "@/config/query-keys/chat";
 
 export type IMessage = {
   role: "user" | "assistant";
@@ -26,6 +33,7 @@ function RouteComponent() {
     },
   ]);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSendChat = async (value: string) => {
     // Add user message
@@ -34,12 +42,23 @@ function RouteComponent() {
 
     let _assistantReply = "hi";
 
-    // const res = await apiClient.chat.$post({
-    //   json: {
-    //     message: value,
-    //     slug,
-    //   },
-    // });
+    const res = await chatService.chat({
+      chatId: null,
+      msg: value,
+    });
+
+    if (!res.success) throw new Error(res.message);
+
+    queryClient.invalidateQueries({
+      queryKey: [CHAT_QUERY.CHATS],
+    });
+
+    navigate({
+      to: "/c/$slug",
+      params: {
+        slug: res.data.slug,
+      },
+    });
 
     // const reader = res.body?.getReader();
     // const decoder = new TextDecoder("utf-8");
@@ -72,7 +91,7 @@ function RouteComponent() {
 
       <ChatMessages messages={messages} loading={loading} />
 
-      <ChatBox />
+      <ChatBox onSubmit={handleSendChat} />
     </div>
   );
 }
