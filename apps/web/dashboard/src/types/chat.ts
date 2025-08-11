@@ -1,8 +1,7 @@
-import type { ReactNode } from "react";
-
-export interface CommandSuggestion {
-  icon: ReactNode;
-  label: string;
-  description: string;
-  prefix: string;
+export interface IChat {
+  id: string;
+  slug: string;
+  title: string;
+  userId: string;
+  createdAt: string;
 }

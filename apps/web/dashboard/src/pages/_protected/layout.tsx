@@ -4,9 +4,10 @@ import { authQueries } from "@/queries/auth.query";
 
 import { useAuthStore } from "@/hooks/use-auth";
 
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
+import TopNav from "@/components/sidebar/top-nav";
 
 export const Route = createFileRoute("/_protected")({
   component: RouteComponent,
@@ -42,9 +43,7 @@ function RouteComponent() {
       <AppSidebar />
 
       <main className="flex flex-col bg-sidebar dark:bg-gray-900 w-full">
-        <div className="top-0 sticky flex bg-sidebar px-4 py-2 border-b">
-          <SidebarTrigger />
-        </div>
+        <TopNav />
 
         <section className="flex-1 bg-accent">
           <Outlet />

@@ -17,6 +17,7 @@ import { Route as AuthLoginIndexRouteImport } from './pages/auth/login/index'
 import { Route as ProtectedRIndexRouteImport } from './pages/_protected/r/index'
 import { Route as AuthPasswordForgotRouteImport } from './pages/auth/password/forgot'
 import { Route as ProtectedCNewRouteImport } from './pages/_protected/c/new'
+import { Route as ProtectedCSlugRouteImport } from './pages/_protected/c/$slug'
 
 const AuthLayoutRoute = AuthLayoutRouteImport.update({
   id: '/auth',
@@ -57,10 +58,16 @@ const ProtectedCNewRoute = ProtectedCNewRouteImport.update({
   path: '/c/new',
   getParentRoute: () => ProtectedLayoutRoute,
 } as any)
+const ProtectedCSlugRoute = ProtectedCSlugRouteImport.update({
+  id: '/c/$slug',
+  path: '/c/$slug',
+  getParentRoute: () => ProtectedLayoutRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/auth': typeof AuthLayoutRouteWithChildren
   '/': typeof ProtectedIndexRoute
+  '/c/$slug': typeof ProtectedCSlugRoute
   '/c/new': typeof ProtectedCNewRoute
   '/auth/password/forgot': typeof AuthPasswordForgotRoute
   '/r': typeof ProtectedRIndexRoute
@@ -70,6 +77,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/auth': typeof AuthLayoutRouteWithChildren
   '/': typeof ProtectedIndexRoute
+  '/c/$slug': typeof ProtectedCSlugRoute
   '/c/new': typeof ProtectedCNewRoute
   '/auth/password/forgot': typeof AuthPasswordForgotRoute
   '/r': typeof ProtectedRIndexRoute
@@ -81,6 +89,7 @@ export interface FileRoutesById {
   '/_protected': typeof ProtectedLayoutRouteWithChildren
   '/auth': typeof AuthLayoutRouteWithChildren
   '/_protected/': typeof ProtectedIndexRoute
+  '/_protected/c/$slug': typeof ProtectedCSlugRoute
   '/_protected/c/new': typeof ProtectedCNewRoute
   '/auth/password/forgot': typeof AuthPasswordForgotRoute
   '/_protected/r/': typeof ProtectedRIndexRoute
@@ -92,6 +101,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/auth'
     | '/'
+    | '/c/$slug'
     | '/c/new'
     | '/auth/password/forgot'
     | '/r'
@@ -101,6 +111,7 @@ export interface FileRouteTypes {
   to:
     | '/auth'
     | '/'
+    | '/c/$slug'
     | '/c/new'
     | '/auth/password/forgot'
     | '/r'
@@ -111,6 +122,7 @@ export interface FileRouteTypes {
     | '/_protected'
     | '/auth'
     | '/_protected/'
+    | '/_protected/c/$slug'
     | '/_protected/c/new'
     | '/auth/password/forgot'
     | '/_protected/r/'
@@ -181,17 +193,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedCNewRouteImport
       parentRoute: typeof ProtectedLayoutRoute
     }
+    '/_protected/c/$slug': {
+      id: '/_protected/c/$slug'
+      path: '/c/$slug'
+      fullPath: '/c/$slug'
+      preLoaderRoute: typeof ProtectedCSlugRouteImport
+      parentRoute: typeof ProtectedLayoutRoute
+    }
   }
 }
 
 interface ProtectedLayoutRouteChildren {
   ProtectedIndexRoute: typeof ProtectedIndexRoute
+  ProtectedCSlugRoute: typeof ProtectedCSlugRoute
   ProtectedCNewRoute: typeof ProtectedCNewRoute
   ProtectedRIndexRoute: typeof ProtectedRIndexRoute
 }
 
 const ProtectedLayoutRouteChildren: ProtectedLayoutRouteChildren = {
   ProtectedIndexRoute: ProtectedIndexRoute,
+  ProtectedCSlugRoute: ProtectedCSlugRoute,
   ProtectedCNewRoute: ProtectedCNewRoute,
   ProtectedRIndexRoute: ProtectedRIndexRoute,
 }

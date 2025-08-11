@@ -3,11 +3,10 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarRail,
 } from "@/components/ui/sidebar";
 
 import { NavUser } from "./nav-user";
-import SidebarMenuItems from "./sidebar-menuitems";
+import SidebarMenuItems from "./sidebar-menu-items";
 
 export function AppSidebar() {
   return (
@@ -34,8 +33,6 @@ export function AppSidebar() {
       <SidebarFooter className="border-t">
         <NavUser />
       </SidebarFooter>
-
-      <SidebarRail />
     </Sidebar>
   );
 }
