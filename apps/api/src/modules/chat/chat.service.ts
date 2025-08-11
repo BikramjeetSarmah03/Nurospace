@@ -2,13 +2,20 @@ import { Service } from "honestjs";
 import type { User } from "better-auth";
 import { v4 as uuidV4 } from "uuid";
 
-// import { google } from "@packages/llm/models/google";
+import { streamText } from "hono/streaming";
+
+import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { RunnableSequence } from "@langchain/core/runnables";
+import { StringOutputParser } from "@langchain/core/output_parsers";
+
+import { google } from "@packages/llm/models/google";
 
 import { db } from "@/db";
-import { chats } from "@/db/schema/chat";
+import { chats, messages } from "@/db/schema/chat";
 
 import type { NewChatDto } from "./dto/new-chat";
 import { and, eq } from "drizzle-orm";
+import type { Context } from "hono";
 
 @Service()
 export default class ChatService {
@@ -20,6 +27,27 @@ export default class ChatService {
     return {
       success: true,
       data: chats,
+    };
+  }
+
+  async getSingleChat(chatSlug: string, user: User) {
+    const chat = await db.query.chats.findFirst({
+      where: (chats, { eq, and }) =>
+        and(eq(chats.slug, chatSlug), eq(chats.userId, user.id)),
+      with: {
+        messages: {
+          orderBy: (messages, { asc }) => [asc(messages.createdAt)],
+        },
+      },
+    });
+
+    if (!chat) {
+      return { success: false, message: "Chat not found" };
+    }
+
+    return {
+      success: true,
+      data: chat,
     };
   }
 
@@ -44,10 +72,8 @@ export default class ChatService {
     }
   }
 
-  async newChat(body: NewChatDto, user: User) {
+  async newChat(c: Context, body: NewChatDto, user: User) {
     try {
-      // const res = await google.invoke("Hi are you working");
-
       const rawSlug = body.msg?.slice(0, 30).toLowerCase() ?? "new-chat";
 
       // Remove special characters except spaces, then replace spaces with "-"
@@ -67,10 +93,48 @@ export default class ChatService {
         })
         .returning();
 
-      return {
-        success: true,
-        data: chat[0],
-      };
+      const chatSlug = chat[0].slug;
+
+      await db.insert(messages).values({
+        chatId: chat[0].id,
+        role: "user",
+        content: body.msg,
+      });
+
+      const prompt = ChatPromptTemplate.fromMessages([
+        [
+          "system",
+          "You are a helpful AI assistant. Use the provided context to answer the user's question.",
+        ],
+        ["user", "Question:\n{input}"],
+      ]);
+
+      const chain = RunnableSequence.from([
+        prompt,
+        google,
+        new StringOutputParser(),
+      ]);
+
+      const stream = await chain.stream({ input: body.msg });
+
+      let response = "";
+
+      return streamText(c, async (writer) => {
+        for await (const chunk of stream) {
+          response += chunk;
+          await writer.write(chunk);
+        }
+
+        // Now send chatId to client as a special final event
+        await writer.write(`[CHAT_SLUG]:${chatSlug}`);
+        await writer.close();
+
+        await db.insert(messages).values({
+          chatId: chat[0].id,
+          role: "assistant",
+          content: response,
+        });
+      });
     } catch (error) {
       console.log({ error });
     }

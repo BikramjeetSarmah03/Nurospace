@@ -1,12 +1,14 @@
 import {
   Body,
   Controller,
+  Ctx,
   Delete,
   Get,
   Param,
   Post,
   UseGuards,
 } from "honestjs";
+import type { Context } from "hono";
 
 import { AuthGuard } from "@/modules/auth/auth.guard";
 
@@ -25,12 +27,21 @@ export default class ChatController {
     return this.chatService.getAllChats(context.user);
   }
 
+  @Get(":slug")
+  async getSingleChat(
+    @Param("slug") chatSlug: string,
+    @AuthContext() context: IAuthContext,
+  ) {
+    return this.chatService.getSingleChat(chatSlug, context.user);
+  }
+
   @Post("")
   async newChat(
+    @Ctx() ctx: Context,
     @Body() body: NewChatDto,
     @AuthContext() context: IAuthContext,
   ) {
-    return this.chatService.newChat(body, context.user);
+    return this.chatService.newChat(ctx, body, context.user);
   }
 
   @Delete(":id")

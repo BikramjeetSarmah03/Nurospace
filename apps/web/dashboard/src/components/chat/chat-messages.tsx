@@ -1,8 +1,7 @@
 import { useEffect, useRef } from "react";
 
 import { cn } from "@/lib/utils";
-
-import type { IMessage } from "@/pages/_protected/c/new";
+import type { IMessage } from "@/types/chat";
 
 interface ChatMessagesProps {
   messages: IMessage[];

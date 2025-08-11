@@ -14,11 +14,17 @@ class ChatService {
     return (await API.get(chatUrls.getAll)).data;
   }
 
+  async getSingleChat(
+    slug: string,
+  ): Promise<SuccessResponse<IChat> | ErrorResponse> {
+    return (await API.get(`${chatUrls.getSingle}/${slug}`)).data;
+  }
+
   async deleteChat(chatId: string): Promise<SuccessResponse | ErrorResponse> {
     return (await API.delete(`${chatUrls.delete}/${chatId}`)).data;
   }
 
-  async chat(data: INewChat): Promise<SuccessResponse<IChat> | ErrorResponse> {
+  async chat(data: INewChat) {
     return (await API.post(chatUrls.chat, data)).data;
   }
 }

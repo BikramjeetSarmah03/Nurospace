@@ -11,6 +11,7 @@ import {
   FileTextIcon,
   LayoutDashboardIcon,
   Loader2Icon,
+  PlusIcon,
   SquareTerminalIcon,
   TrashIcon,
 } from "lucide-react";
@@ -107,9 +108,9 @@ export default function SidebarMenuItems() {
                     </Link>
                     {isChatsLoading ? (
                       <Loader2Icon className="size-4 animate-spin" />
-                    ) : chats.length > 0 ? (
+                    ) : (
                       <ChevronRightIcon className="ml-auto group-data-[state=open]/collapsible:rotate-90 transition-transform duration-200 cursor-pointer" />
-                    ) : null}
+                    )}
                   </div>
                 </SidebarMenuButton>
               </CollapsibleTrigger>
@@ -142,7 +143,21 @@ export default function SidebarMenuItems() {
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                     ))
-                  ) : null}
+                  ) : (
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton asChild>
+                        <Link
+                          to={"/c/new"}
+                          className={cn(
+                            "flex justify-between items-center pr-2",
+                          )}
+                        >
+                          <span>New Chat</span>
+                          <PlusIcon />
+                        </Link>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  )}
                 </SidebarMenuSub>
               </CollapsibleContent>
             </SidebarMenuItem>

@@ -26,4 +26,5 @@ export const googleModels: Record<string, ModelConfig> = {
 export const google = new ChatGoogleGenerativeAI({
   model: "gemini-2.0-flash",
   maxOutputTokens: 2048,
+  streaming: true,
 });
