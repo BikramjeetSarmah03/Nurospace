@@ -1,6 +1,8 @@
 import { Service } from "honestjs";
+import type { Context } from "hono";
 import type { User } from "better-auth";
 import { v4 as uuidV4 } from "uuid";
+import { and, eq } from "drizzle-orm";
 
 import { streamText } from "hono/streaming";
 
@@ -11,14 +13,16 @@ import { StringOutputParser } from "@langchain/core/output_parsers";
 import { google } from "@packages/llm/models/google";
 
 import { db } from "@/db";
-import { chats, messages } from "@/db/schema/chat";
+import { chats } from "@/db/schema/chat";
 
 import type { NewChatDto } from "./dto/new-chat";
-import { and, eq } from "drizzle-orm";
-import type { Context } from "hono";
+
+import MessageService from "./messages/messages.service";
 
 @Service()
 export default class ChatService {
+  private messageService = new MessageService();
+
   async getAllChats(user: User) {
     const chats = await db.query.chats.findMany({
       where: (chats, { eq }) => eq(chats.userId, user.id),
@@ -74,50 +78,23 @@ export default class ChatService {
 
   async newChat(c: Context, body: NewChatDto, user: User) {
     try {
-      const rawSlug = body.msg?.slice(0, 30).toLowerCase() ?? "new-chat";
+      const slug = this.generateSlug(body.msg ?? "new-chat");
 
-      // Remove special characters except spaces, then replace spaces with "-"
-      const sanitizedSlug = rawSlug
-        .replace(/[^a-z0-9\s-]/g, "") // keep a-z, 0-9, space, and hyphen
-        .trim()
-        .replace(/\s+/g, "-"); // replace spaces with "-"
+      const chat = await this.createChat(
+        body.msg?.slice(0, 15).toLowerCase() ?? "new chat",
+        slug,
+        user.id,
+      );
 
-      const slug = `${sanitizedSlug}-${uuidV4()}`;
+      await this.messageService.createMessage(chat.id, "user", body.msg);
 
-      const chat = await db
-        .insert(chats)
-        .values({
-          title: body.msg?.slice(0, 15).toLowerCase(),
-          slug: slug,
-          userId: user.id,
-        })
-        .returning();
-
-      const chatSlug = chat[0].slug;
-
-      await db.insert(messages).values({
-        chatId: chat[0].id,
-        role: "user",
-        content: body.msg,
-      });
-
-      const prompt = ChatPromptTemplate.fromMessages([
-        [
-          "system",
-          "You are a helpful AI assistant. Use the provided context to answer the user's question.",
-        ],
-        ["user", "Question:\n{input}"],
-      ]);
-
-      const chain = RunnableSequence.from([
-        prompt,
-        google,
-        new StringOutputParser(),
-      ]);
-
-      const stream = await chain.stream({ input: body.msg });
+      const stream = await this.runLLMStream(body.msg ?? "");
 
       let response = "";
+
+      // page no 10,
+      // para 5
+      // line 10
 
       return streamText(c, async (writer) => {
         for await (const chunk of stream) {
@@ -125,18 +102,52 @@ export default class ChatService {
           await writer.write(chunk);
         }
 
-        // Now send chatId to client as a special final event
-        await writer.write(`[CHAT_SLUG]:${chatSlug}`);
+        await writer.write(`[CHAT_SLUG]:${chat.slug}`);
         await writer.close();
 
-        await db.insert(messages).values({
-          chatId: chat[0].id,
-          role: "assistant",
-          content: response,
-        });
+        await this.messageService.createMessage(chat.id, "assistant", response);
       });
     } catch (error) {
       console.log({ error });
     }
+  }
+
+  generateSlug(input: string): string {
+    const rawSlug = input.slice(0, 30).toLowerCase() ?? "new-chat";
+    const sanitizedSlug = rawSlug
+      .replace(/[^a-z0-9\s-]/g, "")
+      .trim()
+      .replace(/\s+/g, "-");
+    return `${sanitizedSlug}-${uuidV4()}`;
+  }
+
+  async createChat(title: string, slug: string, userId: string) {
+    const chat = await db
+      .insert(chats)
+      .values({
+        title: title,
+        slug: slug,
+        userId: userId,
+      })
+      .returning();
+    return chat[0];
+  }
+
+  async runLLMStream(input: string) {
+    const prompt = ChatPromptTemplate.fromMessages([
+      [
+        "system",
+        "You are a helpful AI assistant. Use the provided context to answer the user's question.",
+      ],
+      ["user", "Question:\n{input}"],
+    ]);
+
+    const chain = RunnableSequence.from([
+      prompt,
+      google,
+      new StringOutputParser(),
+    ]);
+
+    return await chain.stream({ input });
   }
 }

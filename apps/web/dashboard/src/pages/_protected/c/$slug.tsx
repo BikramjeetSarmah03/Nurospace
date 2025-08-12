@@ -49,7 +49,7 @@ function RouteComponent() {
     <div className="flex flex-col items-center space-y-4 sm:space-y-8 mx-auto p-4 w-full max-w-4xl h-full">
       {/* <AnimatedAIChat /> */}
 
-      <ChatMessages messages={chat?.messages || []} loading={isLoading} />
+      <ChatMessages messages={chat?.messages || []} isLoading={isLoading} />
 
       <ChatBox onSubmit={handleSendChat} />
     </div>
