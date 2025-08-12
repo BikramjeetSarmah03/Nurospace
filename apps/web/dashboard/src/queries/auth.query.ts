@@ -1,6 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
 
-import { USER_KEYS } from "@/config/query-keys";
+import { USER_KEYS } from "@/config/query-keys/user";
 import { authClient } from "@/lib/auth-client";
 
 class AuthQueries {

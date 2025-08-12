@@ -6,7 +6,7 @@ import { Button, type ButtonProps } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 
 import { queryClient } from "@/lib/query-client";
-import { USER_KEYS } from "@/config/query-keys";
+import { USER_KEYS } from "@/config/query-keys/user";
 
 export default function LogoutButton({ children, ...props }: ButtonProps) {
   const navigate = useNavigate();

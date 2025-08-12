@@ -1,4 +1,4 @@
-import { chatUrls } from "@/config/api/chat.urls";
+import { chatUrls } from "@/config/api/chat.url";
 import type { ErrorResponse, SuccessResponse } from "@/config/types";
 
 import { API } from "@/lib/api-client";

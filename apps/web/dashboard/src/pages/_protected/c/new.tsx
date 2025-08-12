@@ -8,7 +8,7 @@ import { queryClient } from "@/lib/query-client";
 import { CHAT_QUERY } from "@/config/query-keys/chat";
 import env from "@packages/env/client";
 import { toast } from "sonner";
-import { chatUrls } from "@/config/api/chat.urls";
+import { chatUrls } from "@/config/api/chat.url";
 import type { IChat, IMessage } from "@/types/chat";
 import { authClient } from "@/lib/auth-client";
 
