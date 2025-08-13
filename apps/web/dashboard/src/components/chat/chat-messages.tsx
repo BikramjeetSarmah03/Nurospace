@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 import { Loader2Icon } from "lucide-react";
 
+import { useVirtualizer } from "@tanstack/react-virtual";
+
 import type { IMessage } from "@/types/chat";
 
 import Message from "./message";
@@ -18,7 +20,14 @@ export default function ChatMessages({
   isLoading,
   isNew,
 }: ChatMessagesProps) {
+  const parentRef = useRef(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const rowVirtualizer = useVirtualizer({
+    count: messages.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 35,
+  });
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
@@ -34,6 +43,7 @@ export default function ChatMessages({
       style={{
         scrollbarWidth: "none",
       }}
+      ref={parentRef}
     >
       {isNew && messages.length === 0 && (
         <h1 className="mt-10 font-bold text-foreground text-2xl sm:text-4xl text-center">
@@ -41,9 +51,13 @@ export default function ChatMessages({
         </h1>
       )}
 
-      {messages.map((msg) => (
-        <Message {...msg} key={msg.id} />
+      {rowVirtualizer.getVirtualItems().map((virtualItem) => (
+        <Message {...messages[virtualItem.index]} key={virtualItem.key} />
       ))}
+
+      {/* {messages.map((msg, i) => (
+        <Message {...msg} key={msg.id} />
+      ))} */}
 
       {isThinking && (
         <div className="self-start text-muted-foreground text-sm">
