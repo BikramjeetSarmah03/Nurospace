@@ -47,8 +47,8 @@ interface ParticlesProps extends ComponentPropsWithoutRef<"div"> {
   vy?: number;
 }
 
-function hexToRgb(hex: string): number[] {
-  hex = hex.replace("#", "");
+function hexToRgb(h: string): number[] {
+  let hex = h.replace("#", "");
 
   if (hex.length === 3) {
     hex = hex

@@ -9,7 +9,7 @@ export class LoggerPlugin implements IPlugin {
     this.logLevel = logLevel;
   }
 
-  async beforeModulesRegistered(app: Application, hono: Hono): Promise<void> {
+  async beforeModulesRegistered(_app: Application, hono: Hono): Promise<void> {
     console.log(`[LoggerPlugin] Initializing with log level: ${this.logLevel}`);
 
     // Add a request logging middleware
@@ -28,7 +28,7 @@ export class LoggerPlugin implements IPlugin {
     });
   }
 
-  async afterModulesRegistered(app: Application, hono: Hono): Promise<void> {
+  async afterModulesRegistered(_app: Application, _hono: Hono): Promise<void> {
     console.log("[LoggerPlugin] All modules registered, logging is active");
   }
 }

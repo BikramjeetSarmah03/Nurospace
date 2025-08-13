@@ -11,10 +11,10 @@ import {
 import "@xyflow/react/dist/style.css";
 
 export default function FlowEditor() {
-  const [nodes, setNodes, onNodesChange] = useNodesState([
+  const [nodes, _setNodes, onNodesChange] = useNodesState([
     CreateFlowNode(TASK_TYPE.LAUNCH_BROWSER),
   ]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [edges, _setEdges, onEdgesChange] = useEdgesState([]);
 
   return (
     <main className="size-full">

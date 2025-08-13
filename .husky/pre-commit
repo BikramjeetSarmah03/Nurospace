@@ -1,3 +1,7 @@
-
-echo "Running Lint Staged"
+echo "🟢 Running Lint Staged 🟢"
 bun run lint-staged
+echo "🟢 Completed Lint Staged 🟢"
+
+echo "🟢 Running Checks 🟢"
+bun run check
+echo "🟢 Completed Checks 🟢"

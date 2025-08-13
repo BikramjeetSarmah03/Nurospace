@@ -5,7 +5,10 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 export const createClient = (cookieStore: ReturnType<typeof cookies>) => {
-  return createServerClient(supabaseUrl!, supabaseKey!, {
+  if (!supabaseUrl || !supabaseKey)
+    throw Error("Please enter supabase url and key");
+
+  return createServerClient(supabaseUrl, supabaseKey, {
     cookies: {
       getAll() {
         return cookieStore.then((data) => data.getAll());
