@@ -174,7 +174,7 @@ export default function SidebarMenuItems() {
 
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link to="/">
+              <Link to="/tasks">
                 <CheckSquareIcon />
                 Tasks
               </Link>

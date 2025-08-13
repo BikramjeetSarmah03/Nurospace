@@ -1,8 +1,9 @@
 import { useEffect, useRef } from "react";
-
-import { cn } from "@/lib/utils";
-import type { IMessage } from "@/types/chat";
 import { Loader2Icon } from "lucide-react";
+
+import type { IMessage } from "@/types/chat";
+
+import Message from "./message";
 
 interface ChatMessagesProps {
   messages: IMessage[];
@@ -20,7 +21,7 @@ export default function ChatMessages({
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
   }, [messages]);
 
   return isLoading ? (
@@ -40,16 +41,8 @@ export default function ChatMessages({
         </h1>
       )}
 
-      {messages.map((msg, i) => (
-        <div
-          key={msg.role + i.toString()}
-          className={cn(
-            "bg-gray-100 dark:bg-background/40 p-3 border rounded-lg w-fit max-w-[90%] text-sm whitespace-pre-wrap",
-            msg.role === "user" ? "self-end text-right" : "self-start ",
-          )}
-        >
-          {msg.content}
-        </div>
+      {messages.map((msg) => (
+        <Message {...msg} key={msg.id} />
       ))}
 
       {isThinking && (

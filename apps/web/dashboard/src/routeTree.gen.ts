@@ -14,6 +14,7 @@ import { Route as ProtectedLayoutRouteImport } from './pages/_protected/layout'
 import { Route as ProtectedIndexRouteImport } from './pages/_protected/index'
 import { Route as AuthRegisterIndexRouteImport } from './pages/auth/register/index'
 import { Route as AuthLoginIndexRouteImport } from './pages/auth/login/index'
+import { Route as ProtectedTasksIndexRouteImport } from './pages/_protected/tasks/index'
 import { Route as ProtectedRIndexRouteImport } from './pages/_protected/r/index'
 import { Route as AuthPasswordForgotRouteImport } from './pages/auth/password/forgot'
 import { Route as ProtectedCNewRouteImport } from './pages/_protected/c/new'
@@ -43,6 +44,11 @@ const AuthLoginIndexRoute = AuthLoginIndexRouteImport.update({
   path: '/login/',
   getParentRoute: () => AuthLayoutRoute,
 } as any)
+const ProtectedTasksIndexRoute = ProtectedTasksIndexRouteImport.update({
+  id: '/tasks/',
+  path: '/tasks/',
+  getParentRoute: () => ProtectedLayoutRoute,
+} as any)
 const ProtectedRIndexRoute = ProtectedRIndexRouteImport.update({
   id: '/r/',
   path: '/r/',
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/c/new': typeof ProtectedCNewRoute
   '/auth/password/forgot': typeof AuthPasswordForgotRoute
   '/r': typeof ProtectedRIndexRoute
+  '/tasks': typeof ProtectedTasksIndexRoute
   '/auth/login': typeof AuthLoginIndexRoute
   '/auth/register': typeof AuthRegisterIndexRoute
 }
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/c/new': typeof ProtectedCNewRoute
   '/auth/password/forgot': typeof AuthPasswordForgotRoute
   '/r': typeof ProtectedRIndexRoute
+  '/tasks': typeof ProtectedTasksIndexRoute
   '/auth/login': typeof AuthLoginIndexRoute
   '/auth/register': typeof AuthRegisterIndexRoute
 }
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/_protected/c/new': typeof ProtectedCNewRoute
   '/auth/password/forgot': typeof AuthPasswordForgotRoute
   '/_protected/r/': typeof ProtectedRIndexRoute
+  '/_protected/tasks/': typeof ProtectedTasksIndexRoute
   '/auth/login/': typeof AuthLoginIndexRoute
   '/auth/register/': typeof AuthRegisterIndexRoute
 }
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/c/new'
     | '/auth/password/forgot'
     | '/r'
+    | '/tasks'
     | '/auth/login'
     | '/auth/register'
   fileRoutesByTo: FileRoutesByTo
@@ -115,6 +125,7 @@ export interface FileRouteTypes {
     | '/c/new'
     | '/auth/password/forgot'
     | '/r'
+    | '/tasks'
     | '/auth/login'
     | '/auth/register'
   id:
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
     | '/_protected/c/new'
     | '/auth/password/forgot'
     | '/_protected/r/'
+    | '/_protected/tasks/'
     | '/auth/login/'
     | '/auth/register/'
   fileRoutesById: FileRoutesById
@@ -172,6 +184,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginIndexRouteImport
       parentRoute: typeof AuthLayoutRoute
     }
+    '/_protected/tasks/': {
+      id: '/_protected/tasks/'
+      path: '/tasks'
+      fullPath: '/tasks'
+      preLoaderRoute: typeof ProtectedTasksIndexRouteImport
+      parentRoute: typeof ProtectedLayoutRoute
+    }
     '/_protected/r/': {
       id: '/_protected/r/'
       path: '/r'
@@ -208,6 +227,7 @@ interface ProtectedLayoutRouteChildren {
   ProtectedCSlugRoute: typeof ProtectedCSlugRoute
   ProtectedCNewRoute: typeof ProtectedCNewRoute
   ProtectedRIndexRoute: typeof ProtectedRIndexRoute
+  ProtectedTasksIndexRoute: typeof ProtectedTasksIndexRoute
 }
 
 const ProtectedLayoutRouteChildren: ProtectedLayoutRouteChildren = {
@@ -215,6 +235,7 @@ const ProtectedLayoutRouteChildren: ProtectedLayoutRouteChildren = {
   ProtectedCSlugRoute: ProtectedCSlugRoute,
   ProtectedCNewRoute: ProtectedCNewRoute,
   ProtectedRIndexRoute: ProtectedRIndexRoute,
+  ProtectedTasksIndexRoute: ProtectedTasksIndexRoute,
 }
 
 const ProtectedLayoutRouteWithChildren = ProtectedLayoutRoute._addFileChildren(
