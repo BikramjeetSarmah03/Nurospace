@@ -3,7 +3,7 @@ import { Loader2Icon } from "lucide-react";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
 
-import type { IMessage } from "@/types/chat";
+import type { IMessage } from "@/features/chat/types/chat";
 
 import Message from "./message";
 

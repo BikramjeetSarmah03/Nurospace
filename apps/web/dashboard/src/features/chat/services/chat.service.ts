@@ -1,8 +1,8 @@
-import { chatUrls } from "@/config/api/chat.url";
+import { chatUrls } from "@/features/chat/lib/api/chat.url";
 import type { ErrorResponse, SuccessResponse } from "@/config/types";
 
 import { API } from "@/lib/api-client";
-import type { IChat } from "@/types/chat";
+import type { IChat } from "@/features/chat/types/chat";
 
 interface INewChat {
   chatId?: string | null;
@@ -15,7 +15,7 @@ class ChatService {
   }
 
   async getSingleChat(
-    slug: string,
+    slug: string
   ): Promise<SuccessResponse<IChat> | ErrorResponse> {
     return (await API.get(`${chatUrls.getSingle}/${slug}`)).data;
   }

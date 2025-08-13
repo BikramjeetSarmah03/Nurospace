@@ -3,7 +3,7 @@ import { ArrowUpIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-import { useAutoResizeTextarea } from "@/hooks/use-auto-resize-textarea";
+import { useAutoResizeTextarea } from "@/features/chat/hooks/use-auto-resize-textarea";
 
 import { Textarea } from "@/components/ui/textarea";
 
@@ -53,7 +53,7 @@ export default function ChatBox({ onSubmit }: ChatBoxProps) {
               "focus:outline-none",
               "focus-visible:ring-0 focus-visible:ring-offset-0",
               "placeholder:text-sm",
-              "min-h-[60px]",
+              "min-h-[60px]"
             )}
             style={{
               overflow: "hidden",
@@ -68,13 +68,13 @@ export default function ChatBox({ onSubmit }: ChatBoxProps) {
               type="button"
               className={cn(
                 "flex justify-between items-center gap-1 px-1.5 py-1.5 border border-border rounded-lg text-sm transition-colors",
-                value.trim() ? "bg-white text-black" : "text-zinc-400",
+                value.trim() ? "bg-white text-black" : "text-zinc-400"
               )}
             >
               <ArrowUpIcon
                 className={cn(
                   "w-4 h-4",
-                  value.trim() ? "text-black" : "text-zinc-400",
+                  value.trim() ? "text-black" : "text-zinc-400"
                 )}
               />
               <span className="sr-only">Send</span>
