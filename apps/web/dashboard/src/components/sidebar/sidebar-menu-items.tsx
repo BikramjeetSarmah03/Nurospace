@@ -165,7 +165,7 @@ export default function SidebarMenuItems() {
 
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link to="/r">
+              <Link to="/resource">
                 <FileTextIcon />
                 Resources
               </Link>

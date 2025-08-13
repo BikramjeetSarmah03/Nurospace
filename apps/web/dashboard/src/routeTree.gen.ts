@@ -15,8 +15,10 @@ import { Route as ProtectedIndexRouteImport } from './pages/_protected/index'
 import { Route as AuthRegisterIndexRouteImport } from './pages/auth/register/index'
 import { Route as AuthLoginIndexRouteImport } from './pages/auth/login/index'
 import { Route as ProtectedTasksIndexRouteImport } from './pages/_protected/tasks/index'
-import { Route as ProtectedRIndexRouteImport } from './pages/_protected/r/index'
+import { Route as ProtectedResourceIndexRouteImport } from './pages/_protected/resource/index'
 import { Route as AuthPasswordForgotRouteImport } from './pages/auth/password/forgot'
+import { Route as ProtectedTasksWorkflowRouteImport } from './pages/_protected/tasks/workflow'
+import { Route as ProtectedTasksTaskIdRouteImport } from './pages/_protected/tasks/$taskId'
 import { Route as ProtectedCNewRouteImport } from './pages/_protected/c/new'
 import { Route as ProtectedCSlugRouteImport } from './pages/_protected/c/$slug'
 
@@ -49,15 +51,25 @@ const ProtectedTasksIndexRoute = ProtectedTasksIndexRouteImport.update({
   path: '/tasks/',
   getParentRoute: () => ProtectedLayoutRoute,
 } as any)
-const ProtectedRIndexRoute = ProtectedRIndexRouteImport.update({
-  id: '/r/',
-  path: '/r/',
+const ProtectedResourceIndexRoute = ProtectedResourceIndexRouteImport.update({
+  id: '/resource/',
+  path: '/resource/',
   getParentRoute: () => ProtectedLayoutRoute,
 } as any)
 const AuthPasswordForgotRoute = AuthPasswordForgotRouteImport.update({
   id: '/password/forgot',
   path: '/password/forgot',
   getParentRoute: () => AuthLayoutRoute,
+} as any)
+const ProtectedTasksWorkflowRoute = ProtectedTasksWorkflowRouteImport.update({
+  id: '/tasks/workflow',
+  path: '/tasks/workflow',
+  getParentRoute: () => ProtectedLayoutRoute,
+} as any)
+const ProtectedTasksTaskIdRoute = ProtectedTasksTaskIdRouteImport.update({
+  id: '/tasks/$taskId',
+  path: '/tasks/$taskId',
+  getParentRoute: () => ProtectedLayoutRoute,
 } as any)
 const ProtectedCNewRoute = ProtectedCNewRouteImport.update({
   id: '/c/new',
@@ -75,8 +87,10 @@ export interface FileRoutesByFullPath {
   '/': typeof ProtectedIndexRoute
   '/c/$slug': typeof ProtectedCSlugRoute
   '/c/new': typeof ProtectedCNewRoute
+  '/tasks/$taskId': typeof ProtectedTasksTaskIdRoute
+  '/tasks/workflow': typeof ProtectedTasksWorkflowRoute
   '/auth/password/forgot': typeof AuthPasswordForgotRoute
-  '/r': typeof ProtectedRIndexRoute
+  '/resource': typeof ProtectedResourceIndexRoute
   '/tasks': typeof ProtectedTasksIndexRoute
   '/auth/login': typeof AuthLoginIndexRoute
   '/auth/register': typeof AuthRegisterIndexRoute
@@ -86,8 +100,10 @@ export interface FileRoutesByTo {
   '/': typeof ProtectedIndexRoute
   '/c/$slug': typeof ProtectedCSlugRoute
   '/c/new': typeof ProtectedCNewRoute
+  '/tasks/$taskId': typeof ProtectedTasksTaskIdRoute
+  '/tasks/workflow': typeof ProtectedTasksWorkflowRoute
   '/auth/password/forgot': typeof AuthPasswordForgotRoute
-  '/r': typeof ProtectedRIndexRoute
+  '/resource': typeof ProtectedResourceIndexRoute
   '/tasks': typeof ProtectedTasksIndexRoute
   '/auth/login': typeof AuthLoginIndexRoute
   '/auth/register': typeof AuthRegisterIndexRoute
@@ -99,8 +115,10 @@ export interface FileRoutesById {
   '/_protected/': typeof ProtectedIndexRoute
   '/_protected/c/$slug': typeof ProtectedCSlugRoute
   '/_protected/c/new': typeof ProtectedCNewRoute
+  '/_protected/tasks/$taskId': typeof ProtectedTasksTaskIdRoute
+  '/_protected/tasks/workflow': typeof ProtectedTasksWorkflowRoute
   '/auth/password/forgot': typeof AuthPasswordForgotRoute
-  '/_protected/r/': typeof ProtectedRIndexRoute
+  '/_protected/resource/': typeof ProtectedResourceIndexRoute
   '/_protected/tasks/': typeof ProtectedTasksIndexRoute
   '/auth/login/': typeof AuthLoginIndexRoute
   '/auth/register/': typeof AuthRegisterIndexRoute
@@ -112,8 +130,10 @@ export interface FileRouteTypes {
     | '/'
     | '/c/$slug'
     | '/c/new'
+    | '/tasks/$taskId'
+    | '/tasks/workflow'
     | '/auth/password/forgot'
-    | '/r'
+    | '/resource'
     | '/tasks'
     | '/auth/login'
     | '/auth/register'
@@ -123,8 +143,10 @@ export interface FileRouteTypes {
     | '/'
     | '/c/$slug'
     | '/c/new'
+    | '/tasks/$taskId'
+    | '/tasks/workflow'
     | '/auth/password/forgot'
-    | '/r'
+    | '/resource'
     | '/tasks'
     | '/auth/login'
     | '/auth/register'
@@ -135,8 +157,10 @@ export interface FileRouteTypes {
     | '/_protected/'
     | '/_protected/c/$slug'
     | '/_protected/c/new'
+    | '/_protected/tasks/$taskId'
+    | '/_protected/tasks/workflow'
     | '/auth/password/forgot'
-    | '/_protected/r/'
+    | '/_protected/resource/'
     | '/_protected/tasks/'
     | '/auth/login/'
     | '/auth/register/'
@@ -191,11 +215,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedTasksIndexRouteImport
       parentRoute: typeof ProtectedLayoutRoute
     }
-    '/_protected/r/': {
-      id: '/_protected/r/'
-      path: '/r'
-      fullPath: '/r'
-      preLoaderRoute: typeof ProtectedRIndexRouteImport
+    '/_protected/resource/': {
+      id: '/_protected/resource/'
+      path: '/resource'
+      fullPath: '/resource'
+      preLoaderRoute: typeof ProtectedResourceIndexRouteImport
       parentRoute: typeof ProtectedLayoutRoute
     }
     '/auth/password/forgot': {
@@ -204,6 +228,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth/password/forgot'
       preLoaderRoute: typeof AuthPasswordForgotRouteImport
       parentRoute: typeof AuthLayoutRoute
+    }
+    '/_protected/tasks/workflow': {
+      id: '/_protected/tasks/workflow'
+      path: '/tasks/workflow'
+      fullPath: '/tasks/workflow'
+      preLoaderRoute: typeof ProtectedTasksWorkflowRouteImport
+      parentRoute: typeof ProtectedLayoutRoute
+    }
+    '/_protected/tasks/$taskId': {
+      id: '/_protected/tasks/$taskId'
+      path: '/tasks/$taskId'
+      fullPath: '/tasks/$taskId'
+      preLoaderRoute: typeof ProtectedTasksTaskIdRouteImport
+      parentRoute: typeof ProtectedLayoutRoute
     }
     '/_protected/c/new': {
       id: '/_protected/c/new'
@@ -226,7 +264,9 @@ interface ProtectedLayoutRouteChildren {
   ProtectedIndexRoute: typeof ProtectedIndexRoute
   ProtectedCSlugRoute: typeof ProtectedCSlugRoute
   ProtectedCNewRoute: typeof ProtectedCNewRoute
-  ProtectedRIndexRoute: typeof ProtectedRIndexRoute
+  ProtectedTasksTaskIdRoute: typeof ProtectedTasksTaskIdRoute
+  ProtectedTasksWorkflowRoute: typeof ProtectedTasksWorkflowRoute
+  ProtectedResourceIndexRoute: typeof ProtectedResourceIndexRoute
   ProtectedTasksIndexRoute: typeof ProtectedTasksIndexRoute
 }
 
@@ -234,7 +274,9 @@ const ProtectedLayoutRouteChildren: ProtectedLayoutRouteChildren = {
   ProtectedIndexRoute: ProtectedIndexRoute,
   ProtectedCSlugRoute: ProtectedCSlugRoute,
   ProtectedCNewRoute: ProtectedCNewRoute,
-  ProtectedRIndexRoute: ProtectedRIndexRoute,
+  ProtectedTasksTaskIdRoute: ProtectedTasksTaskIdRoute,
+  ProtectedTasksWorkflowRoute: ProtectedTasksWorkflowRoute,
+  ProtectedResourceIndexRoute: ProtectedResourceIndexRoute,
   ProtectedTasksIndexRoute: ProtectedTasksIndexRoute,
 }
 
