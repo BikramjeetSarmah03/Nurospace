@@ -8,6 +8,8 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
+import { createFileRoute } from '@tanstack/react-router'
+
 import { Route as rootRouteImport } from './pages/__root'
 import { Route as AuthLayoutRouteImport } from './pages/auth/layout'
 import { Route as ProtectedLayoutRouteImport } from './pages/_protected/layout'
@@ -17,9 +19,13 @@ import { Route as AuthLoginIndexRouteImport } from './pages/auth/login/index'
 import { Route as ProtectedWIndexRouteImport } from './pages/_protected/w/index'
 import { Route as ProtectedResourceIndexRouteImport } from './pages/_protected/resource/index'
 import { Route as AuthPasswordForgotRouteImport } from './pages/auth/password/forgot'
-import { Route as ProtectedWSlugRouteImport } from './pages/_protected/w/$slug'
 import { Route as ProtectedCNewRouteImport } from './pages/_protected/c/new'
 import { Route as ProtectedCSlugRouteImport } from './pages/_protected/c/$slug'
+import { Route as ProtectedWSlugIndexRouteImport } from './pages/_protected/w/$slug/index'
+
+const ProtectedWSlugEditorIndexLazyRouteImport = createFileRoute(
+  '/_protected/w/$slug/editor/',
+)()
 
 const AuthLayoutRoute = AuthLayoutRouteImport.update({
   id: '/auth',
@@ -60,11 +66,6 @@ const AuthPasswordForgotRoute = AuthPasswordForgotRouteImport.update({
   path: '/password/forgot',
   getParentRoute: () => AuthLayoutRoute,
 } as any)
-const ProtectedWSlugRoute = ProtectedWSlugRouteImport.update({
-  id: '/w/$slug',
-  path: '/w/$slug',
-  getParentRoute: () => ProtectedLayoutRoute,
-} as any)
 const ProtectedCNewRoute = ProtectedCNewRouteImport.update({
   id: '/c/new',
   path: '/c/new',
@@ -75,30 +76,45 @@ const ProtectedCSlugRoute = ProtectedCSlugRouteImport.update({
   path: '/c/$slug',
   getParentRoute: () => ProtectedLayoutRoute,
 } as any)
+const ProtectedWSlugIndexRoute = ProtectedWSlugIndexRouteImport.update({
+  id: '/w/$slug/',
+  path: '/w/$slug/',
+  getParentRoute: () => ProtectedLayoutRoute,
+} as any)
+const ProtectedWSlugEditorIndexLazyRoute =
+  ProtectedWSlugEditorIndexLazyRouteImport.update({
+    id: '/w/$slug/editor/',
+    path: '/w/$slug/editor/',
+    getParentRoute: () => ProtectedLayoutRoute,
+  } as any).lazy(() =>
+    import('./pages/_protected/w/$slug/editor/index.lazy').then((d) => d.Route),
+  )
 
 export interface FileRoutesByFullPath {
   '/auth': typeof AuthLayoutRouteWithChildren
   '/': typeof ProtectedIndexRoute
   '/c/$slug': typeof ProtectedCSlugRoute
   '/c/new': typeof ProtectedCNewRoute
-  '/w/$slug': typeof ProtectedWSlugRoute
   '/auth/password/forgot': typeof AuthPasswordForgotRoute
   '/resource': typeof ProtectedResourceIndexRoute
   '/w': typeof ProtectedWIndexRoute
   '/auth/login': typeof AuthLoginIndexRoute
   '/auth/register': typeof AuthRegisterIndexRoute
+  '/w/$slug': typeof ProtectedWSlugIndexRoute
+  '/w/$slug/editor': typeof ProtectedWSlugEditorIndexLazyRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthLayoutRouteWithChildren
   '/': typeof ProtectedIndexRoute
   '/c/$slug': typeof ProtectedCSlugRoute
   '/c/new': typeof ProtectedCNewRoute
-  '/w/$slug': typeof ProtectedWSlugRoute
   '/auth/password/forgot': typeof AuthPasswordForgotRoute
   '/resource': typeof ProtectedResourceIndexRoute
   '/w': typeof ProtectedWIndexRoute
   '/auth/login': typeof AuthLoginIndexRoute
   '/auth/register': typeof AuthRegisterIndexRoute
+  '/w/$slug': typeof ProtectedWSlugIndexRoute
+  '/w/$slug/editor': typeof ProtectedWSlugEditorIndexLazyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -107,12 +123,13 @@ export interface FileRoutesById {
   '/_protected/': typeof ProtectedIndexRoute
   '/_protected/c/$slug': typeof ProtectedCSlugRoute
   '/_protected/c/new': typeof ProtectedCNewRoute
-  '/_protected/w/$slug': typeof ProtectedWSlugRoute
   '/auth/password/forgot': typeof AuthPasswordForgotRoute
   '/_protected/resource/': typeof ProtectedResourceIndexRoute
   '/_protected/w/': typeof ProtectedWIndexRoute
   '/auth/login/': typeof AuthLoginIndexRoute
   '/auth/register/': typeof AuthRegisterIndexRoute
+  '/_protected/w/$slug/': typeof ProtectedWSlugIndexRoute
+  '/_protected/w/$slug/editor/': typeof ProtectedWSlugEditorIndexLazyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -121,24 +138,26 @@ export interface FileRouteTypes {
     | '/'
     | '/c/$slug'
     | '/c/new'
-    | '/w/$slug'
     | '/auth/password/forgot'
     | '/resource'
     | '/w'
     | '/auth/login'
     | '/auth/register'
+    | '/w/$slug'
+    | '/w/$slug/editor'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
     | '/'
     | '/c/$slug'
     | '/c/new'
-    | '/w/$slug'
     | '/auth/password/forgot'
     | '/resource'
     | '/w'
     | '/auth/login'
     | '/auth/register'
+    | '/w/$slug'
+    | '/w/$slug/editor'
   id:
     | '__root__'
     | '/_protected'
@@ -146,12 +165,13 @@ export interface FileRouteTypes {
     | '/_protected/'
     | '/_protected/c/$slug'
     | '/_protected/c/new'
-    | '/_protected/w/$slug'
     | '/auth/password/forgot'
     | '/_protected/resource/'
     | '/_protected/w/'
     | '/auth/login/'
     | '/auth/register/'
+    | '/_protected/w/$slug/'
+    | '/_protected/w/$slug/editor/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -217,13 +237,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthPasswordForgotRouteImport
       parentRoute: typeof AuthLayoutRoute
     }
-    '/_protected/w/$slug': {
-      id: '/_protected/w/$slug'
-      path: '/w/$slug'
-      fullPath: '/w/$slug'
-      preLoaderRoute: typeof ProtectedWSlugRouteImport
-      parentRoute: typeof ProtectedLayoutRoute
-    }
     '/_protected/c/new': {
       id: '/_protected/c/new'
       path: '/c/new'
@@ -238,6 +251,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedCSlugRouteImport
       parentRoute: typeof ProtectedLayoutRoute
     }
+    '/_protected/w/$slug/': {
+      id: '/_protected/w/$slug/'
+      path: '/w/$slug'
+      fullPath: '/w/$slug'
+      preLoaderRoute: typeof ProtectedWSlugIndexRouteImport
+      parentRoute: typeof ProtectedLayoutRoute
+    }
+    '/_protected/w/$slug/editor/': {
+      id: '/_protected/w/$slug/editor/'
+      path: '/w/$slug/editor'
+      fullPath: '/w/$slug/editor'
+      preLoaderRoute: typeof ProtectedWSlugEditorIndexLazyRouteImport
+      parentRoute: typeof ProtectedLayoutRoute
+    }
   }
 }
 
@@ -245,18 +272,20 @@ interface ProtectedLayoutRouteChildren {
   ProtectedIndexRoute: typeof ProtectedIndexRoute
   ProtectedCSlugRoute: typeof ProtectedCSlugRoute
   ProtectedCNewRoute: typeof ProtectedCNewRoute
-  ProtectedWSlugRoute: typeof ProtectedWSlugRoute
   ProtectedResourceIndexRoute: typeof ProtectedResourceIndexRoute
   ProtectedWIndexRoute: typeof ProtectedWIndexRoute
+  ProtectedWSlugIndexRoute: typeof ProtectedWSlugIndexRoute
+  ProtectedWSlugEditorIndexLazyRoute: typeof ProtectedWSlugEditorIndexLazyRoute
 }
 
 const ProtectedLayoutRouteChildren: ProtectedLayoutRouteChildren = {
   ProtectedIndexRoute: ProtectedIndexRoute,
   ProtectedCSlugRoute: ProtectedCSlugRoute,
   ProtectedCNewRoute: ProtectedCNewRoute,
-  ProtectedWSlugRoute: ProtectedWSlugRoute,
   ProtectedResourceIndexRoute: ProtectedResourceIndexRoute,
   ProtectedWIndexRoute: ProtectedWIndexRoute,
+  ProtectedWSlugIndexRoute: ProtectedWSlugIndexRoute,
+  ProtectedWSlugEditorIndexLazyRoute: ProtectedWSlugEditorIndexLazyRoute,
 }
 
 const ProtectedLayoutRouteWithChildren = ProtectedLayoutRoute._addFileChildren(
