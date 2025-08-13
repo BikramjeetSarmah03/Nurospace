@@ -1,1 +1,3 @@
+
+echo "Running Lint Staged"
 bun run lint-staged
