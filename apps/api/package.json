@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "bun run --watch src/main.ts",
     "start": "bun dist/main.js",
-    "build:bun": "bun build src/main.ts --outdir ./dist --target bun",
+    "build": "bun build src/main.ts --outdir ./dist --target bun",
     "build:node": "bun build src/main.ts --outdir ./dist --target node",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
