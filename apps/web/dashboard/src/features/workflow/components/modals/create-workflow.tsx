@@ -12,7 +12,7 @@ import {
 
 import { cn } from "@/lib/utils";
 
-import CreateWorkflowForm from "@/components/features/workflows/form/create-workflow";
+import CreateWorkflowForm from "../form/create-workflow";
 
 interface CreateWorkflowProps extends PropsWithChildren {
   className?: string;

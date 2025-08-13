@@ -12,8 +12,8 @@ import { chatUrls } from "@/features/chat/lib/api/chat.url";
 
 import type { IChat, IMessage } from "@/features/chat/types/chat";
 
-import ChatMessages from "@/components/features/chat/chat-messages";
-import ChatBox from "@/components/features/chat/chat-box";
+import ChatMessages from "@/features/chat/components/chat-messages";
+import ChatBox from "@/features/chat/components/chat-box";
 
 export function ChatPage() {
   const [messages, setMessages] = useState<IMessage[]>([]);

@@ -1,5 +1,3 @@
-import { TASK_TYPE } from "@/config/constants/task";
-import { CreateFlowNode } from "@/lib/workflow/create-flow-node";
 import {
   Background,
   BackgroundVariant,
@@ -9,6 +7,9 @@ import {
   useNodesState,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+
+import { TASK_TYPE } from "@/features/workflow/lib/constants/task";
+import { CreateFlowNode } from "@/features/workflow/lib/create-flow-node";
 
 export default function FlowEditor() {
   const [nodes, _setNodes, onNodesChange] = useNodesState([

@@ -1,4 +1,4 @@
-import { TASK_TYPE } from "@/config/constants/task";
+import { TASK_TYPE } from "@/features/workflow/lib/constants/task";
 import { GlobeIcon, type LucideProps } from "lucide-react";
 
 export const LaunchBrowserTask = {

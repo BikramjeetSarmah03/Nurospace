@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "@tanstack/react-router";
 
-import ChatBox from "@/components/features/chat/chat-box";
-import ChatMessages from "@/components/features/chat/chat-messages";
+import ChatMessages from "@/features/chat/components/chat-messages";
+import ChatBox from "@/features/chat/components/chat-box";
 
 import { CHAT_QUERY } from "@/features/chat/lib/query-keys/chat";
 
