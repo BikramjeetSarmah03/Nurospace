@@ -14,11 +14,10 @@ import { Route as ProtectedLayoutRouteImport } from './pages/_protected/layout'
 import { Route as ProtectedIndexRouteImport } from './pages/_protected/index'
 import { Route as AuthRegisterIndexRouteImport } from './pages/auth/register/index'
 import { Route as AuthLoginIndexRouteImport } from './pages/auth/login/index'
-import { Route as ProtectedTasksIndexRouteImport } from './pages/_protected/tasks/index'
+import { Route as ProtectedWIndexRouteImport } from './pages/_protected/w/index'
 import { Route as ProtectedResourceIndexRouteImport } from './pages/_protected/resource/index'
 import { Route as AuthPasswordForgotRouteImport } from './pages/auth/password/forgot'
-import { Route as ProtectedTasksWorkflowRouteImport } from './pages/_protected/tasks/workflow'
-import { Route as ProtectedTasksTaskIdRouteImport } from './pages/_protected/tasks/$taskId'
+import { Route as ProtectedWSlugRouteImport } from './pages/_protected/w/$slug'
 import { Route as ProtectedCNewRouteImport } from './pages/_protected/c/new'
 import { Route as ProtectedCSlugRouteImport } from './pages/_protected/c/$slug'
 
@@ -46,9 +45,9 @@ const AuthLoginIndexRoute = AuthLoginIndexRouteImport.update({
   path: '/login/',
   getParentRoute: () => AuthLayoutRoute,
 } as any)
-const ProtectedTasksIndexRoute = ProtectedTasksIndexRouteImport.update({
-  id: '/tasks/',
-  path: '/tasks/',
+const ProtectedWIndexRoute = ProtectedWIndexRouteImport.update({
+  id: '/w/',
+  path: '/w/',
   getParentRoute: () => ProtectedLayoutRoute,
 } as any)
 const ProtectedResourceIndexRoute = ProtectedResourceIndexRouteImport.update({
@@ -61,14 +60,9 @@ const AuthPasswordForgotRoute = AuthPasswordForgotRouteImport.update({
   path: '/password/forgot',
   getParentRoute: () => AuthLayoutRoute,
 } as any)
-const ProtectedTasksWorkflowRoute = ProtectedTasksWorkflowRouteImport.update({
-  id: '/tasks/workflow',
-  path: '/tasks/workflow',
-  getParentRoute: () => ProtectedLayoutRoute,
-} as any)
-const ProtectedTasksTaskIdRoute = ProtectedTasksTaskIdRouteImport.update({
-  id: '/tasks/$taskId',
-  path: '/tasks/$taskId',
+const ProtectedWSlugRoute = ProtectedWSlugRouteImport.update({
+  id: '/w/$slug',
+  path: '/w/$slug',
   getParentRoute: () => ProtectedLayoutRoute,
 } as any)
 const ProtectedCNewRoute = ProtectedCNewRouteImport.update({
@@ -87,11 +81,10 @@ export interface FileRoutesByFullPath {
   '/': typeof ProtectedIndexRoute
   '/c/$slug': typeof ProtectedCSlugRoute
   '/c/new': typeof ProtectedCNewRoute
-  '/tasks/$taskId': typeof ProtectedTasksTaskIdRoute
-  '/tasks/workflow': typeof ProtectedTasksWorkflowRoute
+  '/w/$slug': typeof ProtectedWSlugRoute
   '/auth/password/forgot': typeof AuthPasswordForgotRoute
   '/resource': typeof ProtectedResourceIndexRoute
-  '/tasks': typeof ProtectedTasksIndexRoute
+  '/w': typeof ProtectedWIndexRoute
   '/auth/login': typeof AuthLoginIndexRoute
   '/auth/register': typeof AuthRegisterIndexRoute
 }
@@ -100,11 +93,10 @@ export interface FileRoutesByTo {
   '/': typeof ProtectedIndexRoute
   '/c/$slug': typeof ProtectedCSlugRoute
   '/c/new': typeof ProtectedCNewRoute
-  '/tasks/$taskId': typeof ProtectedTasksTaskIdRoute
-  '/tasks/workflow': typeof ProtectedTasksWorkflowRoute
+  '/w/$slug': typeof ProtectedWSlugRoute
   '/auth/password/forgot': typeof AuthPasswordForgotRoute
   '/resource': typeof ProtectedResourceIndexRoute
-  '/tasks': typeof ProtectedTasksIndexRoute
+  '/w': typeof ProtectedWIndexRoute
   '/auth/login': typeof AuthLoginIndexRoute
   '/auth/register': typeof AuthRegisterIndexRoute
 }
@@ -115,11 +107,10 @@ export interface FileRoutesById {
   '/_protected/': typeof ProtectedIndexRoute
   '/_protected/c/$slug': typeof ProtectedCSlugRoute
   '/_protected/c/new': typeof ProtectedCNewRoute
-  '/_protected/tasks/$taskId': typeof ProtectedTasksTaskIdRoute
-  '/_protected/tasks/workflow': typeof ProtectedTasksWorkflowRoute
+  '/_protected/w/$slug': typeof ProtectedWSlugRoute
   '/auth/password/forgot': typeof AuthPasswordForgotRoute
   '/_protected/resource/': typeof ProtectedResourceIndexRoute
-  '/_protected/tasks/': typeof ProtectedTasksIndexRoute
+  '/_protected/w/': typeof ProtectedWIndexRoute
   '/auth/login/': typeof AuthLoginIndexRoute
   '/auth/register/': typeof AuthRegisterIndexRoute
 }
@@ -130,11 +121,10 @@ export interface FileRouteTypes {
     | '/'
     | '/c/$slug'
     | '/c/new'
-    | '/tasks/$taskId'
-    | '/tasks/workflow'
+    | '/w/$slug'
     | '/auth/password/forgot'
     | '/resource'
-    | '/tasks'
+    | '/w'
     | '/auth/login'
     | '/auth/register'
   fileRoutesByTo: FileRoutesByTo
@@ -143,11 +133,10 @@ export interface FileRouteTypes {
     | '/'
     | '/c/$slug'
     | '/c/new'
-    | '/tasks/$taskId'
-    | '/tasks/workflow'
+    | '/w/$slug'
     | '/auth/password/forgot'
     | '/resource'
-    | '/tasks'
+    | '/w'
     | '/auth/login'
     | '/auth/register'
   id:
@@ -157,11 +146,10 @@ export interface FileRouteTypes {
     | '/_protected/'
     | '/_protected/c/$slug'
     | '/_protected/c/new'
-    | '/_protected/tasks/$taskId'
-    | '/_protected/tasks/workflow'
+    | '/_protected/w/$slug'
     | '/auth/password/forgot'
     | '/_protected/resource/'
-    | '/_protected/tasks/'
+    | '/_protected/w/'
     | '/auth/login/'
     | '/auth/register/'
   fileRoutesById: FileRoutesById
@@ -208,11 +196,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginIndexRouteImport
       parentRoute: typeof AuthLayoutRoute
     }
-    '/_protected/tasks/': {
-      id: '/_protected/tasks/'
-      path: '/tasks'
-      fullPath: '/tasks'
-      preLoaderRoute: typeof ProtectedTasksIndexRouteImport
+    '/_protected/w/': {
+      id: '/_protected/w/'
+      path: '/w'
+      fullPath: '/w'
+      preLoaderRoute: typeof ProtectedWIndexRouteImport
       parentRoute: typeof ProtectedLayoutRoute
     }
     '/_protected/resource/': {
@@ -229,18 +217,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthPasswordForgotRouteImport
       parentRoute: typeof AuthLayoutRoute
     }
-    '/_protected/tasks/workflow': {
-      id: '/_protected/tasks/workflow'
-      path: '/tasks/workflow'
-      fullPath: '/tasks/workflow'
-      preLoaderRoute: typeof ProtectedTasksWorkflowRouteImport
-      parentRoute: typeof ProtectedLayoutRoute
-    }
-    '/_protected/tasks/$taskId': {
-      id: '/_protected/tasks/$taskId'
-      path: '/tasks/$taskId'
-      fullPath: '/tasks/$taskId'
-      preLoaderRoute: typeof ProtectedTasksTaskIdRouteImport
+    '/_protected/w/$slug': {
+      id: '/_protected/w/$slug'
+      path: '/w/$slug'
+      fullPath: '/w/$slug'
+      preLoaderRoute: typeof ProtectedWSlugRouteImport
       parentRoute: typeof ProtectedLayoutRoute
     }
     '/_protected/c/new': {
@@ -264,20 +245,18 @@ interface ProtectedLayoutRouteChildren {
   ProtectedIndexRoute: typeof ProtectedIndexRoute
   ProtectedCSlugRoute: typeof ProtectedCSlugRoute
   ProtectedCNewRoute: typeof ProtectedCNewRoute
-  ProtectedTasksTaskIdRoute: typeof ProtectedTasksTaskIdRoute
-  ProtectedTasksWorkflowRoute: typeof ProtectedTasksWorkflowRoute
+  ProtectedWSlugRoute: typeof ProtectedWSlugRoute
   ProtectedResourceIndexRoute: typeof ProtectedResourceIndexRoute
-  ProtectedTasksIndexRoute: typeof ProtectedTasksIndexRoute
+  ProtectedWIndexRoute: typeof ProtectedWIndexRoute
 }
 
 const ProtectedLayoutRouteChildren: ProtectedLayoutRouteChildren = {
   ProtectedIndexRoute: ProtectedIndexRoute,
   ProtectedCSlugRoute: ProtectedCSlugRoute,
   ProtectedCNewRoute: ProtectedCNewRoute,
-  ProtectedTasksTaskIdRoute: ProtectedTasksTaskIdRoute,
-  ProtectedTasksWorkflowRoute: ProtectedTasksWorkflowRoute,
+  ProtectedWSlugRoute: ProtectedWSlugRoute,
   ProtectedResourceIndexRoute: ProtectedResourceIndexRoute,
-  ProtectedTasksIndexRoute: ProtectedTasksIndexRoute,
+  ProtectedWIndexRoute: ProtectedWIndexRoute,
 }
 
 const ProtectedLayoutRouteWithChildren = ProtectedLayoutRoute._addFileChildren(

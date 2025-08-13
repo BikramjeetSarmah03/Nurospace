@@ -4,7 +4,6 @@ import { toast } from "sonner";
 
 import {
   BotIcon,
-  CheckSquareIcon,
   ChevronRightIcon,
   EditIcon,
   EllipsisVerticalIcon,
@@ -14,6 +13,7 @@ import {
   PlusIcon,
   SquareTerminalIcon,
   TrashIcon,
+  WorkflowIcon,
 } from "lucide-react";
 
 import {
@@ -174,9 +174,9 @@ export default function SidebarMenuItems() {
 
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link to="/tasks">
-                <CheckSquareIcon />
-                Tasks
+              <Link to="/w">
+                <WorkflowIcon />
+                Workflows
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

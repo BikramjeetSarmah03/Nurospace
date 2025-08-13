@@ -34,7 +34,11 @@
     "rules": {
       "recommended": true,
       "correctness": {
-        "useExhaustiveDependencies": "info"
+        "useExhaustiveDependencies": "info",
+        "recommended": true,
+        "noUnusedImports": "error",
+        "noUnusedFunctionParameters": "warn",
+        "noUnusedVariables": "error"
       },
       "style": {
         "noParameterAssign": "error",

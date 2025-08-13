@@ -1,16 +1,19 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-
-// import AnimatedAIChat from "@/components/mvpblocks/animated-ai-chat";
-import ChatBox from "@/components/chat/chat-box";
-import ChatMessages from "@/components/chat/chat-messages";
 import { useState } from "react";
-import { queryClient } from "@/lib/query-client";
-import { CHAT_QUERY } from "@/config/query-keys/chat";
-import env from "@packages/env/client";
 import { toast } from "sonner";
-import { chatUrls } from "@/config/api/chat.url";
-import type { IChat, IMessage } from "@/types/chat";
+
+import env from "@packages/env/client";
+
+import { queryClient } from "@/lib/query-client";
 import { authClient } from "@/lib/auth-client";
+
+import { CHAT_QUERY } from "@/config/query-keys/chat";
+import { chatUrls } from "@/config/api/chat.url";
+
+import type { IChat, IMessage } from "@/types/chat";
+
+import ChatMessages from "@/components/features/chat/chat-messages";
+import ChatBox from "@/components/features/chat/chat-box";
 
 export const Route = createFileRoute("/_protected/c/new")({
   component: RouteComponent,

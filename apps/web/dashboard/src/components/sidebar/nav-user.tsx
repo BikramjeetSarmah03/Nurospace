@@ -25,9 +25,10 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import LogoutButton from "@/components/auth/logout-button";
 import { ModeToggle } from "@/components/common/mode-toggle";
 import { useAuthStore } from "@/hooks/use-auth";
+
+import LogoutButton from "@/components/features/auth/logout-button";
 
 export function NavUser() {
   const { isMobile } = useSidebar();

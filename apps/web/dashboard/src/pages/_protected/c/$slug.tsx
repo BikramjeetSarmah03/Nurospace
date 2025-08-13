@@ -1,13 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
-import ChatBox from "@/components/chat/chat-box";
-import ChatMessages from "@/components/chat/chat-messages";
+import ChatBox from "@/components/features/chat/chat-box";
+import ChatMessages from "@/components/features/chat/chat-messages";
 
 import { CHAT_QUERY } from "@/config/query-keys/chat";
 
 import { chatService } from "@/services/chat/chat.service";
 import { queryClient } from "@/lib/query-client";
+
 import type { IChat } from "@/types/chat";
 
 export const Route = createFileRoute("/_protected/c/$slug")({

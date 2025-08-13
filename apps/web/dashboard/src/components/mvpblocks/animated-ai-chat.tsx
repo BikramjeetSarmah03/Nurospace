@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback, useTransition } from "react";
+import { useEffect, useRef, useTransition } from "react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import {
@@ -112,10 +112,10 @@ export default function AnimatedAIChat() {
   const [value, setValue] = useState("");
   const [attachments, setAttachments] = useState<string[]>([]);
   const [isTyping, setIsTyping] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [_isPending, startTransition] = useTransition();
   const [activeSuggestion, setActiveSuggestion] = useState<number>(-1);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
-  const [recentCommand, setRecentCommand] = useState<string | null>(null);
+  const [_recentCommand, setRecentCommand] = useState<string | null>(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
     minHeight: 60,
@@ -542,10 +542,10 @@ function TypingDots() {
   );
 }
 
-interface ActionButtonProps {
-  icon: React.ReactNode;
-  label: string;
-}
+// interface ActionButtonProps {
+//   icon: React.ReactNode;
+//   label: string;
+// }
 
 const rippleKeyframes = `
 @keyframes ripple {
