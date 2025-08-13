@@ -99,7 +99,7 @@ export default function SidebarMenuItems() {
                     className={cn(
                       pathname === "/c/new"
                         ? "bg-sidebar-accent rounded-md"
-                        : ""
+                        : "",
                     )}
                   >
                     <Link className="flex items-center gap-2" to="/c/new">
@@ -132,7 +132,7 @@ export default function SidebarMenuItems() {
                               "flex justify-between items-center pr-2",
                               isActive(chat.slug)
                                 ? "bg-sidebar-accent rounded-md"
-                                : ""
+                                : "",
                             )}
                           >
                             <span>{chat.title}</span>
@@ -149,7 +149,7 @@ export default function SidebarMenuItems() {
                         <Link
                           to={"/c/new"}
                           className={cn(
-                            "flex justify-between items-center pr-2"
+                            "flex justify-between items-center pr-2",
                           )}
                         >
                           <span>New Chat</span>

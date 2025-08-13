@@ -17,7 +17,7 @@ const Message = React.memo(({ className, content, role }: MessageProps) => {
       className={cn(
         "bg-white dark:bg-background/40 p-3 border rounded-lg w-fit max-w-[90%] lg:max-w-[70%] text-sm whitespace-pre-wrap",
         role === "user" ? "self-end text-right" : "self-start ",
-        className
+        className,
       )}
     >
       <ReactMarkdown

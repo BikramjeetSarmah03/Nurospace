@@ -1,5 +1,5 @@
 echo "🟢 Running Formatting Checks 🟢"
-bun run format
+bun run lint-staged
 echo "🟢 Completed Formatting Checks 🟢"
 
 echo "🟢 Running Linting Checks 🟢"

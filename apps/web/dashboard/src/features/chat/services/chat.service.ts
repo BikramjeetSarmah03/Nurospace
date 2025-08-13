@@ -15,7 +15,7 @@ class ChatService {
   }
 
   async getSingleChat(
-    slug: string
+    slug: string,
   ): Promise<SuccessResponse<IChat> | ErrorResponse> {
     return (await API.get(`${chatUrls.getSingle}/${slug}`)).data;
   }

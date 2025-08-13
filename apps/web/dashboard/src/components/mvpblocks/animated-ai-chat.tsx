@@ -48,7 +48,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
             showRing
               ? "focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none"
               : "",
-            className
+            className,
           )}
           ref={r}
           onFocus={() => setIsFocused(true)}
@@ -77,7 +77,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         )}
       </div>
     );
-  }
+  },
 );
 Textarea.displayName = "Textarea";
 
@@ -129,7 +129,7 @@ export default function AnimatedAIChat() {
       setShowCommandPalette(true);
 
       const matchingSuggestionIndex = commandSuggestions.findIndex((cmd) =>
-        cmd.prefix.startsWith(value)
+        cmd.prefix.startsWith(value),
       );
 
       if (matchingSuggestionIndex >= 0) {
@@ -178,12 +178,12 @@ export default function AnimatedAIChat() {
       if (e.key === "ArrowDown") {
         e.preventDefault();
         setActiveSuggestion((prev) =>
-          prev < commandSuggestions.length - 1 ? prev + 1 : 0
+          prev < commandSuggestions.length - 1 ? prev + 1 : 0,
         );
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
         setActiveSuggestion((prev) =>
-          prev > 0 ? prev - 1 : commandSuggestions.length - 1
+          prev > 0 ? prev - 1 : commandSuggestions.length - 1,
         );
       } else if (e.key === "Tab" || e.key === "Enter") {
         e.preventDefault();
@@ -304,7 +304,7 @@ export default function AnimatedAIChat() {
                             "flex items-center gap-2 px-3 py-2 text-xs transition-colors cursor-pointer",
                             activeSuggestion === index
                               ? "bg-primary/20 text-foreground"
-                              : "text-muted-foreground hover:bg-primary/10"
+                              : "text-muted-foreground hover:bg-primary/10",
                           )}
                           onClick={() => selectCommandSuggestion(index)}
                           initial={{ opacity: 0 }}
@@ -346,7 +346,7 @@ export default function AnimatedAIChat() {
                     "text-foreground text-sm",
                     "focus:outline-none",
                     "placeholder:text-muted-foreground",
-                    "min-h-[60px]"
+                    "min-h-[60px]",
                   )}
                   style={{
                     overflow: "hidden",
@@ -409,7 +409,7 @@ export default function AnimatedAIChat() {
                     whileTap={{ scale: 0.94 }}
                     className={cn(
                       "group relative p-2 rounded-lg text-muted-foreground hover:text-foreground transition-colors",
-                      showCommandPalette && "bg-primary/20 text-foreground"
+                      showCommandPalette && "bg-primary/20 text-foreground",
                     )}
                   >
                     <Command className="w-4 h-4" />
@@ -431,7 +431,7 @@ export default function AnimatedAIChat() {
                     "flex items-center gap-2",
                     value.trim()
                       ? "bg-primary text-primary-foreground shadow-primary/10 shadow-lg"
-                      : "bg-muted/50 text-muted-foreground"
+                      : "bg-muted/50 text-muted-foreground",
                   )}
                 >
                   {isTyping ? (
