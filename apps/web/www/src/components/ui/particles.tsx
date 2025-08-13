@@ -184,7 +184,7 @@ export const Particles: React.FC<ParticlesProps> = ({
     const pSize = Math.floor(Math.random() * 2) + size;
     const alpha = 0;
     const targetAlpha = Number.parseFloat(
-      (Math.random() * 0.6 + 0.1).toFixed(1)
+      (Math.random() * 0.6 + 0.1).toFixed(1),
     );
     const dx = (Math.random() - 0.5) * 0.1;
     const dy = (Math.random() - 0.5) * 0.1;
@@ -227,7 +227,7 @@ export const Particles: React.FC<ParticlesProps> = ({
         0,
         0,
         canvasSize.current.w,
-        canvasSize.current.h
+        canvasSize.current.h,
       );
     }
   };
@@ -246,7 +246,7 @@ export const Particles: React.FC<ParticlesProps> = ({
     start1: number,
     end1: number,
     start2: number,
-    end2: number
+    end2: number,
   ): number => {
     const remapped =
       ((value - start1) * (end2 - start2)) / (end1 - start1) + start2;
@@ -265,7 +265,7 @@ export const Particles: React.FC<ParticlesProps> = ({
       ];
       const closestEdge = edge.reduce((a, b) => Math.min(a, b));
       const remapClosestEdge = Number.parseFloat(
-        remapValue(closestEdge, 0, 20, 0, 1).toFixed(2)
+        remapValue(closestEdge, 0, 20, 0, 1).toFixed(2),
       );
       if (remapClosestEdge > 1) {
         circle.alpha += 0.02;
