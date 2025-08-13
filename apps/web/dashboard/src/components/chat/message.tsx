@@ -1,3 +1,4 @@
+import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -10,7 +11,7 @@ interface MessageProps extends IMessage {
   className?: string;
 }
 
-export default function Message({ className, content, role }: MessageProps) {
+const Message = React.memo(({ className, content, role }: MessageProps) => {
   return (
     <div
       className={cn(
@@ -49,4 +50,6 @@ export default function Message({ className, content, role }: MessageProps) {
       </ReactMarkdown>
     </div>
   );
-}
+});
+
+export default Message;

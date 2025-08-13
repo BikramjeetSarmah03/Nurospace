@@ -6,10 +6,9 @@ import ChatMessages from "@/components/chat/chat-messages";
 
 import { CHAT_QUERY } from "@/config/query-keys/chat";
 
-import type { IChat } from "@/types/chat";
-
 import { chatService } from "@/services/chat/chat.service";
 import { queryClient } from "@/lib/query-client";
+import type { IChat, IMessage } from "@/types/chat";
 
 export const Route = createFileRoute("/_protected/c/$slug")({
   component: RouteComponent,
