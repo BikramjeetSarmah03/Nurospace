@@ -1,4 +1,4 @@
-import { GlobeIcon, type LucideProps } from "lucide-react";
+import { CodeIcon, type LucideProps } from "lucide-react";
 
 import {
   TASK_PARAM_TYPES,
@@ -10,7 +10,7 @@ export const PageToHtmlTask: TaskRegistryType = {
   type: TASK_TYPE.PAGE_TO_HTML,
   label: "Get html from page",
   icon: (props: LucideProps) => (
-    <GlobeIcon className="stroke-pink-400" {...props} />
+    <CodeIcon className="stroke-pink-400" {...props} />
   ),
   isEntryPoint: true,
   inputs: [

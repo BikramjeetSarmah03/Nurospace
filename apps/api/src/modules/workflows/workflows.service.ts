@@ -15,6 +15,11 @@ export default class WorkflowService {
 
     const slug = this.generateSlug(name);
 
+    // const initialFlow:{nodes:AppNode[]; edges:Edge[]} ={nodes:[],edges:[]}
+
+    // // add the flow entry point
+    // initialFlow.nodes.push(CreateFlowNode(TaskType.LAUNCH_BROWSER))
+
     const [newWorkflow] = await db
       .insert(workflow)
       .values({

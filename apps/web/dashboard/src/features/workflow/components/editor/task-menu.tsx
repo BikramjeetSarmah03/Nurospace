@@ -23,6 +23,7 @@ export default function TaskMenu() {
 
           <AccordionContent className="flex flex-col gap-1">
             <TaskMenuBtn taskType={TASK_TYPE.PAGE_TO_HTML} />
+            <TaskMenuBtn taskType={TASK_TYPE.LAUNCH_BROWSER} />
           </AccordionContent>
         </AccordionItem>
       </Accordion>
