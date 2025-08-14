@@ -1,4 +1,4 @@
-import type { PropsWithChildren } from "react";
+import { useState, type PropsWithChildren } from "react";
 import { Layers3Icon } from "lucide-react";
 
 import {
@@ -22,8 +22,10 @@ export default function CreateWorkflow({
   children,
   className,
 }: CreateWorkflowProps) {
+  const [open, setOpen] = useState(false);
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild className={cn("cursor-pointer", className)}>
         {children}
       </DialogTrigger>
@@ -47,7 +49,7 @@ export default function CreateWorkflow({
         </DialogHeader>
 
         <div className="px-4 py-8">
-          <CreateWorkflowForm />
+          <CreateWorkflowForm afterSubmit={() => setOpen(false)} />
         </div>
       </DialogContent>
     </Dialog>

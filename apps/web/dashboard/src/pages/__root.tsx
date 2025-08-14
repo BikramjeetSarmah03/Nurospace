@@ -18,7 +18,7 @@ function RootLayout() {
     <ThemeProvider>
       <Outlet />
 
-      <Toaster />
+      <Toaster richColors />
 
       <TanStackRouterDevtools position="bottom-right" />
     </ThemeProvider>

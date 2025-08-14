@@ -10,7 +10,12 @@ export const chats = pgTable("chats", {
     .references(() => user.id, { onDelete: "cascade" }),
   title: text("title"),
   slug: text("slug").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => /* @__PURE__ */ new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at")
+    .$defaultFn(() => /* @__PURE__ */ new Date())
+    .notNull(),
 });
 
 // Messages table
@@ -21,7 +26,9 @@ export const messages = pgTable("messages", {
     .notNull(),
   role: text("role").notNull(), // 'user' or 'assistant'
   content: text("content").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => /* @__PURE__ */ new Date())
+    .notNull(),
 });
 
 // Relations

@@ -107,7 +107,7 @@ export default function SidebarMenuItems() {
                       <span className="mt-0.5">Chats</span>
                     </Link>
                     {isChatsLoading ? (
-                      <Loader2Icon className="size-4 animate-spin" />
+                      <Loader2Icon className="ml-auto size-4 animate-spin" />
                     ) : (
                       <ChevronRightIcon className="ml-auto group-data-[state=open]/collapsible:rotate-90 transition-transform duration-200 cursor-pointer" />
                     )}

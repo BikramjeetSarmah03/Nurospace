@@ -1,4 +1,8 @@
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
+import z from "zod";
 
 import {
   Form,
@@ -11,14 +15,61 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 
-export default function CreateWorkflowForm() {
-  const form = useForm();
+import { queryClient } from "@/lib/query-client";
+
+import { workflowService } from "../../services/workflow.service";
+import { WORKFLOW_KEYS } from "../../lib/query-keys";
+import { LoadingButton } from "@/components/ui/loading-button";
+
+const WorkflowForm = z.object({
+  name: z.string({ error: "Name is required" }),
+  description: z.string().optional(),
+});
+
+type IWorkflowForm = z.infer<typeof WorkflowForm>;
+
+export default function CreateWorkflowForm({
+  afterSubmit,
+}: {
+  afterSubmit: () => void;
+}) {
+  const form = useForm<IWorkflowForm>({
+    resolver: zodResolver(WorkflowForm),
+    defaultValues: {
+      name: "",
+      description: "",
+    },
+  });
+
+  const createWorkflowMutation = useMutation({
+    mutationFn: async (values: IWorkflowForm) => {
+      const data = await workflowService.createWorkflow(values);
+
+      if (!data.success) throw Error(data.message);
+
+      return data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [WORKFLOW_KEYS.ALL_WORKFLOW],
+      });
+      afterSubmit();
+      toast.success("Workflow created successfully");
+    },
+    onError: (err) => {
+      toast.error(err.message);
+    },
+  });
 
   return (
     <Form {...form}>
-      <form className="space-y-4">
+      <form
+        onSubmit={form.handleSubmit((values) =>
+          createWorkflowMutation.mutate(values),
+        )}
+        className="space-y-4"
+      >
         <FormField
           control={form.control}
           name="name"
@@ -42,7 +93,7 @@ export default function CreateWorkflowForm() {
 
         <FormField
           control={form.control}
-          name="name"
+          name="description"
           render={({ field }) => (
             <FormItem>
               <FormLabel className="font-normal">
@@ -63,9 +114,13 @@ export default function CreateWorkflowForm() {
           )}
         />
 
-        <Button className="w-full" size={"sm"}>
+        <LoadingButton
+          loading={createWorkflowMutation.isPending}
+          className="w-full"
+          size={"sm"}
+        >
           Proceed
-        </Button>
+        </LoadingButton>
       </form>
     </Form>
   );

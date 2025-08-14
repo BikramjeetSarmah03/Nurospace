@@ -20,6 +20,7 @@ interface ConfirmDialogProps extends PropsWithChildren {
   onConfirm?: () => void;
   onCancel?: () => void;
   form?: React.ReactNode;
+  enableConfirm?: boolean;
 }
 
 export function ConfirmDialog({
@@ -31,6 +32,7 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
   form,
+  enableConfirm = true,
 }: ConfirmDialogProps) {
   return (
     <AlertDialog>
@@ -49,6 +51,7 @@ export function ConfirmDialog({
           <AlertDialogAction
             className="bg-destructive hover:bg-destructive/90"
             onClick={onConfirm}
+            disabled={!enableConfirm}
           >
             {confirmLabel}
           </AlertDialogAction>
