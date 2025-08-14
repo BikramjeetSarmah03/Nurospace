@@ -1,12 +1,12 @@
 import { createEnum } from "@/lib/utils";
 
 // Task types
-const taskType = createEnum(["LAUNCH_BROWSER"] as const);
+const taskType = createEnum(["LAUNCH_BROWSER", "PAGE_TO_HTML"] as const);
 export const TASK_TYPE = taskType.object;
 export type TaskType = (typeof taskType.values)[number];
 
 // Task param types
-const taskParamTypes = createEnum(["STRING"] as const);
+const taskParamTypes = createEnum(["STRING", "BROWSER_INSTANCE"] as const);
 export const TASK_PARAM_TYPES = taskParamTypes.object;
 export type TaskParamType = (typeof taskParamTypes.values)[number];
 

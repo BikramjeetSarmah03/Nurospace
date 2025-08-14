@@ -2,11 +2,11 @@ import { ReactFlowProvider } from "@xyflow/react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
 
-import FlowEditor from "./components/flow-editor";
-import TopBar from "./components/topbar/top-bar";
-
 import { WORKFLOW_KEYS } from "../../lib/query-keys";
 import { workflowService } from "../../services/workflow.service";
+import TopBar from "../../components/editor/topbar/top-bar";
+import FlowEditor from "../../components/editor/flow-editor";
+import TaskMenu from "../../components/editor/task-menu";
 
 interface EditorPageProps {
   slug: string;
@@ -42,6 +42,8 @@ export default function EditorPage({ slug }: EditorPageProps) {
           ) : (
             <FlowEditor workflow={workflow} />
           )}
+
+          <TaskMenu />
         </section>
       </div>
     </ReactFlowProvider>

@@ -10,11 +10,14 @@ import {
   type NodeTypes,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 
 import type { IWorkflow } from "@/features/workflow/types/workflow";
 
 import NodeComponent from "./node/node-component";
+import { CreateFlowNode } from "../../lib/create-flow-node";
+import type { TaskType } from "../../lib/constants/task";
+import type { AppNode } from "../../types/app-node";
 
 interface FlowEditorProps {
   workflow: IWorkflow;
@@ -28,9 +31,9 @@ const nodeTypes: NodeTypes = {
 const fitViewOptions: FitViewOptions = { padding: 1 };
 
 export default function FlowEditor({ workflow }: FlowEditorProps) {
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<AppNode>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const { setViewport } = useReactFlow();
+  const { setViewport, screenToFlowPosition } = useReactFlow();
 
   useEffect(() => {
     try {
@@ -49,6 +52,26 @@ export default function FlowEditor({ workflow }: FlowEditorProps) {
     }
   }, [workflow.defination, setEdges, setNodes, setViewport]);
 
+  const onDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+  }, []);
+
+  const onDrop = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+
+    const taskType = event.dataTransfer.getData("application/reactflow");
+    if (!taskType || typeof taskType === "undefined") return;
+
+    const position = screenToFlowPosition({
+      x: event.clientX,
+      y: event.clientY,
+    });
+
+    const newNode = CreateFlowNode(taskType as TaskType, position);
+    setNodes((nds) => nds.concat(newNode));
+  }, []);
+
   return (
     <main className="size-full">
       <ReactFlow
@@ -59,6 +82,8 @@ export default function FlowEditor({ workflow }: FlowEditorProps) {
         nodeTypes={nodeTypes}
         fitView
         fitViewOptions={fitViewOptions}
+        onDragOver={onDragOver}
+        onDrop={onDrop}
         // snapToGrid={true} // it will be snappy
         // snapGrid={snapGrid}
       >

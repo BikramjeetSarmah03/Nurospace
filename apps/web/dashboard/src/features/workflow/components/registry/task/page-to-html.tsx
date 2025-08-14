@@ -6,9 +6,9 @@ import {
 } from "@/features/workflow/lib/constants/task";
 import type { TaskRegistryType } from "@/features/workflow/types/task";
 
-export const LaunchBrowserTask: TaskRegistryType = {
-  type: TASK_TYPE.LAUNCH_BROWSER,
-  label: "Launch Browser",
+export const PageToHtmlTask: TaskRegistryType = {
+  type: TASK_TYPE.PAGE_TO_HTML,
+  label: "Get html from page",
   icon: (props: LucideProps) => (
     <GlobeIcon className="stroke-pink-400" {...props} />
   ),
@@ -16,15 +16,18 @@ export const LaunchBrowserTask: TaskRegistryType = {
   inputs: [
     {
       name: "Website Url",
-      type: TASK_PARAM_TYPES.STRING,
-      helperText: "eg: https://www.google.com",
+      type: TASK_PARAM_TYPES.BROWSER_INSTANCE,
       required: true,
       hideHandle: true,
     },
   ],
   outputs: [
     {
-      name: "Web page",
+      name: "Html",
+      type: TASK_PARAM_TYPES.STRING,
+    },
+    {
+      name: "Web Page",
       type: TASK_PARAM_TYPES.BROWSER_INSTANCE,
     },
   ],
