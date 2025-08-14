@@ -6,6 +6,7 @@ import { v4 as uuidV4 } from "uuid";
 import { db } from "@/db";
 import { workflow } from "@/db/schema";
 import type { CreateWorkflowDto } from "./dto/create-workflow";
+import type { UpdateWorkflowDto } from "./dto/update-workflow";
 
 @Service()
 export default class WorkflowService {
@@ -33,6 +34,35 @@ export default class WorkflowService {
     };
   }
 
+  async updateWorkflow(
+    workflowSlug: string,
+    body: UpdateWorkflowDto,
+    userId: string,
+  ) {
+    const { defination } = body;
+
+    const [updatedWorkflow] = await db
+      .update(workflow)
+      .set({
+        defination,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(workflow.slug, workflowSlug), eq(workflow.userId, userId)))
+      .returning();
+
+    if (!updatedWorkflow) {
+      return {
+        success: false,
+        message: "Workflow not found",
+      };
+    }
+
+    return {
+      success: true,
+      data: updatedWorkflow,
+    };
+  }
+
   async getAllWorkflows(userId: string) {
     const data = await db.query.workflow.findMany({
       where: eq(workflow.userId, userId),
@@ -44,9 +74,9 @@ export default class WorkflowService {
     };
   }
 
-  async getWorkflowDetails(workflowId: string, userId: string) {
+  async getWorkflowDetails(workflowSlug: string, userId: string) {
     const result = await db.query.workflow.findFirst({
-      where: and(eq(workflow.id, workflowId), eq(workflow.userId, userId)),
+      where: and(eq(workflow.slug, workflowSlug), eq(workflow.userId, userId)),
     });
 
     if (!result) throw new HTTPException(404, { message: "Not Found" });

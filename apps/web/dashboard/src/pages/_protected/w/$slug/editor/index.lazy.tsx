@@ -7,5 +7,7 @@ export const Route = createLazyFileRoute("/_protected/w/$slug/editor/")({
 });
 
 function RouteComponent() {
-  return <EditorPage />;
+  const params = Route.useParams();
+
+  return <EditorPage slug={params.slug} />;
 }

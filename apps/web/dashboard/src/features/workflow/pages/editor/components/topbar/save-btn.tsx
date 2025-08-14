@@ -1,9 +1,13 @@
 import { useReactFlow } from "@xyflow/react";
+import { useMutation } from "@tanstack/react-query";
 import { CheckIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { useMutation } from "@tanstack/react-query";
+
+import { workflowService } from "@/features/workflow/services/workflow.service";
+import { queryClient } from "@/lib/query-client";
+import { WORKFLOW_KEYS } from "@/features/workflow/lib/query-keys";
 
 interface SaveBtnProps {
   workflowId: string;
@@ -20,17 +24,24 @@ export function SaveBtn({ workflowId }: SaveBtnProps) {
       id: string;
       defination: string;
     }) => {
-      toast.success(`ID: ${id}`);
-      toast.success(`Desc: ${defination}`);
-      return {
-        success: true,
-      };
+      const data = await workflowService.updateWorkflow({
+        id,
+        defination,
+      });
+
+      if (!data.success) throw Error(data.message);
+
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success("Flow Saved Successfully", { id: "save-workflow" });
+      queryClient.setQueryData(
+        [WORKFLOW_KEYS.SINGLE_WORKFLOW, workflowId],
+        data,
+      );
     },
-    onError: () => {
-      toast.success("Something went wrong", { id: "save-workflow" });
+    onError: (err) => {
+      toast.error(err.message, { id: "save-workflow" });
     },
   });
 

@@ -15,12 +15,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { LoadingButton } from "@/components/ui/loading-button";
 
 import { queryClient } from "@/lib/query-client";
 
 import { workflowService } from "../../services/workflow.service";
 import { WORKFLOW_KEYS } from "../../lib/query-keys";
-import { LoadingButton } from "@/components/ui/loading-button";
+import type { IWorkflow } from "../../types/workflow";
 
 const WorkflowForm = z.object({
   name: z.string({ error: "Name is required" }),
@@ -48,12 +49,16 @@ export default function CreateWorkflowForm({
 
       if (!data.success) throw Error(data.message);
 
-      return data.data;
+      return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: [WORKFLOW_KEYS.ALL_WORKFLOW],
-      });
+    onSuccess: (data) => {
+      queryClient.setQueryData(
+        [WORKFLOW_KEYS.ALL_WORKFLOW],
+        (old: IWorkflow[] | undefined) => {
+          if (!old) return [data.data]; // if there's no data, initialize with new item
+          return [...old, data.data]; // append to existing list
+        },
+      );
       afterSubmit();
       toast.success("Workflow created successfully");
     },

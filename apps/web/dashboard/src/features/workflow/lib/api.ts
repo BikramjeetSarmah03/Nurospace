@@ -1,5 +1,5 @@
 export const workflowUrls = {
-  getAll: "workflow",
+  get: "workflow",
   create: "workflow",
   getSingleWorkflow: "workflow",
   update: "workflow",

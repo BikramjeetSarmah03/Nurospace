@@ -11,7 +11,7 @@ export class CorsPlugin implements IPlugin {
       cors({
         origin: this.origins,
         allowHeaders: ["Content-Type", "Authorization"],
-        allowMethods: ["POST", "GET", "OPTIONS", "DELETE"],
+        allowMethods: ["POST", "GET", "OPTIONS", "DELETE", "PATCH"],
         exposeHeaders: ["Content-Length"],
         maxAge: 600,
         credentials: true,

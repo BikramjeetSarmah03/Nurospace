@@ -1,5 +1,7 @@
 import { EllipsisVerticalIcon, HardDriveIcon, PlusIcon } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 
@@ -9,11 +11,10 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 
 import { cn } from "@/lib/utils";
-import type { IWorkflow } from "../types/workflow";
-import { useMutation } from "@tanstack/react-query";
-import { workflowService } from "../services/workflow.service";
-import { toast } from "sonner";
 import { queryClient } from "@/lib/query-client";
+
+import type { IWorkflow } from "../types/workflow";
+import { workflowService } from "../services/workflow.service";
 import { WORKFLOW_KEYS } from "../lib/query-keys";
 
 export default function AllWorkflowPage({
@@ -27,13 +28,17 @@ export default function AllWorkflowPage({
 
       if (!data.success) throw new Error(data.message);
 
-      return data.data;
+      return { id };
     },
-    onSuccess: () => {
+    onSuccess: ({ id }) => {
+      queryClient.setQueryData(
+        [WORKFLOW_KEYS.ALL_WORKFLOW],
+        (old: IWorkflow[] | undefined) => {
+          if (!old) return [];
+          return old.filter((workflow) => workflow.id !== id);
+        },
+      );
       toast.success("Workflow deleted successfully");
-      queryClient.invalidateQueries({
-        queryKey: [WORKFLOW_KEYS.ALL_WORKFLOW],
-      });
     },
     onError: (err) => {
       toast.error(err.message);

@@ -13,7 +13,9 @@ import { AuthGuard } from "@/modules/auth/auth.guard";
 import { AuthContext, type IAuthContext } from "@/modules/auth/auth.decorator";
 
 import WorkflowService from "./workflows.service";
+
 import type { CreateWorkflowDto } from "./dto/create-workflow";
+import type { UpdateWorkflowDto } from "./dto/update-workflow";
 
 @Controller("workflow")
 @UseGuards(AuthGuard)
@@ -25,8 +27,16 @@ class WorkflowController {
     return await this.workflowService.getAllWorkflows(authContext.user.id);
   }
 
-  @Get(":id")
-  getWorkflowDetails() {}
+  @Get(":slug")
+  async getWorkflowDetails(
+    @Param("slug") workflowSlug: string,
+    @AuthContext() authContext: IAuthContext,
+  ) {
+    return await this.workflowService.getWorkflowDetails(
+      workflowSlug,
+      authContext.user.id,
+    );
+  }
 
   @Post()
   async createNewWorkflow(
@@ -36,12 +46,22 @@ class WorkflowController {
     return await this.workflowService.createWorkflow(body, authContext.user.id);
   }
 
-  @Patch(":id")
-  updateWokflow() {}
+  @Patch(":slug")
+  async updateWokflow(
+    @Param("slug") workflowSlug: string,
+    @Body() body: UpdateWorkflowDto,
+    @AuthContext() authContext: IAuthContext,
+  ) {
+    return await this.workflowService.updateWorkflow(
+      workflowSlug,
+      body,
+      authContext.user.id,
+    );
+  }
 
-  @Delete(":id")
+  @Delete(":slug")
   async deleteWorkflow(
-    @Param("id") id: string,
+    @Param("slug") id: string,
     @AuthContext() authContext: IAuthContext,
   ) {
     return await this.workflowService.deleteWorkflow(id, authContext.user.id);
