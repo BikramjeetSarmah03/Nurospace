@@ -35,8 +35,9 @@ export default function NodeCard({
 
   return (
     <div
+      role="none"
       className={cn(
-        "flex flex-col gap-1 bg-background border-2 rounded-md w-[420px] text-xs cursor-pointer border-separate",
+        "flex flex-col gap-1 bg-background border-2 rounded-md w-[420px] text-xs text-left cursor-pointer border-separate",
         isSelected && "border-green-500",
       )}
       onDoubleClick={handleCenterViewport}

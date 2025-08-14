@@ -1,0 +1,39 @@
+import { Handle, Position } from "@xyflow/react";
+
+import type { TaskParam } from "@/features/workflow/lib/constants/task";
+
+import { cn } from "@/lib/utils";
+
+import NodeParamField from "./node-param-field";
+
+interface NodeInputsProps {
+  children: React.ReactNode;
+}
+
+interface NodeInputProps {
+  input: TaskParam;
+  nodeId: string;
+}
+
+export function NodeInputs({ children }: NodeInputsProps) {
+  return <div className="flex flex-col gap-2 divide-y">{children}</div>;
+}
+
+export function NodeInput({ input, nodeId }: NodeInputProps) {
+  return (
+    <div className="relative flex justify-start bg-secondary p-3 w-full">
+      <NodeParamField param={input} nodeId={nodeId} />
+
+      {!input.hideHandle && (
+        <Handle
+          id={input.name}
+          type="target"
+          position={Position.Left}
+          className={cn(
+            "!bg-muted-foreground !border-2 !border-background !size-4",
+          )}
+        />
+      )}
+    </div>
+  );
+}
