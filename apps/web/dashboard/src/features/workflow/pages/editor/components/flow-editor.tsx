@@ -5,11 +5,17 @@ import {
   ReactFlow,
   useEdgesState,
   useNodesState,
+  type NodeTypes,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
 import { TASK_TYPE } from "@/features/workflow/lib/constants/task";
 import { CreateFlowNode } from "@/features/workflow/lib/create-flow-node";
+import NodeComponent from "./node-component";
+
+const nodeTypes: NodeTypes = {
+  Node: NodeComponent,
+};
 
 export default function FlowEditor() {
   const [nodes, _setNodes, onNodesChange] = useNodesState([
@@ -24,6 +30,7 @@ export default function FlowEditor() {
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        nodeTypes={nodeTypes}
       >
         <Controls position="top-left" />
 
