@@ -1,4 +1,5 @@
 import {
+  addEdge,
   Background,
   BackgroundVariant,
   Controls,
@@ -6,8 +7,12 @@ import {
   useEdgesState,
   useNodesState,
   useReactFlow,
+  type Edge,
+  type Connection,
   type FitViewOptions,
   type NodeTypes,
+  type EdgeTypes,
+  MarkerType,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useCallback, useEffect } from "react";
@@ -19,6 +24,7 @@ import NodeComponent from "./node/node-component";
 import { CreateFlowNode } from "../../lib/create-flow-node";
 import type { TaskType } from "../../lib/constants/task";
 import type { AppNode } from "../../types/app-node";
+import DeletableEdge from "./edge/deletable-edge";
 
 interface FlowEditorProps {
   workflow: IWorkflow;
@@ -28,12 +34,16 @@ const nodeTypes: NodeTypes = {
   Node: NodeComponent,
 };
 
+const edgeTypes: EdgeTypes = {
+  default: DeletableEdge,
+};
+
 // const snapGrid: [number, number] = [50, 50];
 const fitViewOptions: FitViewOptions = { padding: 1 };
 
 export default function FlowEditor({ workflow }: FlowEditorProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState<AppNode>([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const { setViewport, screenToFlowPosition } = useReactFlow();
 
   useEffect(() => {
@@ -73,6 +83,21 @@ export default function FlowEditor({ workflow }: FlowEditorProps) {
     setNodes((nds) => nds.concat(newNode));
   }, []);
 
+  const onConnect = useCallback((connection: Connection) => {
+    setEdges((eds) =>
+      addEdge(
+        {
+          ...connection,
+          animated: false,
+          markerEnd: {
+            type: MarkerType.Arrow,
+          },
+        },
+        eds,
+      ),
+    );
+  }, []);
+
   return (
     <main className="size-full">
       <ReactFlow
@@ -81,10 +106,12 @@ export default function FlowEditor({ workflow }: FlowEditorProps) {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         fitView
         fitViewOptions={fitViewOptions}
         onDragOver={onDragOver}
         onDrop={onDrop}
+        onConnect={onConnect}
         // snapToGrid={true} // it will be snappy
         // snapGrid={snapGrid}
       >
