@@ -1,4 +1,10 @@
 import { type LinkProps, useRouter } from "@tanstack/react-router";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 import { Button, type ButtonProps } from "@/components/ui/button";
 
@@ -18,13 +24,23 @@ export const BackButton = ({ link, children, ...props }: BackButtonProps) => {
   };
 
   return (
-    <Button
-      type="button"
-      variant={props.variant || "outline"}
-      {...props}
-      onClick={onClick}
-    >
-      {children}
-    </Button>
+    <Tooltip>
+      <TooltipProvider>
+        <TooltipTrigger>
+          <Button
+            type="button"
+            variant={props.variant || "outline"}
+            {...props}
+            onClick={onClick}
+          >
+            {children}
+          </Button>
+        </TooltipTrigger>
+
+        <TooltipContent>
+          <p>Back</p>
+        </TooltipContent>
+      </TooltipProvider>
+    </Tooltip>
   );
 };
