@@ -9,6 +9,7 @@ import {
 import type { AppNode } from "@/features/workflow/types/app-node";
 
 import { StringParam } from "./params/string-param";
+import { BrowserInstanceParam } from "./params/browser-instance-param";
 
 interface NodeParamFieldProps {
   param: TaskParam;
@@ -42,6 +43,16 @@ export default function NodeParamField({ param, nodeId }: NodeParamFieldProps) {
           updateNodeParamValue={updateNodeParamValue}
         />
       );
+
+    case TASK_PARAM_TYPES.BROWSER_INSTANCE:
+      return (
+        <BrowserInstanceParam
+          param={param}
+          value={""}
+          updateNodeParamValue={updateNodeParamValue}
+        />
+      );
+
     default:
       return (
         <div className="w-full">

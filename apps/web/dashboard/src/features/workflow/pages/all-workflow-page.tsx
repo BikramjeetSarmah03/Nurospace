@@ -16,6 +16,7 @@ import { queryClient } from "@/lib/query-client";
 import type { IWorkflow } from "../types/workflow";
 import { workflowService } from "../services/workflow.service";
 import { WORKFLOW_KEYS } from "../lib/query-keys";
+import type { SuccessResponse } from "@/config/types";
 
 export default function AllWorkflowPage({
   workflows,
@@ -33,9 +34,12 @@ export default function AllWorkflowPage({
     onSuccess: ({ id }) => {
       queryClient.setQueryData(
         [WORKFLOW_KEYS.ALL_WORKFLOW],
-        (old: IWorkflow[] | undefined) => {
+        (old: SuccessResponse<IWorkflow[]> | undefined) => {
           if (!old) return [];
-          return old.filter((workflow) => workflow.id !== id);
+          return {
+            success: true,
+            data: old?.data?.filter((workflow) => workflow.id !== id),
+          };
         },
       );
       toast.success("Workflow deleted successfully");

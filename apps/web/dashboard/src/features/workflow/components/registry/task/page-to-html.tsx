@@ -18,7 +18,6 @@ export const PageToHtmlTask: TaskRegistryType = {
       name: "Website Url",
       type: TASK_PARAM_TYPES.BROWSER_INSTANCE,
       required: true,
-      hideHandle: true,
     },
   ],
   outputs: [

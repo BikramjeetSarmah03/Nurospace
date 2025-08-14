@@ -18,6 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { LoadingButton } from "@/components/ui/loading-button";
 
 import { queryClient } from "@/lib/query-client";
+import type { SuccessResponse } from "@/config/types";
 
 import { workflowService } from "../../services/workflow.service";
 import { WORKFLOW_KEYS } from "../../lib/query-keys";
@@ -54,9 +55,12 @@ export default function CreateWorkflowForm({
     onSuccess: (data) => {
       queryClient.setQueryData(
         [WORKFLOW_KEYS.ALL_WORKFLOW],
-        (old: IWorkflow[] | undefined) => {
+        (old: SuccessResponse<IWorkflow[]> | undefined) => {
           if (!old) return [data.data]; // if there's no data, initialize with new item
-          return [...old, data.data]; // append to existing list
+          return {
+            success: true,
+            data: [data.data, ...old.data],
+          }; // append to existing list
         },
       );
       afterSubmit();

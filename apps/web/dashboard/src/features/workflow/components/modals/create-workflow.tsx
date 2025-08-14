@@ -4,7 +4,6 @@ import { Layers3Icon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -29,14 +28,18 @@ export default function CreateWorkflow({
       <DialogTrigger asChild className={cn("cursor-pointer", className)}>
         {children}
       </DialogTrigger>
-      <DialogContent className="p-0 max-h-[calc(100%-2rem)] overflow-y-auto">
+      <DialogContent
+        aria-describedby="Description"
+        className="p-0 max-h-[calc(100%-2rem)] overflow-y-auto"
+      >
         <DialogHeader className="border-b">
           <DialogTitle className="place-items-center gap-2.5 grid px-4 pt-8">
             <div className="bg-primary/10 hover:bg-primary/20 p-2 rounded-full w-fit transition-all duration-300">
               <Layers3Icon />
             </div>
           </DialogTitle>
-          <DialogDescription className="px-4 pb-8">
+
+          <div className="px-4 pb-8">
             <div className="text-center">
               <h1 className="font-semibold text-primary text-base">
                 Create Workflow
@@ -45,7 +48,7 @@ export default function CreateWorkflow({
                 Start building your workflow
               </p>
             </div>
-          </DialogDescription>
+          </div>
         </DialogHeader>
 
         <div className="px-4 py-8">

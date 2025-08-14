@@ -5,6 +5,7 @@ import type { TaskParam } from "@/features/workflow/lib/constants/task";
 import { cn } from "@/lib/utils";
 
 import NodeParamField from "./node-param-field";
+import { ColorForHandle } from "../../common/color-for-handle";
 
 interface NodeInputsProps {
   children: React.ReactNode;
@@ -31,6 +32,7 @@ export function NodeInput({ input, nodeId }: NodeInputProps) {
           position={Position.Left}
           className={cn(
             "!bg-muted-foreground !border-2 !border-background !size-4",
+            ColorForHandle[input.type],
           )}
         />
       )}
