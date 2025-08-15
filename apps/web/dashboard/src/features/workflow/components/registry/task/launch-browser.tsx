@@ -4,9 +4,9 @@ import {
   TASK_PARAM_TYPES,
   TASK_TYPE,
 } from "@/features/workflow/lib/constants/task";
-import type { TaskRegistryType } from "@/features/workflow/types/task";
+import type { IWorkflowTask } from "@/features/workflow/types/task";
 
-export const LaunchBrowserTask: TaskRegistryType = {
+export const LaunchBrowserTask = {
   type: TASK_TYPE.LAUNCH_BROWSER,
   label: "Launch Browser",
   icon: (props: LucideProps) => (
@@ -28,4 +28,5 @@ export const LaunchBrowserTask: TaskRegistryType = {
       type: TASK_PARAM_TYPES.BROWSER_INSTANCE,
     },
   ],
-};
+  credits: 5,
+} satisfies IWorkflowTask;

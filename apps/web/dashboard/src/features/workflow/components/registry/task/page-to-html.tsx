@@ -4,9 +4,9 @@ import {
   TASK_PARAM_TYPES,
   TASK_TYPE,
 } from "@/features/workflow/lib/constants/task";
-import type { TaskRegistryType } from "@/features/workflow/types/task";
+import type { IWorkflowTask } from "@/features/workflow/types/task";
 
-export const PageToHtmlTask: TaskRegistryType = {
+export const PageToHtmlTask = {
   type: TASK_TYPE.PAGE_TO_HTML,
   label: "Get html from page",
   icon: (props: LucideProps) => (
@@ -29,4 +29,5 @@ export const PageToHtmlTask: TaskRegistryType = {
       type: TASK_PARAM_TYPES.BROWSER_INSTANCE,
     },
   ],
-};
+  credits: 5,
+} satisfies IWorkflowTask;

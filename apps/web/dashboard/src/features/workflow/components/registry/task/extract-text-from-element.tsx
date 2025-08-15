@@ -4,9 +4,9 @@ import {
   TASK_PARAM_TYPES,
   TASK_TYPE,
 } from "@/features/workflow/lib/constants/task";
-import type { TaskRegistryType } from "@/features/workflow/types/task";
+import type { IWorkflowTask } from "@/features/workflow/types/task";
 
-export const ExtractTextFromElement: TaskRegistryType = {
+export const ExtractTextFromElement = {
   type: TASK_TYPE.EXTRACT_TEXT_FROM_ELEMENT,
   label: "Extract text from element",
   icon: (props: LucideProps) => (
@@ -31,4 +31,5 @@ export const ExtractTextFromElement: TaskRegistryType = {
       type: TASK_PARAM_TYPES.STRING,
     },
   ],
-};
+  credits: 5,
+} satisfies IWorkflowTask;
