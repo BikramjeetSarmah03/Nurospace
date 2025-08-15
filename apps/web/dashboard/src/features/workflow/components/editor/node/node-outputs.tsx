@@ -14,7 +14,7 @@ interface NodeOutputProps {
 }
 
 export function NodeOutputs({ children }: NodeOutputsProps) {
-  return <div className="flex flex-col divide-y">{children}</div>;
+  return <div className="flex flex-col gap-1 divide-y">{children}</div>;
 }
 
 export function NodeOutput({ output }: NodeOutputProps) {

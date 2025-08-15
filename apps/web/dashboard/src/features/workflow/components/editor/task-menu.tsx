@@ -22,8 +22,9 @@ export default function TaskMenu() {
           </AccordionTrigger>
 
           <AccordionContent className="flex flex-col gap-1">
-            <TaskMenuBtn taskType={TASK_TYPE.PAGE_TO_HTML} />
-            <TaskMenuBtn taskType={TASK_TYPE.LAUNCH_BROWSER} />
+            {Object.values(TASK_TYPE).map((type) => (
+              <TaskMenuBtn taskType={type} key={type} />
+            ))}
           </AccordionContent>
         </AccordionItem>
       </Accordion>

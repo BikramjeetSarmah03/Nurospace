@@ -15,7 +15,7 @@ export const PageToHtmlTask: TaskRegistryType = {
   isEntryPoint: true,
   inputs: [
     {
-      name: "Website Url",
+      name: "Web page",
       type: TASK_PARAM_TYPES.BROWSER_INSTANCE,
       required: true,
     },

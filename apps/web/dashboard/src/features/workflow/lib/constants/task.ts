@@ -1,7 +1,11 @@
 import { createEnum } from "@/lib/utils";
 
 // Task types
-const taskType = createEnum(["LAUNCH_BROWSER", "PAGE_TO_HTML"] as const);
+const taskType = createEnum([
+  "LAUNCH_BROWSER",
+  "PAGE_TO_HTML",
+  "EXTRACT_TEXT_FROM_ELEMENT",
+] as const);
 export const TASK_TYPE = taskType.object;
 export type TaskType = (typeof taskType.values)[number];
 
@@ -17,4 +21,5 @@ export interface TaskParam {
   required?: boolean;
   hideHandle?: boolean;
   [key: string]: unknown;
+  variant?: string;
 }

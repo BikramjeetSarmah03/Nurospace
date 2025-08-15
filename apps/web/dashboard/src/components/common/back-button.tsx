@@ -26,7 +26,7 @@ export const BackButton = ({ link, children, ...props }: BackButtonProps) => {
   return (
     <Tooltip>
       <TooltipProvider>
-        <TooltipTrigger>
+        <TooltipTrigger asChild>
           <Button
             type="button"
             variant={props.variant || "outline"}

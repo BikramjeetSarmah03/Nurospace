@@ -1,9 +1,10 @@
 import {
-  addEdge,
   Background,
   BackgroundVariant,
   Controls,
   ReactFlow,
+  MarkerType,
+  addEdge,
   useEdgesState,
   useNodesState,
   useReactFlow,
@@ -12,7 +13,7 @@ import {
   type FitViewOptions,
   type NodeTypes,
   type EdgeTypes,
-  MarkerType,
+  getOutgoers,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useCallback, useEffect } from "react";
@@ -22,9 +23,11 @@ import type { IWorkflow } from "@/features/workflow/types/workflow";
 import NodeComponent from "./node/node-component";
 
 import { CreateFlowNode } from "../../lib/create-flow-node";
-import { type TaskType } from "../../lib/constants/task";
+import type { TaskType } from "../../lib/constants/task";
 import type { AppNode } from "../../types/app-node";
+
 import DeletableEdge from "./edge/deletable-edge";
+import { TaskRegistry } from "../registry/task/registery";
 
 interface FlowEditorProps {
   workflow: IWorkflow;
@@ -44,7 +47,7 @@ const fitViewOptions: FitViewOptions = { padding: 1 };
 export default function FlowEditor({ workflow }: FlowEditorProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState<AppNode>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
-  const { setViewport, screenToFlowPosition } = useReactFlow();
+  const { setViewport, screenToFlowPosition, updateNodeData } = useReactFlow();
 
   useEffect(() => {
     try {
@@ -68,35 +71,105 @@ export default function FlowEditor({ workflow }: FlowEditorProps) {
     event.dataTransfer.dropEffect = "move";
   }, []);
 
-  const onDrop = useCallback((event: React.DragEvent) => {
-    event.preventDefault();
+  const onDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
 
-    const taskType = event.dataTransfer.getData("application/reactflow");
-    if (!taskType || typeof taskType === "undefined") return;
+      const taskType = event.dataTransfer.getData("application/reactflow");
+      if (!taskType || typeof taskType === "undefined") return;
 
-    const position = screenToFlowPosition({
-      x: event.clientX,
-      y: event.clientY,
-    });
+      const position = screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
 
-    const newNode = CreateFlowNode(taskType as TaskType, position);
-    setNodes((nds) => nds.concat(newNode));
-  }, []);
+      const newNode = CreateFlowNode(taskType as TaskType, position);
+      setNodes((nds) => nds.concat(newNode));
+    },
+    [screenToFlowPosition, setNodes],
+  );
 
-  const onConnect = useCallback((connection: Connection) => {
-    setEdges((eds) =>
-      addEdge(
-        {
-          ...connection,
-          animated: false,
-          markerEnd: {
-            type: MarkerType.Arrow,
+  const onConnect = useCallback(
+    (connection: Connection) => {
+      setEdges((eds) =>
+        addEdge(
+          {
+            ...connection,
+            animated: true,
+            markerEnd: {
+              type: MarkerType.Arrow,
+            },
           },
+          eds,
+        ),
+      );
+
+      if (!connection.targetHandle) return;
+
+      // remove input value if present on connection
+      const node = nodes.find((nd) => nd.id === connection.target);
+
+      if (!node) return;
+
+      const nodeInputs = node.data.inputs;
+      updateNodeData(node.id, {
+        inputs: {
+          ...nodeInputs,
+          [connection.targetHandle]: "",
         },
-        eds,
-      ),
-    );
-  }, []);
+      });
+    },
+    [setEdges, updateNodeData, nodes],
+  );
+
+  const isValidConnection = useCallback(
+    (connection: Edge | Connection) => {
+      // no self connection allowed
+      if (connection.source === connection.target) return false;
+
+      // same taskParam type connection
+      const source = nodes.find((node) => node.id === connection.source);
+      const target = nodes.find((node) => node.id === connection.target);
+
+      if (!source || !target) {
+        console.log("Source and Target node not found");
+        return false;
+      }
+
+      const sourceTask = TaskRegistry[source.data.type];
+      const targetTask = TaskRegistry[target.data.type];
+
+      const output = sourceTask.outputs?.find(
+        (o) => o.name === connection.sourceHandle,
+      );
+      const input = targetTask.inputs?.find(
+        (o) => o.name === connection.targetHandle,
+      );
+
+      if (input?.type !== output?.type) {
+        console.log("Invalid connection: type mismatch");
+        return false;
+      }
+
+      // cycles shall not allowed
+      const hasCycle = (node: AppNode, visited = new Set()) => {
+        if (visited.has(node.id)) return false;
+        visited.add(node.id);
+
+        for (const outgoer of getOutgoers(node, nodes, edges)) {
+          if (outgoer.id === connection.source) return true;
+
+          if (hasCycle(outgoer, visited)) return true;
+        }
+      };
+
+      const deletedCycle = hasCycle(target);
+
+      // return true if valid connection
+      return !deletedCycle;
+    },
+    [nodes, edges],
+  );
 
   return (
     <main className="size-full">
@@ -112,6 +185,7 @@ export default function FlowEditor({ workflow }: FlowEditorProps) {
         onDragOver={onDragOver}
         onDrop={onDrop}
         onConnect={onConnect}
+        isValidConnection={isValidConnection}
         // snapToGrid={true} // it will be snappy
         // snapGrid={snapGrid}
       >

@@ -14,9 +14,14 @@ import { BrowserInstanceParam } from "./params/browser-instance-param";
 interface NodeParamFieldProps {
   param: TaskParam;
   nodeId: string;
+  disabled?: boolean;
 }
 
-export default function NodeParamField({ param, nodeId }: NodeParamFieldProps) {
+export default function NodeParamField({
+  param,
+  nodeId,
+  disabled,
+}: NodeParamFieldProps) {
   const { updateNodeData, getNode } = useReactFlow();
 
   const node = getNode(nodeId) as AppNode;
@@ -41,6 +46,7 @@ export default function NodeParamField({ param, nodeId }: NodeParamFieldProps) {
           param={param}
           value={value}
           updateNodeParamValue={updateNodeParamValue}
+          disabled={disabled}
         />
       );
 
