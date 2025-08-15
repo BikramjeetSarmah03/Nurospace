@@ -12,7 +12,6 @@ export const ExtractTextFromElement: TaskRegistryType = {
   icon: (props: LucideProps) => (
     <TextIcon className="stroke-pink-400" {...props} />
   ),
-  isEntryPoint: true,
   inputs: [
     {
       name: "Html",

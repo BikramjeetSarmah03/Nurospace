@@ -11,7 +11,7 @@ class AuthQueries {
         const session = await authClient.getSession();
         return session;
       },
-      staleTime: 1000 * 10, // 10 seconds
+      staleTime: 1000 * 10 * 60 * 15, // 15 minutes
     });
   }
 }
