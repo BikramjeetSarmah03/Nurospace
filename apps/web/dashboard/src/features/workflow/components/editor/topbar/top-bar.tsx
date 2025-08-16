@@ -3,6 +3,7 @@ import { ChevronLeftIcon } from "lucide-react";
 import { BackButton } from "@/components/common/back-button";
 
 import { SaveBtn } from "./save-btn";
+import { ExecuteBtn } from "./execute-btn";
 
 interface TopBarProps {
   title: string;
@@ -30,6 +31,7 @@ export default function TopBar({ title, subTitle, workflowId }: TopBarProps) {
 
       <div className="flex justify-end gap-1">
         <SaveBtn workflowId={workflowId} />
+        <ExecuteBtn workflowId={workflowId} />
       </div>
     </header>
   );

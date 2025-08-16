@@ -16,14 +16,24 @@ import {
 
 import { TaskRegistry } from "../registry/task/registery";
 
+import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut";
+
 import { cn } from "@/lib/utils";
 
 export default function TaskMenu() {
   const [open, setOpen] = useState(false);
 
-  const toggleOpen = () => {
-    setOpen(!open);
-  };
+  useKeyboardShortcut({
+    shortcuts: [
+      ["ctrl", "k"],
+      ["meta", "k"],
+    ],
+    onKeyPressed: toggleOpen,
+  });
+
+  function toggleOpen() {
+    setOpen((prev) => !prev);
+  }
 
   return (
     <aside
