@@ -40,40 +40,80 @@ export const workflow = pgTable(
   }),
 );
 
-// export const workflowExecution = pgTable("workflow_executions", {
-//   id: uuid("id").defaultRandom().primaryKey(),
-//   userId: text("user_id")
-//     .references(() => user.id, { onDelete: "cascade" })
-//     .notNull(),
-//   workflowId: uuid("workflow_id")
-//     .references(() => workflow.id, {
-//       onDelete: "cascade",
-//     })
-//     .notNull(),
-//   trigger: text("trigger"),
-//   status: text("status"),
-//   creditsConsumed: integer("credits_consumed"),
-//   createdAt: timestamp("created_at")
-//     .$defaultFn(() => /* @__PURE__ */ new Date())
-//     .notNull(),
-//   startedAt: timestamp("started_at"),
-//   completedAt: timestamp("completed_at"),
-// });
+export const workflowExecution = pgTable("workflow_executions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id")
+    .references(() => user.id, { onDelete: "cascade" })
+    .notNull(),
+  workflowId: uuid("workflow_id")
+    .references(() => workflow.id, {
+      onDelete: "cascade",
+    })
+    .notNull(),
+  trigger: text("trigger"),
+  status: text("status"),
+  creditsConsumed: integer("credits_consumed"),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => /* @__PURE__ */ new Date())
+    .notNull(),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+});
 
-// export const ExecutionPhase = pgTable("execution_phase", {
-//   id: uuid("id").defaultRandom().primaryKey(),
-//   userId: text("user_id")
-//     .references(() => user.id, { onDelete: "cascade" })
-//     .notNull(),
-//   workflowExecutionId: uuid("workflow_execution_id")
-//     .references(() => workflowExecution.id, {
-//       onDelete: "cascade",
-//     })
-//     .notNull(),
-//     status:text("status"),
-//     number:integer("number")
-// });
+export const ExecutionPhase = pgTable("execution_phase", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id")
+    .references(() => user.id, { onDelete: "cascade" })
+    .notNull(),
+  workflowExecutionId: uuid("workflow_execution_id")
+    .references(() => workflowExecution.id, {
+      onDelete: "cascade",
+    })
+    .notNull(),
+  status: text("status"),
+  number: integer("number"),
+});
 
+// 👤 User → Workflows, WorkflowExecutions, ExecutionPhases
 export const userRelations = relations(user, ({ many }) => ({
   workflows: many(workflow),
+  workflowExecutions: many(workflowExecution),
+  executionPhases: many(ExecutionPhase),
+}));
+
+// 📋 Workflow → User, WorkflowExecutions
+export const workflowRelations = relations(workflow, ({ many, one }) => ({
+  executions: many(workflowExecution),
+  user: one(user, {
+    fields: [workflow.userId],
+    references: [user.id],
+  }),
+}));
+
+// ▶️ WorkflowExecution → User, Workflow, ExecutionPhases
+export const workflowExecutionRelations = relations(
+  workflowExecution,
+  ({ one, many }) => ({
+    user: one(user, {
+      fields: [workflowExecution.userId],
+      references: [user.id],
+    }),
+    workflow: one(workflow, {
+      fields: [workflowExecution.workflowId],
+      references: [workflow.id],
+    }),
+    phases: many(ExecutionPhase),
+  }),
+);
+
+// 🔁 ExecutionPhase → User, WorkflowExecution
+export const executionPhaseRelations = relations(ExecutionPhase, ({ one }) => ({
+  user: one(user, {
+    fields: [ExecutionPhase.userId],
+    references: [user.id],
+  }),
+  workflowExecution: one(workflowExecution, {
+    fields: [ExecutionPhase.workflowExecutionId],
+    references: [workflowExecution.id],
+  }),
 }));

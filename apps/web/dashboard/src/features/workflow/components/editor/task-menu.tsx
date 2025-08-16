@@ -9,11 +9,11 @@ import {
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 
-import { TaskRegistry } from "../registry/task/registery";
+import { TaskRegistry } from "@packages/workflow/registry/task/registry.ts";
 
 import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut";
 
-import { TASK_TYPE, type TaskType } from "@/features/workflow/types/task";
+import { TaskType } from "@packages/workflow/types/task.ts";
 
 import { cn } from "@/lib/utils";
 
@@ -72,7 +72,7 @@ export default function TaskMenu() {
               </AccordionTrigger>
 
               <AccordionContent className="flex flex-col gap-1">
-                {Object.values(TASK_TYPE).map((type) => (
+                {Object.values(TaskType).map((type) => (
                   <TaskMenuBtn taskType={type} key={type} />
                 ))}
               </AccordionContent>

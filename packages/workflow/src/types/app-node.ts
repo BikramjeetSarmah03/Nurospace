@@ -1,4 +1,6 @@
-import type { Node } from "@xyflow/react";
+import type { Node, Edge as FlowEdge } from "@xyflow/react";
+
+export type Edge = FlowEdge;
 
 import type { TaskParam, TaskType } from "./task";
 

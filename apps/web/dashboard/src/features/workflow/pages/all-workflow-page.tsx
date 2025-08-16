@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { queryClient } from "@/lib/query-client";
 
-import type { IWorkflow } from "@/features/workflow/types/workflow";
+import type { IWorkflow } from "@packages/workflow/types/workflow.ts";
 import { workflowService } from "../services/workflow.service";
 import { WORKFLOW_KEYS } from "../lib/query-keys";
 import type { SuccessResponse } from "@/config/types";

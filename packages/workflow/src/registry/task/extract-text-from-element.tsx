@@ -1,10 +1,9 @@
 import { TextIcon, type LucideProps } from "lucide-react";
 
-import { TASK_PARAM_TYPES, TASK_TYPE } from "@/features/workflow/types/task";
-import type { IWorkflowTask } from "@/features/workflow/types/workflow";
+import { TaskParamType, TaskType, type IWorkflowTask } from "../../types";
 
 export const ExtractTextFromElement = {
-  type: TASK_TYPE.EXTRACT_TEXT_FROM_ELEMENT,
+  type: TaskType.EXTRACT_TEXT_FROM_ELEMENT,
   label: "Extract text from element",
   icon: (props: LucideProps) => (
     <TextIcon className="stroke-pink-400" {...props} />
@@ -12,20 +11,20 @@ export const ExtractTextFromElement = {
   inputs: [
     {
       name: "Html",
-      type: TASK_PARAM_TYPES.STRING,
+      type: TaskParamType.STRING,
       required: true,
       variant: "textarea",
     },
     {
       name: "Selector",
-      type: TASK_PARAM_TYPES.STRING,
+      type: TaskParamType.STRING,
       required: true,
     },
   ],
   outputs: [
     {
       name: "Extracted text",
-      type: TASK_PARAM_TYPES.STRING,
+      type: TaskParamType.STRING,
     },
   ],
   credits: 5,

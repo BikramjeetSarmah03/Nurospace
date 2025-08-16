@@ -1,7 +1,7 @@
 import type { Dispatch, PropsWithChildren, SetStateAction } from "react";
 import { createContext, useState } from "react";
 
-import type { AppNodeMissingInput } from "@/features/workflow/types/app-node";
+import type { AppNodeMissingInput } from "@packages/workflow/types/app-node.ts";
 
 type FlowValidationContextType = {
   invalidInputs: AppNodeMissingInput[];

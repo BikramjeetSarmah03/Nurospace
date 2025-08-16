@@ -1,4 +1,4 @@
-import type { ParamProps } from "@/features/workflow/types/app-node";
+import type { ParamProps } from "@packages/workflow/types/app-node.ts";
 
 export function BrowserInstanceParam({
   param,

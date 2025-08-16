@@ -1,8 +1,7 @@
-import type { TaskType } from "@/features/workflow/types/task";
+import type { IWorkflowTask, TaskType } from "../../types";
 import { ExtractTextFromElement } from "./extract-text-from-element";
 import { LaunchBrowserTask } from "./launch-browser";
 import { PageToHtmlTask } from "./page-to-html";
-import type { IWorkflowTask } from "@/features/workflow/types/workflow";
 
 type IRegistry = {
   [K in TaskType]: IWorkflowTask & { type: K };

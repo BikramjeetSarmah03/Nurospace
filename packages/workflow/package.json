@@ -3,10 +3,14 @@
   "module": "src/index.ts",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./types/*": "./src/types/*",
+    "./lib/*": "./src/lib/*",
+    "./registry/*": "./src/registry/*"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "lucide-react": "^0.539.0"
   },
   "peerDependencies": {
     "typescript": "^5"

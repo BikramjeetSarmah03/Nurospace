@@ -16,6 +16,7 @@ import WorkflowService from "./workflows.service";
 
 import type { CreateWorkflowDto } from "./dto/create-workflow";
 import type { UpdateWorkflowDto } from "./dto/update-workflow";
+import type { RunWorkflowDto } from "./dto/run-workflow";
 
 @Controller("workflow")
 @UseGuards(AuthGuard)
@@ -65,6 +66,19 @@ class WorkflowController {
     @AuthContext() authContext: IAuthContext,
   ) {
     return await this.workflowService.deleteWorkflow(id, authContext.user.id);
+  }
+
+  @Post("run/:slug")
+  async runWorkflow(
+    @Param("slug") workflowSlug: string,
+    @Body() body: RunWorkflowDto,
+    @AuthContext() authContext: IAuthContext,
+  ) {
+    return await this.workflowService.runWorkflow(
+      workflowSlug,
+      body,
+      authContext.user,
+    );
   }
 }
 

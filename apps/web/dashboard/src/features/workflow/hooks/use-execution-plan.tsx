@@ -5,10 +5,10 @@ import { toast } from "sonner";
 import {
   FlowToExecutionPlan,
   type IExecutionErrorType,
-} from "../lib/execution-plan";
+} from "@packages/workflow/lib/execution-plan.ts";
 
-import type { AppNode } from "@/features/workflow/types/app-node";
-import { FLOW_TO_EXECUTION_PLAN_VALIDATION_ERROR } from "@/features/workflow/types/workflow";
+import type { AppNode } from "@packages/workflow/types/app-node.ts";
+import { IFlowToExecutionPlanValidationError } from "@packages/workflow/types/workflow.ts";
 
 import { useFlowValidation } from "./use-flow-validation";
 
@@ -20,10 +20,10 @@ const useExecutionPlan = () => {
   const handleError = useCallback(
     (error: IExecutionErrorType) => {
       switch (error.type) {
-        case FLOW_TO_EXECUTION_PLAN_VALIDATION_ERROR.NO_ENTRY_POINT:
+        case IFlowToExecutionPlanValidationError.NO_ENTRY_POINT:
           toast.error("No entry point found");
           break;
-        case FLOW_TO_EXECUTION_PLAN_VALIDATION_ERROR.INVALID_INPUTS:
+        case IFlowToExecutionPlanValidationError.INVALID_INPUTS:
           toast.error("Not all inputs values are set");
           setInvalidInputs(error?.invalidElements || []);
           break;

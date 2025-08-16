@@ -17,6 +17,7 @@
     "@honestjs/class-validator-pipe": "^1.1.0",
     "@packages/env": "workspace:*",
     "@packages/llm": "workspace:*",
+    "@packages/workflow": "workspace:*",
     "@scalar/hono-api-reference": "^0.9.13",
     "better-auth": "^1.3.4",
     "class-transformer": "^0.5.1",

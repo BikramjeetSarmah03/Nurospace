@@ -1,6 +1,6 @@
 import { Handle, Position, useEdges } from "@xyflow/react";
 
-import type { TaskParam } from "@/features/workflow/types/task";
+import type { TaskParam } from "@packages/workflow/types/task.ts";
 import { useFlowValidation } from "@/features/workflow/hooks/use-flow-validation";
 import { ColorForHandle } from "@/features/workflow/components/common/color-for-handle";
 

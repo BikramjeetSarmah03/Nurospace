@@ -18,16 +18,16 @@ import {
 import "@xyflow/react/dist/style.css";
 import { useCallback, useEffect } from "react";
 
-import type { IWorkflow } from "@/features/workflow/types/workflow";
+import type { IWorkflow } from "@packages/workflow/types/workflow.ts";
+import type { TaskType } from "@packages/workflow/types/task.ts";
+import type { AppNode } from "@packages/workflow/types/app-node.ts";
+
+import { TaskRegistry } from "@packages/workflow/registry/task/registry.ts";
+import { CreateFlowNode } from "@packages/workflow/lib/create-flow-node.ts";
 
 import NodeComponent from "./node/node-component";
 
-import { CreateFlowNode } from "@/features/workflow/lib/create-flow-node";
-import type { AppNode } from "@/features/workflow/types/app-node";
-import type { TaskType } from "@/features/workflow/types/task";
-
 import DeletableEdge from "./edge/deletable-edge";
-import { TaskRegistry } from "../registry/task/registery";
 
 interface FlowEditorProps {
   workflow: IWorkflow;

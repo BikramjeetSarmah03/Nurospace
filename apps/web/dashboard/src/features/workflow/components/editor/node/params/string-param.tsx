@@ -1,6 +1,6 @@
 import { useEffect, useId, useState } from "react";
 
-import type { ParamProps } from "@/features/workflow/types/app-node";
+import type { ParamProps } from "@packages/workflow/types/app-node.ts";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

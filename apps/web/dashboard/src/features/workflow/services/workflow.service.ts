@@ -1,9 +1,10 @@
+import type { IWorkflow } from "@packages/workflow/types/workflow.ts";
+
 import type { ErrorResponse, SuccessResponse } from "@/config/types";
 
 import { API } from "@/lib/api-client";
 
 import { workflowUrls } from "../lib/api";
-import type { IWorkflow } from "@/features/workflow/types/workflow";
 
 class WorkflowService {
   async getAllWorkflow(): Promise<
@@ -36,6 +37,15 @@ class WorkflowService {
     id: string,
   ): Promise<SuccessResponse<IWorkflow> | ErrorResponse> {
     return (await API.delete(`${workflowUrls.delete}/${id}`)).data;
+  }
+
+  async runWorkflow(body: {
+    workflowId: string;
+    flowDefination: string;
+  }): Promise<SuccessResponse<IWorkflow> | ErrorResponse> {
+    return (
+      await API.post(`${workflowUrls.run_workflow}/${body.workflowId}`, body)
+    ).data;
   }
 }
 

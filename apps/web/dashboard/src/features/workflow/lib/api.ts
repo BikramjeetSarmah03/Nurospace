@@ -4,4 +4,5 @@ export const workflowUrls = {
   getSingleWorkflow: "workflow",
   update: "workflow",
   delete: "workflow",
+  run_workflow: "workflow/run",
 };

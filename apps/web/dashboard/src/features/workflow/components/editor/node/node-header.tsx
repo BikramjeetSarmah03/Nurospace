@@ -5,10 +5,11 @@ import { CoinsIcon, CopyIcon, GripVerticalIcon, TrashIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-import { TaskRegistry } from "@/features/workflow/components/registry/task/registery";
-import { CreateFlowNode } from "@/features/workflow/lib/create-flow-node";
-import type { AppNode } from "@/features/workflow/types/app-node";
-import type { TaskType } from "@/features/workflow/types/task";
+import { CreateFlowNode } from "@packages/workflow/lib/create-flow-node.ts";
+import type { AppNode } from "@packages/workflow/types/app-node.ts";
+import type { TaskType } from "@packages/workflow/types/task.ts";
+
+import { TaskRegistry } from "@packages/workflow/registry/task/registry.ts";
 
 interface NodeHeaderProps {
   taskType: TaskType;

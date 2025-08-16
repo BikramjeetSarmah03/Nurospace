@@ -1,5 +1,5 @@
-import type { AppNode } from "@/features/workflow/types/app-node";
-import type { TaskType } from "./constants/task";
+import type { AppNode } from "@packages/workflow/types";
+import type { TaskType } from "../types";
 
 export function CreateFlowNode(
   nodeType: TaskType,

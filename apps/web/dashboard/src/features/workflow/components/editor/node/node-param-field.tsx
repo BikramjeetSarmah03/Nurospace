@@ -2,11 +2,10 @@ import { useReactFlow } from "@xyflow/react";
 import { useCallback } from "react";
 
 import {
-  TASK_PARAM_TYPES,
+  TaskParamType,
   type TaskParam,
-} from "@/features/workflow/types/task";
-
-import type { AppNode } from "@/features/workflow/types/app-node";
+} from "@packages/workflow/types/task.ts";
+import type { AppNode } from "@packages/workflow/types/app-node.ts";
 
 import { StringParam } from "./params/string-param";
 import { BrowserInstanceParam } from "./params/browser-instance-param";
@@ -40,7 +39,7 @@ export default function NodeParamField({
   );
 
   switch (param.type) {
-    case TASK_PARAM_TYPES.STRING:
+    case TaskParamType.STRING:
       return (
         <StringParam
           param={param}
@@ -50,7 +49,7 @@ export default function NodeParamField({
         />
       );
 
-    case TASK_PARAM_TYPES.BROWSER_INSTANCE:
+    case TaskParamType.BROWSER_INSTANCE:
       return (
         <BrowserInstanceParam
           param={param}

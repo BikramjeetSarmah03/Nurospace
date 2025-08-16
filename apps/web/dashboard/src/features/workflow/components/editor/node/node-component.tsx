@@ -2,8 +2,8 @@ import type { NodeProps } from "@xyflow/react";
 import { memo } from "react";
 import { env } from "@packages/env/client";
 
-import type { IAppNodeData } from "@/features/workflow/types/app-node";
-import { TaskRegistry } from "@/features/workflow/components/registry/task/registery";
+import type { IAppNodeData } from "@packages/workflow/types/app-node.ts";
+import { TaskRegistry } from "@packages/workflow/registry/task/registry.ts";
 
 import { Badge } from "@/components/ui/badge";
 

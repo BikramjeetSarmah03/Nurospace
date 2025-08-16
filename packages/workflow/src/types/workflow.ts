@@ -1,21 +1,31 @@
 import type { LucideProps } from "lucide-react";
-import { createEnum } from "@/lib/utils";
 
 import type { TaskParam, TaskType } from "./task";
 import type { AppNode } from "./app-node";
 
-const workflowStatus = createEnum(["DRAFT", "PUBLISHED"] as const);
-export const WORKFLOW_STATUS = workflowStatus.object;
-export type IWorkflowStatus = (typeof workflowStatus.values)[number];
+export enum IWorkflowExecutionStatus {
+  PENDING = "PENDING",
+  RUNNING = "RUNNING",
+  COMPLETED = "COMPLETED",
+  FAILED = "FAILED",
+}
 
-const flowToExecutionPlanValidationError = createEnum([
-  "NO_ENTRY_POINT",
-  "INVALID_INPUTS",
-] as const);
-export const FLOW_TO_EXECUTION_PLAN_VALIDATION_ERROR =
-  flowToExecutionPlanValidationError.object;
-export type IFlowToExecutionPlanValidationError =
-  (typeof flowToExecutionPlanValidationError.values)[number];
+export enum IExecutionPhaseStatus {
+  CREATED = "CREATED",
+  PENDING = "PENDING",
+  RUNNING = "RUNNING",
+  COMPLETED = "COMPLETED",
+  FAILED = "FAILED",
+}
+
+export enum IFlowToExecutionPlanValidationError {
+  NO_ENTRY_POINT = "NO_ENTRY_POINT",
+  INVALID_INPUTS = "INVALID_INPUTS",
+}
+
+export enum WorkflowExecutionTrigger {
+  MANUAL = "MANUAL",
+}
 
 export interface IWorkflowTask {
   type: TaskType;

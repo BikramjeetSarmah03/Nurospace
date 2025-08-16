@@ -1,25 +1,21 @@
-import { getIncomers, type Edge } from "@xyflow/react";
+import type { Edge } from "@xyflow/react";
 
-import type {
-  AppNode,
-  AppNodeMissingInput,
-} from "@/features/workflow/types/app-node";
+import type { AppNode, AppNodeMissingInput } from "../types";
 
 import {
-  FLOW_TO_EXECUTION_PLAN_VALIDATION_ERROR,
-  type IFlowToExecutionPlanValidationError,
+  IFlowToExecutionPlanValidationError,
   type IWorkflowExecutionPlan,
   type IWorkflowExecutionPlanPhase,
-} from "@/features/workflow/types/workflow";
+} from "../types";
 
-import { TaskRegistry } from "@/features/workflow/components/registry/task/registery";
+import { TaskRegistry } from "../registry/task/registry";
 
 export type IExecutionErrorType = {
   type: IFlowToExecutionPlanValidationError;
   invalidElements?: AppNodeMissingInput[];
 };
 
-type FlowToExecutionPlanType = {
+export type FlowToExecutionPlanType = {
   executionPlan?: IWorkflowExecutionPlan;
   error?: IExecutionErrorType;
 };
@@ -29,13 +25,13 @@ export function FlowToExecutionPlan(
   edges: Edge[],
 ): FlowToExecutionPlanType {
   const entryPoint = nodes.find(
-    (node) => TaskRegistry[node.data.type].isEntryPoint,
+    (node) => TaskRegistry[node.data?.type].isEntryPoint,
   );
 
   if (!entryPoint) {
     return {
       error: {
-        type: FLOW_TO_EXECUTION_PLAN_VALIDATION_ERROR.NO_ENTRY_POINT,
+        type: IFlowToExecutionPlanValidationError.NO_ENTRY_POINT,
       },
     };
   }
@@ -108,7 +104,7 @@ export function FlowToExecutionPlan(
   if (inputsWithErrors.length > 0) {
     return {
       error: {
-        type: FLOW_TO_EXECUTION_PLAN_VALIDATION_ERROR.INVALID_INPUTS,
+        type: IFlowToExecutionPlanValidationError.INVALID_INPUTS,
         invalidElements: inputsWithErrors,
       },
     };
@@ -122,7 +118,7 @@ function getInvalidInputs(node: AppNode, edges: Edge[], planned: Set<string>) {
   const inputs = TaskRegistry[node.data.type].inputs || [];
 
   for (const input of inputs) {
-    const inputValue = node.data.inputs[input.name];
+    const inputValue = node.data.inputs[input.name] || [];
     const inputValueProvided = inputValue?.length > 0;
 
     if (inputValueProvided) {
@@ -165,4 +161,17 @@ function getInvalidInputs(node: AppNode, edges: Edge[], planned: Set<string>) {
   }
 
   return invalidInputs;
+}
+
+function getIncomers(node: AppNode, nodes: AppNode[], edges: Edge[]) {
+  if (!node.id) return [];
+
+  const incomerIds = new Set();
+  edges.forEach((edg) => {
+    if (edg.target === node.id) {
+      incomerIds.add(edg.source);
+    }
+  });
+
+  return nodes.filter((n) => incomerIds.has(n.id));
 }

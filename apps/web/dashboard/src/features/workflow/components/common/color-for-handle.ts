@@ -1,6 +1,6 @@
-import { TASK_PARAM_TYPES, type TaskParamType } from "../../types/task";
+import { TaskParamType } from "@packages/workflow/types/task.ts";
 
 export const ColorForHandle: Record<TaskParamType, string> = {
-  [TASK_PARAM_TYPES.BROWSER_INSTANCE]: "!bg-sky-400",
+  [TaskParamType.BROWSER_INSTANCE]: "!bg-sky-400",
   STRING: "!bg-amber-400",
 };
