@@ -1,5 +1,8 @@
-import { cn } from "@/lib/utils";
 import { useReactFlow } from "@xyflow/react";
+
+import { useFlowValidation } from "@/features/workflow/hooks/use-flow-validation";
+
+import { cn } from "@/lib/utils";
 
 interface NodeCardProps {
   children: React.ReactNode;
@@ -13,6 +16,9 @@ export default function NodeCard({
   isSelected,
 }: NodeCardProps) {
   const { getNode, setCenter } = useReactFlow();
+  const { invalidInputs } = useFlowValidation();
+
+  const hasInvalidInputs = invalidInputs.some((node) => node.nodeId === nodeId);
 
   const handleCenterViewport = () => {
     const node = getNode(nodeId);
@@ -39,6 +45,7 @@ export default function NodeCard({
       className={cn(
         "flex flex-col gap-1 bg-background border-2 rounded-md w-[420px] text-xs text-left cursor-pointer border-separate",
         isSelected && "border-green-500",
+        hasInvalidInputs && "border-destructive border-2",
       )}
       onDoubleClick={handleCenterViewport}
     >

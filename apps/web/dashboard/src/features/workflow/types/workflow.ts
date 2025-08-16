@@ -2,14 +2,20 @@ import type { LucideProps } from "lucide-react";
 import { createEnum } from "@/lib/utils";
 
 import type { TaskParam, TaskType } from "./task";
+import type { AppNode } from "./app-node";
 
-const workflowStatus = createEnum([
-  "LAUNCH_BROWSER",
-  "PAGE_TO_HTML",
-  "EXTRACT_TEXT_FROM_ELEMENT",
-] as const);
+const workflowStatus = createEnum(["DRAFT", "PUBLISHED"] as const);
 export const WORKFLOW_STATUS = workflowStatus.object;
 export type IWorkflowStatus = (typeof workflowStatus.values)[number];
+
+const flowToExecutionPlanValidationError = createEnum([
+  "NO_ENTRY_POINT",
+  "INVALID_INPUTS",
+] as const);
+export const FLOW_TO_EXECUTION_PLAN_VALIDATION_ERROR =
+  flowToExecutionPlanValidationError.object;
+export type IFlowToExecutionPlanValidationError =
+  (typeof flowToExecutionPlanValidationError.values)[number];
 
 export interface IWorkflowTask {
   type: TaskType;
@@ -39,3 +45,10 @@ export type IWorkflow = {
   createdAt: Date;
   updatedAt: Date;
 };
+
+export type IWorkflowExecutionPlanPhase = {
+  phase: number;
+  nodes: AppNode[];
+};
+
+export type IWorkflowExecutionPlan = IWorkflowExecutionPlanPhase[];

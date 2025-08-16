@@ -1,8 +1,11 @@
 import type { NodeProps } from "@xyflow/react";
 import { memo } from "react";
+import { env } from "@packages/env/client";
 
-import type { AppNodeData } from "@/features/workflow/types/app-node";
+import type { IAppNodeData } from "@/features/workflow/types/app-node";
 import { TaskRegistry } from "@/features/workflow/components/registry/task/registery";
+
+import { Badge } from "@/components/ui/badge";
 
 import NodeCard from "./node-card";
 import NodeHeader from "./node-header";
@@ -10,12 +13,15 @@ import { NodeInput, NodeInputs } from "./node-inputs";
 import { NodeOutput, NodeOutputs } from "./node-outputs";
 
 const NodeComponent = memo((props: NodeProps) => {
-  const nodeData = props.data as AppNodeData;
+  const nodeData = props.data as IAppNodeData;
 
   const task = TaskRegistry[nodeData.type];
 
   return (
     <NodeCard nodeId={props.id} isSelected={!!props.selected}>
+      {env.VITE_DEV_MODE && (
+        <Badge className="rounded-none rounded-t w-full">DEV: {props.id}</Badge>
+      )}
       <NodeHeader taskType={nodeData.type} nodeId={props.id} />
 
       <NodeInputs>

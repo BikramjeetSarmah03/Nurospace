@@ -3,7 +3,7 @@ import type { ErrorResponse, SuccessResponse } from "@/config/types";
 import { API } from "@/lib/api-client";
 
 import { workflowUrls } from "../lib/api";
-import type { IWorkflow } from "../types/workflow";
+import type { IWorkflow } from "@/features/workflow/types/workflow";
 
 class WorkflowService {
   async getAllWorkflow(): Promise<

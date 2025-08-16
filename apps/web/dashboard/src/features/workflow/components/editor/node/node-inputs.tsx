@@ -1,11 +1,12 @@
 import { Handle, Position, useEdges } from "@xyflow/react";
 
 import type { TaskParam } from "@/features/workflow/types/task";
+import { useFlowValidation } from "@/features/workflow/hooks/use-flow-validation";
+import { ColorForHandle } from "@/features/workflow/components/common/color-for-handle";
 
 import { cn } from "@/lib/utils";
 
 import NodeParamField from "./node-param-field";
-import { ColorForHandle } from "../../common/color-for-handle";
 
 interface NodeInputsProps {
   children: React.ReactNode;
@@ -21,13 +22,23 @@ export function NodeInputs({ children }: NodeInputsProps) {
 }
 
 export function NodeInput({ input, nodeId }: NodeInputProps) {
+  const { invalidInputs } = useFlowValidation();
   const edges = useEdges();
   const isConnected = edges.some(
     (edge) => edge.target === nodeId && edge.targetHandle === input.name,
   );
+  const hasErrors = invalidInputs
+    .find((node) => node.nodeId === nodeId)
+    ?.inputs.find((invalidInput) => invalidInput === input.name);
 
   return (
-    <div className="relative flex justify-start bg-secondary p-3 w-full">
+    <div
+      className={cn(
+        "relative flex justify-start bg-secondary p-3 w-full",
+
+        hasErrors && "bg-destructive/20",
+      )}
+    >
       <NodeParamField param={input} nodeId={nodeId} disabled={isConnected} />
 
       {!input.hideHandle && (
