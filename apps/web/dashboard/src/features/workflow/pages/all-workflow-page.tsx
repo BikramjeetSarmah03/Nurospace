@@ -58,9 +58,9 @@ export default function AllWorkflowPage({
             className="relative flex justify-between items-center bg-white hover:shadow-md p-2 border rounded-md cursor-pointer"
           >
             <Link
-              to="/w/$slug"
+              to="/w/$workflowId"
               params={{
-                slug: workflow.slug,
+                workflowId: workflow.id,
               }}
               className="w-full"
             >

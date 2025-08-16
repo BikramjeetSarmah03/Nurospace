@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import {
@@ -48,7 +48,7 @@ export default function SidebarMenuItems() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
-  const { isLoading: isChatsLoading, data: chatsData } = useQuery({
+  const { isLoading: isChatsLoading, data: chatsData } = useSuspenseQuery({
     queryKey: [CHAT_QUERY.CHATS],
     queryFn: chatService.getAllChats,
   });

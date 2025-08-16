@@ -14,9 +14,10 @@ class WorkflowService {
   }
 
   async getSingleWorkflow(
-    slug: string,
+    workflowId: string,
   ): Promise<SuccessResponse<IWorkflow> | ErrorResponse> {
-    return (await API.get(`${workflowUrls.get}/${slug}`)).data;
+    return (await API.get(`${workflowUrls.get_single_workflow}/${workflowId}`))
+      .data;
   }
 
   async createWorkflow(data: {
@@ -42,9 +43,21 @@ class WorkflowService {
   async runWorkflow(body: {
     workflowId: string;
     flowDefination: string;
-  }): Promise<SuccessResponse<IWorkflow> | ErrorResponse> {
+  }): Promise<
+    SuccessResponse<{ workflowId: string; executionId: string }> | ErrorResponse
+  > {
     return (
       await API.post(`${workflowUrls.run_workflow}/${body.workflowId}`, body)
+    ).data;
+  }
+
+  async getExecutionDetailsWithPhases(
+    executionId: string,
+  ): Promise<SuccessResponse<any> | ErrorResponse> {
+    return (
+      await API.get(
+        `${workflowUrls.get_exection_details_with_phases}/${executionId}`,
+      )
     ).data;
   }
 }

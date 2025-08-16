@@ -11,14 +11,14 @@ import FlowEditor from "@/features/workflow/components/editor/flow-editor";
 import TaskMenu from "@/features/workflow/components/editor/task-menu";
 
 interface EditorPageProps {
-  slug: string;
+  workflowId: string;
 }
 
-export default function EditorPage({ slug }: EditorPageProps) {
+export default function EditorPage({ workflowId }: EditorPageProps) {
   const { data: workflowData, isLoading } = useQuery({
-    queryKey: [WORKFLOW_KEYS.SINGLE_WORKFLOW, slug],
-    enabled: !!slug,
-    queryFn: async () => await workflowService.getSingleWorkflow(slug),
+    queryKey: [WORKFLOW_KEYS.SINGLE_WORKFLOW, workflowId],
+    enabled: !!workflowId,
+    queryFn: async () => await workflowService.getSingleWorkflow(workflowId),
   });
 
   const workflow = workflowData?.success ? workflowData.data : null;
@@ -30,7 +30,7 @@ export default function EditorPage({ slug }: EditorPageProps) {
           <TopBar
             title="Workflow Editor"
             subTitle="Really long name for workflow..."
-            workflowId={slug}
+            workflowId={workflowId}
           />
 
           <section className="flex h-full overflow-auto">

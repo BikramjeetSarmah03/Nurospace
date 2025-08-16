@@ -23,7 +23,7 @@ export enum IFlowToExecutionPlanValidationError {
   INVALID_INPUTS = "INVALID_INPUTS",
 }
 
-export enum WorkflowExecutionTrigger {
+export enum IWorkflowExecutionTrigger {
   MANUAL = "MANUAL",
 }
 

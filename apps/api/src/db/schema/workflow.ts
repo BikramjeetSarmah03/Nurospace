@@ -72,6 +72,13 @@ export const ExecutionPhase = pgTable("execution_phase", {
     .notNull(),
   status: text("status"),
   number: integer("number"),
+  node: text("node"),
+  name: text("name"),
+  startedAt: text("started_at"),
+  completedAt: text("completed_at"),
+  inputs: text("inputs"),
+  outputs: text("outputs"),
+  creditsConsumed: integer("credits_consumed"),
 });
 
 // 👤 User → Workflows, WorkflowExecutions, ExecutionPhases

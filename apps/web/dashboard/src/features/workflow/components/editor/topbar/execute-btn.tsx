@@ -1,12 +1,13 @@
 import { PlayIcon } from "lucide-react";
+import { toast } from "sonner";
+import { useReactFlow } from "@xyflow/react";
+import { useNavigate } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
 
 import { useExecutionPlan } from "@/features/workflow/hooks/use-execution-plan";
 import { useMutation } from "@tanstack/react-query";
 import { workflowService } from "@/features/workflow/services/workflow.service";
-import { toast } from "sonner";
-import { useReactFlow } from "@xyflow/react";
 
 interface ExecuteBtnProps {
   workflowId: string;
@@ -15,6 +16,7 @@ interface ExecuteBtnProps {
 export function ExecuteBtn({ workflowId }: ExecuteBtnProps) {
   const generate = useExecutionPlan();
   const { toObject } = useReactFlow();
+  const navigate = useNavigate();
 
   const mutation = useMutation({
     mutationFn: async (body: {
@@ -23,14 +25,19 @@ export function ExecuteBtn({ workflowId }: ExecuteBtnProps) {
     }) => {
       const data = await workflowService.runWorkflow(body);
 
-      console.log({ data });
-
       if (!data.success) throw new Error(data.message);
 
       return data.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success("Execution started: ", { id: "flow-execution" });
+      navigate({
+        to: "/w/$workflowId/runs/$executionId",
+        params: {
+          workflowId: data.workflowId,
+          executionId: data.executionId,
+        },
+      });
     },
     onError: () => {
       toast.error("Something went wrong", { id: "flow-execution" });

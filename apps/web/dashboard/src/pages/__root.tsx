@@ -2,8 +2,10 @@ import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import type { QueryClient } from "@tanstack/react-query";
 import { Toaster } from "sonner";
+import { Suspense } from "react";
 
 import { ThemeProvider } from "@/components/common/theme-provider";
+import Loader from "@/components/common/loader";
 
 interface RouterContext {
   queryClient: QueryClient;
@@ -15,12 +17,14 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 
 function RootLayout() {
   return (
-    <ThemeProvider>
-      <Outlet />
+    <Suspense fallback={<Loader />}>
+      <ThemeProvider>
+        <Outlet />
 
-      <Toaster richColors />
+        <Toaster richColors />
 
-      <TanStackRouterDevtools position="bottom-right" />
-    </ThemeProvider>
+        <TanStackRouterDevtools position="bottom-right" />
+      </ThemeProvider>
+    </Suspense>
   );
 }

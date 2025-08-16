@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_protected/w/$slug/")({
+export const Route = createFileRoute("/_protected/w/$workflowId/")({
   component: RouteComponent,
 });
 
@@ -10,7 +10,7 @@ function RouteComponent() {
   return (
     <div className="mt-4 p-4">
       <Link
-        to="/w/$slug/editor"
+        to="/w/$workflowId/editor"
         params={params}
         className="bg-white p-4 border"
       >

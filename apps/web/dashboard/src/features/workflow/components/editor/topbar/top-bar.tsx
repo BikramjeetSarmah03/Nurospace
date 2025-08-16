@@ -9,9 +9,15 @@ interface TopBarProps {
   title: string;
   subTitle?: string;
   workflowId: string;
+  hideButtons?: boolean;
 }
 
-export default function TopBar({ title, subTitle, workflowId }: TopBarProps) {
+export default function TopBar({
+  title,
+  subTitle,
+  workflowId,
+  hideButtons,
+}: TopBarProps) {
   return (
     <header className="top-0 z-10 sticky flex justify-between bg-background p-2 border-b-2 w-full h-16 border-separate">
       <div className="flex flex-1 gap-4">
@@ -29,10 +35,12 @@ export default function TopBar({ title, subTitle, workflowId }: TopBarProps) {
         </div>
       </div>
 
-      <div className="flex justify-end gap-1">
-        <SaveBtn workflowId={workflowId} />
-        <ExecuteBtn workflowId={workflowId} />
-      </div>
+      {!hideButtons && (
+        <div className="flex justify-end gap-1">
+          <SaveBtn workflowId={workflowId} />
+          <ExecuteBtn workflowId={workflowId} />
+        </div>
+      )}
     </header>
   );
 }

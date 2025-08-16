@@ -28,13 +28,13 @@ class WorkflowController {
     return await this.workflowService.getAllWorkflows(authContext.user.id);
   }
 
-  @Get(":slug")
+  @Get(":id")
   async getWorkflowDetails(
-    @Param("slug") workflowSlug: string,
+    @Param("id") workflowId: string,
     @AuthContext() authContext: IAuthContext,
   ) {
     return await this.workflowService.getWorkflowDetails(
-      workflowSlug,
+      workflowId,
       authContext.user.id,
     );
   }
@@ -47,37 +47,48 @@ class WorkflowController {
     return await this.workflowService.createWorkflow(body, authContext.user.id);
   }
 
-  @Patch(":slug")
+  @Patch(":id")
   async updateWokflow(
-    @Param("slug") workflowSlug: string,
+    @Param("id") workflowId: string,
     @Body() body: UpdateWorkflowDto,
     @AuthContext() authContext: IAuthContext,
   ) {
     return await this.workflowService.updateWorkflow(
-      workflowSlug,
+      workflowId,
       body,
       authContext.user.id,
     );
   }
 
-  @Delete(":slug")
+  @Delete(":id")
   async deleteWorkflow(
-    @Param("slug") id: string,
+    @Param("id") id: string,
     @AuthContext() authContext: IAuthContext,
   ) {
     return await this.workflowService.deleteWorkflow(id, authContext.user.id);
   }
 
-  @Post("run/:slug")
+  @Post("run/:id")
   async runWorkflow(
-    @Param("slug") workflowSlug: string,
+    @Param("id") workflowId: string,
     @Body() body: RunWorkflowDto,
     @AuthContext() authContext: IAuthContext,
   ) {
     return await this.workflowService.runWorkflow(
-      workflowSlug,
+      workflowId,
       body,
       authContext.user,
+    );
+  }
+
+  @Get("/execution/:id")
+  async getWorkflowExecutionWithPhases(
+    @Param("id") executionId: string,
+    @AuthContext() authContext: IAuthContext,
+  ) {
+    return this.workflowService.getWorkflowExecutionWithPhases(
+      executionId,
+      authContext.user.id,
     );
   }
 }

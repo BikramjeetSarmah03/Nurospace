@@ -1,4 +1,4 @@
-import type { AppNode } from "@packages/workflow/types";
+import type { AppNode } from "@packages/workflow/types/app-node.ts";
 import type { TaskType } from "../types";
 
 export function CreateFlowNode(

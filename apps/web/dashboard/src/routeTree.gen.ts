@@ -21,10 +21,11 @@ import { Route as ProtectedResourceIndexRouteImport } from './pages/_protected/r
 import { Route as AuthPasswordForgotRouteImport } from './pages/auth/password/forgot'
 import { Route as ProtectedCNewRouteImport } from './pages/_protected/c/new'
 import { Route as ProtectedCSlugRouteImport } from './pages/_protected/c/$slug'
-import { Route as ProtectedWSlugIndexRouteImport } from './pages/_protected/w/$slug/index'
+import { Route as ProtectedWWorkflowIdIndexRouteImport } from './pages/_protected/w/$workflowId/index'
+import { Route as ProtectedWWorkflowIdRunsExecutionIdRouteImport } from './pages/_protected/w/$workflowId/runs/$executionId'
 
-const ProtectedWSlugEditorIndexLazyRouteImport = createFileRoute(
-  '/_protected/w/$slug/editor/',
+const ProtectedWWorkflowIdEditorIndexLazyRouteImport = createFileRoute(
+  '/_protected/w/$workflowId/editor/',
 )()
 
 const AuthLayoutRoute = AuthLayoutRouteImport.update({
@@ -76,19 +77,28 @@ const ProtectedCSlugRoute = ProtectedCSlugRouteImport.update({
   path: '/c/$slug',
   getParentRoute: () => ProtectedLayoutRoute,
 } as any)
-const ProtectedWSlugIndexRoute = ProtectedWSlugIndexRouteImport.update({
-  id: '/w/$slug/',
-  path: '/w/$slug/',
-  getParentRoute: () => ProtectedLayoutRoute,
-} as any)
-const ProtectedWSlugEditorIndexLazyRoute =
-  ProtectedWSlugEditorIndexLazyRouteImport.update({
-    id: '/w/$slug/editor/',
-    path: '/w/$slug/editor/',
+const ProtectedWWorkflowIdIndexRoute =
+  ProtectedWWorkflowIdIndexRouteImport.update({
+    id: '/w/$workflowId/',
+    path: '/w/$workflowId/',
+    getParentRoute: () => ProtectedLayoutRoute,
+  } as any)
+const ProtectedWWorkflowIdEditorIndexLazyRoute =
+  ProtectedWWorkflowIdEditorIndexLazyRouteImport.update({
+    id: '/w/$workflowId/editor/',
+    path: '/w/$workflowId/editor/',
     getParentRoute: () => ProtectedLayoutRoute,
   } as any).lazy(() =>
-    import('./pages/_protected/w/$slug/editor/index.lazy').then((d) => d.Route),
+    import('./pages/_protected/w/$workflowId/editor/index.lazy').then(
+      (d) => d.Route,
+    ),
   )
+const ProtectedWWorkflowIdRunsExecutionIdRoute =
+  ProtectedWWorkflowIdRunsExecutionIdRouteImport.update({
+    id: '/w/$workflowId/runs/$executionId',
+    path: '/w/$workflowId/runs/$executionId',
+    getParentRoute: () => ProtectedLayoutRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/auth': typeof AuthLayoutRouteWithChildren
@@ -100,8 +110,9 @@ export interface FileRoutesByFullPath {
   '/w': typeof ProtectedWIndexRoute
   '/auth/login': typeof AuthLoginIndexRoute
   '/auth/register': typeof AuthRegisterIndexRoute
-  '/w/$slug': typeof ProtectedWSlugIndexRoute
-  '/w/$slug/editor': typeof ProtectedWSlugEditorIndexLazyRoute
+  '/w/$workflowId': typeof ProtectedWWorkflowIdIndexRoute
+  '/w/$workflowId/runs/$executionId': typeof ProtectedWWorkflowIdRunsExecutionIdRoute
+  '/w/$workflowId/editor': typeof ProtectedWWorkflowIdEditorIndexLazyRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthLayoutRouteWithChildren
@@ -113,8 +124,9 @@ export interface FileRoutesByTo {
   '/w': typeof ProtectedWIndexRoute
   '/auth/login': typeof AuthLoginIndexRoute
   '/auth/register': typeof AuthRegisterIndexRoute
-  '/w/$slug': typeof ProtectedWSlugIndexRoute
-  '/w/$slug/editor': typeof ProtectedWSlugEditorIndexLazyRoute
+  '/w/$workflowId': typeof ProtectedWWorkflowIdIndexRoute
+  '/w/$workflowId/runs/$executionId': typeof ProtectedWWorkflowIdRunsExecutionIdRoute
+  '/w/$workflowId/editor': typeof ProtectedWWorkflowIdEditorIndexLazyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -128,8 +140,9 @@ export interface FileRoutesById {
   '/_protected/w/': typeof ProtectedWIndexRoute
   '/auth/login/': typeof AuthLoginIndexRoute
   '/auth/register/': typeof AuthRegisterIndexRoute
-  '/_protected/w/$slug/': typeof ProtectedWSlugIndexRoute
-  '/_protected/w/$slug/editor/': typeof ProtectedWSlugEditorIndexLazyRoute
+  '/_protected/w/$workflowId/': typeof ProtectedWWorkflowIdIndexRoute
+  '/_protected/w/$workflowId/runs/$executionId': typeof ProtectedWWorkflowIdRunsExecutionIdRoute
+  '/_protected/w/$workflowId/editor/': typeof ProtectedWWorkflowIdEditorIndexLazyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -143,8 +156,9 @@ export interface FileRouteTypes {
     | '/w'
     | '/auth/login'
     | '/auth/register'
-    | '/w/$slug'
-    | '/w/$slug/editor'
+    | '/w/$workflowId'
+    | '/w/$workflowId/runs/$executionId'
+    | '/w/$workflowId/editor'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -156,8 +170,9 @@ export interface FileRouteTypes {
     | '/w'
     | '/auth/login'
     | '/auth/register'
-    | '/w/$slug'
-    | '/w/$slug/editor'
+    | '/w/$workflowId'
+    | '/w/$workflowId/runs/$executionId'
+    | '/w/$workflowId/editor'
   id:
     | '__root__'
     | '/_protected'
@@ -170,8 +185,9 @@ export interface FileRouteTypes {
     | '/_protected/w/'
     | '/auth/login/'
     | '/auth/register/'
-    | '/_protected/w/$slug/'
-    | '/_protected/w/$slug/editor/'
+    | '/_protected/w/$workflowId/'
+    | '/_protected/w/$workflowId/runs/$executionId'
+    | '/_protected/w/$workflowId/editor/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -251,18 +267,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedCSlugRouteImport
       parentRoute: typeof ProtectedLayoutRoute
     }
-    '/_protected/w/$slug/': {
-      id: '/_protected/w/$slug/'
-      path: '/w/$slug'
-      fullPath: '/w/$slug'
-      preLoaderRoute: typeof ProtectedWSlugIndexRouteImport
+    '/_protected/w/$workflowId/': {
+      id: '/_protected/w/$workflowId/'
+      path: '/w/$workflowId'
+      fullPath: '/w/$workflowId'
+      preLoaderRoute: typeof ProtectedWWorkflowIdIndexRouteImport
       parentRoute: typeof ProtectedLayoutRoute
     }
-    '/_protected/w/$slug/editor/': {
-      id: '/_protected/w/$slug/editor/'
-      path: '/w/$slug/editor'
-      fullPath: '/w/$slug/editor'
-      preLoaderRoute: typeof ProtectedWSlugEditorIndexLazyRouteImport
+    '/_protected/w/$workflowId/editor/': {
+      id: '/_protected/w/$workflowId/editor/'
+      path: '/w/$workflowId/editor'
+      fullPath: '/w/$workflowId/editor'
+      preLoaderRoute: typeof ProtectedWWorkflowIdEditorIndexLazyRouteImport
+      parentRoute: typeof ProtectedLayoutRoute
+    }
+    '/_protected/w/$workflowId/runs/$executionId': {
+      id: '/_protected/w/$workflowId/runs/$executionId'
+      path: '/w/$workflowId/runs/$executionId'
+      fullPath: '/w/$workflowId/runs/$executionId'
+      preLoaderRoute: typeof ProtectedWWorkflowIdRunsExecutionIdRouteImport
       parentRoute: typeof ProtectedLayoutRoute
     }
   }
@@ -274,8 +297,9 @@ interface ProtectedLayoutRouteChildren {
   ProtectedCNewRoute: typeof ProtectedCNewRoute
   ProtectedResourceIndexRoute: typeof ProtectedResourceIndexRoute
   ProtectedWIndexRoute: typeof ProtectedWIndexRoute
-  ProtectedWSlugIndexRoute: typeof ProtectedWSlugIndexRoute
-  ProtectedWSlugEditorIndexLazyRoute: typeof ProtectedWSlugEditorIndexLazyRoute
+  ProtectedWWorkflowIdIndexRoute: typeof ProtectedWWorkflowIdIndexRoute
+  ProtectedWWorkflowIdRunsExecutionIdRoute: typeof ProtectedWWorkflowIdRunsExecutionIdRoute
+  ProtectedWWorkflowIdEditorIndexLazyRoute: typeof ProtectedWWorkflowIdEditorIndexLazyRoute
 }
 
 const ProtectedLayoutRouteChildren: ProtectedLayoutRouteChildren = {
@@ -284,8 +308,11 @@ const ProtectedLayoutRouteChildren: ProtectedLayoutRouteChildren = {
   ProtectedCNewRoute: ProtectedCNewRoute,
   ProtectedResourceIndexRoute: ProtectedResourceIndexRoute,
   ProtectedWIndexRoute: ProtectedWIndexRoute,
-  ProtectedWSlugIndexRoute: ProtectedWSlugIndexRoute,
-  ProtectedWSlugEditorIndexLazyRoute: ProtectedWSlugEditorIndexLazyRoute,
+  ProtectedWWorkflowIdIndexRoute: ProtectedWWorkflowIdIndexRoute,
+  ProtectedWWorkflowIdRunsExecutionIdRoute:
+    ProtectedWWorkflowIdRunsExecutionIdRoute,
+  ProtectedWWorkflowIdEditorIndexLazyRoute:
+    ProtectedWWorkflowIdEditorIndexLazyRoute,
 }
 
 const ProtectedLayoutRouteWithChildren = ProtectedLayoutRoute._addFileChildren(

@@ -17,12 +17,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { LoadingButton } from "@/components/ui/loading-button";
 
+import type { IWorkflow } from "@packages/workflow/types/workflow.ts";
+
 import { queryClient } from "@/lib/query-client";
 import type { SuccessResponse } from "@/config/types";
 
 import { workflowService } from "../../services/workflow.service";
 import { WORKFLOW_KEYS } from "../../lib/query-keys";
-import type { IWorkflow } from "../../types/workflow";
 
 const WorkflowForm = z.object({
   name: z.string({ error: "Name is required" }),

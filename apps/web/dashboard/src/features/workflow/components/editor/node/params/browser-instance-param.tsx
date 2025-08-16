@@ -5,5 +5,7 @@ export function BrowserInstanceParam({
   updateNodeParamValue,
   value,
 }: ParamProps) {
+  console.log({ updateNodeParamValue });
+  console.log({ value });
   return <p className="text-xs">{param.name}</p>;
 }

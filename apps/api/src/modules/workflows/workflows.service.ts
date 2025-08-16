@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { Service } from "honestjs";
 import { HTTPException } from "hono/http-exception";
 import { v4 as uuidV4 } from "uuid";
@@ -11,6 +11,7 @@ import type { AppNode, Edge } from "@packages/workflow/types/app-node.ts";
 import {
   IExecutionPhaseStatus,
   IWorkflowExecutionStatus,
+  IWorkflowExecutionTrigger,
 } from "@packages/workflow/types/workflow.ts";
 import { TaskRegistry } from "@packages/workflow/registry/task/registry.ts";
 import { TaskType } from "@packages/workflow/types/task.ts";
@@ -58,7 +59,7 @@ export default class WorkflowService {
   }
 
   async updateWorkflow(
-    workflowSlug: string,
+    workflowId: string,
     body: UpdateWorkflowDto,
     userId: string,
   ) {
@@ -70,7 +71,7 @@ export default class WorkflowService {
         defination,
         updatedAt: new Date(),
       })
-      .where(and(eq(workflow.slug, workflowSlug), eq(workflow.userId, userId)))
+      .where(and(eq(workflow.id, workflowId), eq(workflow.userId, userId)))
       .returning();
 
     if (!updatedWorkflow) {
@@ -97,9 +98,9 @@ export default class WorkflowService {
     };
   }
 
-  async getWorkflowDetails(workflowSlug: string, userId: string) {
+  async getWorkflowDetails(workflowId: string, userId: string) {
     const result = await db.query.workflow.findFirst({
-      where: and(eq(workflow.slug, workflowSlug), eq(workflow.userId, userId)),
+      where: and(eq(workflow.id, workflowId), eq(workflow.userId, userId)),
     });
 
     if (!result) throw new HTTPException(404, { message: "Not Found" });
@@ -128,7 +129,7 @@ export default class WorkflowService {
     };
   }
 
-  async runWorkflow(slug: string, body: RunWorkflowDto, user: User) {
+  async runWorkflow(worflowId: string, body: RunWorkflowDto, user: User) {
     const { flowDefination } = body;
 
     if (!flowDefination)
@@ -136,7 +137,7 @@ export default class WorkflowService {
         message: "Flow Defination is not defined",
       });
 
-    const workflow = await this.getWorkflowDetails(slug, user.id);
+    const workflow = await this.getWorkflowDetails(worflowId, user.id);
 
     if (!workflow.data)
       throw new HTTPException(404, { message: "Workflow not found" });
@@ -148,7 +149,9 @@ export default class WorkflowService {
       throw new HTTPException(400, { message: "Flow defination not valid" });
 
     if (!result.executionPlan)
-      throw new HTTPException(404, { message: "No execution plan generated" });
+      throw new HTTPException(404, {
+        message: "No execution plan generated",
+      });
 
     const executionPlan = result.executionPlan;
 
@@ -162,7 +165,7 @@ export default class WorkflowService {
           userId: user.id,
           status: IWorkflowExecutionStatus.PENDING,
           startedAt: new Date(),
-          trigger: "manual",
+          trigger: IWorkflowExecutionTrigger.MANUAL,
         })
         .returning({
           id: workflowExecution.id,
@@ -202,7 +205,31 @@ export default class WorkflowService {
 
     return {
       success: true,
-      data: execution,
+      data: {
+        workflowId: workflow.data.id,
+        executionId: execution.id,
+      },
+    };
+  }
+
+  async getWorkflowExecutionWithPhases(executionId: string, userId: string) {
+    const data = await db.query.workflowExecution.findFirst({
+      where: (fields, { eq, and }) =>
+        and(eq(fields.id, executionId), eq(fields.userId, userId)),
+      with: {
+        phases: {
+          orderBy: (fields) => [asc(fields.number)],
+        },
+      },
+    });
+
+    if (!data) {
+      throw new HTTPException(404, { message: "Execution not found" });
+    }
+
+    return {
+      success: true,
+      data,
     };
   }
 

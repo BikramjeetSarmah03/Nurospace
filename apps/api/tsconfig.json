@@ -2,14 +2,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     // Enable latest features
-    "lib": ["ESNext", "DOM"],
-    "target": "ESNext",
     "module": "ESNext",
-    "moduleDetection": "force",
-
-    // Bundler mode
-    "moduleResolution": "bundler",
-    "verbatimModuleSyntax": true,
 
     // Enable declaration file generation
     "declaration": false,
