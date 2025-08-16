@@ -1,13 +1,25 @@
-import type { LucideProps } from "lucide-react";
+import { createEnum } from "@/lib/utils";
 
-import type { TaskParam, TaskType } from "../lib/constants/task";
+// Task types
+const taskType = createEnum([
+  "LAUNCH_BROWSER",
+  "PAGE_TO_HTML",
+  "EXTRACT_TEXT_FROM_ELEMENT",
+] as const);
+export const TASK_TYPE = taskType.object;
+export type TaskType = (typeof taskType.values)[number];
 
-export interface IWorkflowTask {
-  type: TaskType;
-  label: string;
-  icon: React.FC<LucideProps>;
-  isEntryPoint?: boolean;
-  inputs?: TaskParam[];
-  outputs?: TaskParam[];
-  credits: number;
+// Task param types
+const taskParamTypes = createEnum(["STRING", "BROWSER_INSTANCE"] as const);
+export const TASK_PARAM_TYPES = taskParamTypes.object;
+export type TaskParamType = (typeof taskParamTypes.values)[number];
+
+export interface TaskParam {
+  name: string;
+  type: TaskParamType;
+  helperText?: string;
+  required?: boolean;
+  hideHandle?: boolean;
+  [key: string]: unknown;
+  variant?: string;
 }

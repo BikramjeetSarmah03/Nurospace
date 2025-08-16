@@ -1,10 +1,7 @@
 import { TextIcon, type LucideProps } from "lucide-react";
 
-import {
-  TASK_PARAM_TYPES,
-  TASK_TYPE,
-} from "@/features/workflow/lib/constants/task";
-import type { IWorkflowTask } from "@/features/workflow/types/task";
+import { TASK_PARAM_TYPES, TASK_TYPE } from "@/features/workflow/types/task";
+import type { IWorkflowTask } from "@/features/workflow/types/workflow";
 
 export const ExtractTextFromElement = {
   type: TASK_TYPE.EXTRACT_TEXT_FROM_ELEMENT,

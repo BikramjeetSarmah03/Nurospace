@@ -1,6 +1,6 @@
 import { Handle, Position, useEdges } from "@xyflow/react";
 
-import type { TaskParam } from "@/features/workflow/lib/constants/task";
+import type { TaskParam } from "@/features/workflow/types/task";
 
 import { cn } from "@/lib/utils";
 

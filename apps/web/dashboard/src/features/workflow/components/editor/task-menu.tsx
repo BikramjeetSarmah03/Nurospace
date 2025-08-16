@@ -9,14 +9,11 @@ import {
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 
-import {
-  TASK_TYPE,
-  type TaskType,
-} from "@/features/workflow/lib/constants/task";
-
 import { TaskRegistry } from "../registry/task/registery";
 
 import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut";
+
+import { TASK_TYPE, type TaskType } from "@/features/workflow/types/task";
 
 import { cn } from "@/lib/utils";
 

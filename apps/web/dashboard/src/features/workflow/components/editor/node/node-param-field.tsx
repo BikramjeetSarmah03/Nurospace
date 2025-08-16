@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import {
   TASK_PARAM_TYPES,
   type TaskParam,
-} from "@/features/workflow/lib/constants/task";
+} from "@/features/workflow/types/task";
 
 import type { AppNode } from "@/features/workflow/types/app-node";
 

@@ -6,9 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 import { TaskRegistry } from "@/features/workflow/components/registry/task/registery";
-import type { TaskType } from "@/features/workflow/lib/constants/task";
 import { CreateFlowNode } from "@/features/workflow/lib/create-flow-node";
 import type { AppNode } from "@/features/workflow/types/app-node";
+import type { TaskType } from "@/features/workflow/types/task";
 
 interface NodeHeaderProps {
   taskType: TaskType;

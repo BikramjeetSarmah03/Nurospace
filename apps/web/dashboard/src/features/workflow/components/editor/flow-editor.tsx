@@ -22,9 +22,9 @@ import type { IWorkflow } from "@/features/workflow/types/workflow";
 
 import NodeComponent from "./node/node-component";
 
-import { CreateFlowNode } from "../../lib/create-flow-node";
-import type { TaskType } from "../../lib/constants/task";
-import type { AppNode } from "../../types/app-node";
+import { CreateFlowNode } from "@/features/workflow/lib/create-flow-node";
+import type { AppNode } from "@/features/workflow/types/app-node";
+import type { TaskType } from "@/features/workflow/types/task";
 
 import DeletableEdge from "./edge/deletable-edge";
 import { TaskRegistry } from "../registry/task/registery";
