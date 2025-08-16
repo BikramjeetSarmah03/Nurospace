@@ -2,6 +2,7 @@ const WORKFLOW_QUERY_KEYS = [
   "ALL_WORKFLOW",
   "SINGLE_WORKFLOW",
   "EXECUTION",
+  "PHASE_DETAILS",
 ] as const;
 
 export const WORKFLOW_KEYS = Object.fromEntries(

@@ -1,4 +1,7 @@
-import type { IWorkflow } from "@packages/workflow/types/workflow.ts";
+import type {
+  IWorkflow,
+  IWorkflowExecution,
+} from "@packages/workflow/types/workflow.ts";
 
 import type { ErrorResponse, SuccessResponse } from "@/config/types";
 
@@ -53,12 +56,16 @@ class WorkflowService {
 
   async getExecutionDetailsWithPhases(
     executionId: string,
-  ): Promise<SuccessResponse<any> | ErrorResponse> {
+  ): Promise<IWorkflowExecution> {
     return (
       await API.get(
         `${workflowUrls.get_exection_details_with_phases}/${executionId}`,
       )
     ).data;
+  }
+
+  async getPhaseDetails(phaseId: string): Promise<IWorkflowExecution> {
+    return (await API.get(`${workflowUrls.get_phase_details}/${phaseId}`)).data;
   }
 }
 

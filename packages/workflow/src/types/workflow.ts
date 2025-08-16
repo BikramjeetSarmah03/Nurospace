@@ -61,4 +61,32 @@ export type IWorkflowExecutionPlanPhase = {
   nodes: AppNode[];
 };
 
+export type IWorkflowExecutionPhase = {
+  id: string;
+  userId: string;
+  workflowExecutionId: string;
+  status: IExecutionPhaseStatus;
+  number: number;
+  node: string; // JSON string, can be parsed into `NodeData` if you want
+  name: string;
+  startedAt: string | null;
+  completedAt: string | null;
+  inputs: Record<string, string> | null;
+  outputs: Record<string, string> | null;
+  creditsConsumed: number | null;
+};
+
+export type IWorkflowExecution = {
+  id: string;
+  userId: string;
+  workflowId: string;
+  trigger: IWorkflowExecutionTrigger;
+  status: IWorkflowExecutionStatus;
+  creditsConsumed: number | null;
+  createdAt: string; // ISO timestamp
+  startedAt: Date | null;
+  completedAt: Date | null;
+  phases: IWorkflowExecutionPhase[];
+};
+
 export type IWorkflowExecutionPlan = IWorkflowExecutionPlanPhase[];

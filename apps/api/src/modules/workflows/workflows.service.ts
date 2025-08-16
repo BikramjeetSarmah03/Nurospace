@@ -17,7 +17,7 @@ import { TaskRegistry } from "@packages/workflow/registry/task/registry.ts";
 import { TaskType } from "@packages/workflow/types/task.ts";
 
 import { db } from "@/db";
-import { ExecutionPhase, workflow, workflowExecution } from "@/db/schema";
+import { executionPhase, workflow, workflowExecution } from "@/db/schema";
 
 import type { CreateWorkflowDto } from "./dto/create-workflow";
 import type { UpdateWorkflowDto } from "./dto/update-workflow";
@@ -190,7 +190,7 @@ export default class WorkflowService {
       );
 
       // c. Insert phases
-      await tx.insert(ExecutionPhase).values(phases);
+      await tx.insert(executionPhase).values(phases);
 
       return {
         id: insertedExecution.id,
@@ -227,10 +227,20 @@ export default class WorkflowService {
       throw new HTTPException(404, { message: "Execution not found" });
     }
 
-    return {
-      success: true,
-      data,
-    };
+    return data;
+  }
+
+  async getPhaseDetails(phaseId: string, userId: string) {
+    const data = await db.query.executionPhase.findFirst({
+      where: (fields, { eq, and }) =>
+        and(eq(fields.id, phaseId), eq(fields.userId, userId)),
+    });
+
+    if (!data) {
+      throw new HTTPException(404, { message: "Phase not found" });
+    }
+
+    return data;
   }
 
   generateSlug(input: string): string {

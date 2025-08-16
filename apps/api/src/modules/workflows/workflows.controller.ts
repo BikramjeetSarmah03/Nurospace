@@ -91,6 +91,14 @@ class WorkflowController {
       authContext.user.id,
     );
   }
+
+  @Get("/phase/:id")
+  async getPhaseDetails(
+    @Param("id") phaseId: string,
+    @AuthContext() authContext: IAuthContext,
+  ) {
+    return this.workflowService.getPhaseDetails(phaseId, authContext.user.id);
+  }
 }
 
 export default WorkflowController;
