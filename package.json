@@ -1,8 +1,9 @@
 {
-  "name": "productify",
+  "name": "nurospace",
   "private": true,
   "workspaces": [
     "apps/*",
+    "apps/web/*",
     "packages/*"
   ],
   "scripts": {
@@ -12,26 +13,26 @@
     "dev": "turbo dev",
     "build": "turbo build",
     "check-types": "turbo check-types",
-    "dev:native": "turbo -F native dev",
-    "dev:web": "turbo -F web dev",
-    "dev:server": "turbo -F server dev",
-    "db:push": "turbo -F server db:push",
-    "db:studio": "turbo -F server db:studio",
-    "db:generate": "turbo -F server db:generate",
-    "db:migrate": "turbo -F server db:migrate"
+    "dev:www": "turbo -F @apps/www dev",
+    "dev:api": "turbo -F @apps/api dev",
+    "dev:dashboard": "turbo run dev --filter=@apps/api --filter=@apps/dashboard"
   },
-  "dependencies": {},
   "devDependencies": {
-    "turbo": "^2.5.4",
-    "@biomejs/biome": "^2.0.0",
+    "turbo": "^2.5.5",
+    "@biomejs/biome": "^2.1.3",
     "husky": "^9.1.7",
-    "lint-staged": "^15.5.0"
+    "lint-staged": "^15.5.2"
   },
   "lint-staged": {
     "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
-      "biome format --write .",
-      "biome check --write ."
+      "biome format --write . && biome check ."
     ]
   },
-  "packageManager": "bun@1.2.17"
+  "packageManager": "bun@1.2.17",
+  "dependencies": {
+    "@langchain/core": "^0.3.68",
+    "@langchain/google-genai": "^0.2.16",
+    "dotenv": "^17.2.1",
+    "nurospace": "."
+  }
 }

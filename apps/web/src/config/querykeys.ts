@@ -1,7 +1,0 @@
-export const WORKSPACE_KEYS = {
-  ALL: "ALL_WORKSPACES",
-};
-
-export const RESOURCES_KEYS = {
-  ALL_RESOURCES: "ALL_RESOURCES",
-};

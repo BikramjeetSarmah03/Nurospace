@@ -1,1 +1,11 @@
-lint-staged
+echo "🟢 Running Formatting Checks 🟢"
+bun run lint-staged
+echo "🟢 Completed Formatting Checks 🟢"
+
+echo "🟢 Running Linting Checks 🟢"
+bun run check
+echo "🟢 Completed Linting Checks 🟢"
+
+# echo "🟢 Running Build Checks 🟢"
+# bun run build
+# echo "🟢 Completed Build Checks 🟢"

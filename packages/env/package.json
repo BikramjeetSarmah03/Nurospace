@@ -1,0 +1,16 @@
+{
+  "name": "@packages/env",
+  "type": "module",
+  "exports": {
+    "./server": "./src/server.ts",
+    "./client": "./src/client.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "dotenv": "^17.2.1",
+    "zod": "^4.0.16"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

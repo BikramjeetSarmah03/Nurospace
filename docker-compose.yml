@@ -1,0 +1,22 @@
+version: "3.8"
+services:
+  postgres:
+    image: ankane/pgvector
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: nurospace
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./tmp/postgres:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./tmp/redis:/data

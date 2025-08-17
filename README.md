@@ -1,79 +1,103 @@
-# productify
+# 🧠 Nurospace — The OS for Autonomous Work
 
-This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines React, TanStack Router, Hono, and more.
+Welcome to Nurospace, your **ultimate AI workspace** where intelligence meets execution. Nurospace is designed to be your second brain — capable of thinking, planning, and acting — built for individuals, teams, and power users who want more from AI.
 
-## Features
+---
 
-- **TypeScript** - For type safety and improved developer experience
-- **TanStack Router** - File-based routing with full type safety
-- **TailwindCSS** - Utility-first CSS for rapid UI development
-- **shadcn/ui** - Reusable UI components
-- **Hono** - Lightweight, performant server framework
-- **Bun** - Runtime environment
-- **Drizzle** - TypeScript-first ORM
-- **PostgreSQL** - Database engine
-- **Turborepo** - Optimized monorepo build system
-- **Biome** - Linting and formatting
-- **Husky** - Git hooks for code quality
+## 🚀 Vision
 
-## Getting Started
+> **"What if your AI could remember, plan, and act — like a real teammate?"**
 
-First, install the dependencies:
+Nurospace is not just a chat interface — it's an **agent-powered execution platform**. From uploading research papers to scheduling investor emails, it bridges the gap between intelligent reasoning and real-world action.
 
-```bash
-bun install
-```
-## Database Setup
+---
 
-This project uses PostgreSQL with Drizzle ORM.
+## 🧩 Key Features
 
-1. Make sure you have a PostgreSQL database set up.
-2. Update your `apps/server/.env` file with your PostgreSQL connection details.
+### ✅ Basic RAG Model
+- Upload **PDFs**, **URLs**, **YouTube videos**, or any resource
+- Get contextual responses using advanced Retrieval-Augmented Generation
+- Support for multiple LLMs (OpenAI, Anthropic, Claude, etc.)
 
-3. Apply the schema to your database:
-```bash
-bun db:push
-```
+### 🤖 Multi-Agent Architecture
+- **Parent Agent** intelligently splits queries into:
+  - `Basic LLM Agent`: Handles general reasoning and generation
+  - `RAG Agent`: Pulls from uploaded context/resources
+  - `Tools Agent`: Executes actions (email, scheduling, reminders)
 
+### 🔄 Prompt-Based Automation
+- Automate tasks with natural language:
+  > "Write a mail to bikram@bikram.com about the research paper and send it tomorrow at 10am"
 
-Then, run the development server:
+### 📂 Workspaces + Long Context Memory
+- Each user has **subdomain access**: `bikram.nurospace.com`
+- Unlimited **spaces/projects** to manage different workflows
+- Long-context memory engine (>10M tokens) using vector DBs
 
-```bash
-bun dev
-```
+### 🧠 AI Personalities
+- Choose from curated agent personalities (e.g., Lawyer, Researcher, PM)
+- Or create your own with personality configuration files
 
-Open [http://localhost:3001](http://localhost:3001) in your browser to see the web application.
-The API is running at [http://localhost:3000](http://localhost:3000).
+### 🔧 Developer Mode (Like n8n)
+- Drag & connect **nodes** to create custom automation pipelines
+- Dev-focused agent scripting with variables, logic, and tools
 
+### 💻 Platform Roadmap
+- ✅ Web App (MVP)
+- 🧩 Browser Extension (coming soon)
+- 🖥️ Desktop App (Electron-based)
+- 📱 Mobile App (React Native)
+- 🛍️ Agent & Tools Marketplace
 
+---
 
-## Project Structure
+## 🏗️ MVP Roadmap (Now in Progress)
 
-```
-productify/
-├── apps/
-│   ├── web/         # Frontend application (React + TanStack Router)
-│   └── server/      # Backend API (Hono)
-├── packages/
-│   ├── shared/         # Shared Packages
-```
+- [x] RAG engine: PDF, link, video ingest
+- [x] Agent routing logic
+- [x] Prompt → Action via Tools agent
+- [x] Google-like search + source attribution (like Perplexity)
+- [ ] Reminder & scheduling system
+- [ ] AI memory (long-term recall)
 
-## Available Scripts
+---
 
-- `bun dev`: Start all applications in development mode
-- `bun build`: Build all applications
-- `bun dev:web`: Start only the web application
-- `bun dev:server`: Start only the server
-- `bun check-types`: Check TypeScript types across all apps
-- `bun db:push`: Push schema changes to database
-- `bun db:studio`: Open database studio UI
-- `bun check`: Run Biome formatting and linting
+## 🔧 Tech Stack
 
+| Layer          | Tech                            |
+|---------------|----------------------------------|
+| Frontend       | React, TanStack Router, Tailwind |
+| Backend        | NestJS (microservices)          |
+| AI/LLM         | OpenAI, Claude, Custom APIs     |
+| Vector DB      | Qdrant / Weaviate               |
+| Database       | PostgreSQL + Redis              |
+| Queueing       | BullMQ / Redis Streams          |
+| File Handling  | S3-compatible storage            |
+| Auth & Subdomain | Middleware + Custom Tenant Resolver |
 
-## To run the project
+---
 
+## 🤝 Get Involved
+
+We’re looking for:
+- 🧪 **Beta testers**
+- 🤝 **Partners & integrators**
+- 🧠 **Agent & tool creators**
+
+Join us as we build the OS for autonomous work.  
+Contact: [hi@nurospace.com](mailto:hi@nurospace.com)
+
+---
+
+## 📄 License
+
+MIT © Nurospace 2025
+
+<<<<<<< HEAD
 - Install all dependencies ```.  bun install```
 - Start Docker ```.  docker compose up -d```
 - Set Env Files ```.  Set the env files both in server and web```
 - start worker ```. bun dev:worker``` inside the server folder
 - db studio ```. bun db:studio```
+=======
+>>>>>>> main
