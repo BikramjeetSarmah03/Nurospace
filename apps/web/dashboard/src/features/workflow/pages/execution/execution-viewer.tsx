@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   IWorkflowExecutionStatus,
   type IWorkflowExecution,
-} from "@packages/workflow/types/workflow.js";
+} from "@packages/workflow/types/workflow.ts";
 
 import { WORKFLOW_KEYS } from "../../lib/query-keys";
 import { workflowService } from "../../services/workflow.service";

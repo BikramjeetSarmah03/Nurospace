@@ -2,6 +2,7 @@ import { Service } from "honestjs";
 import type { User } from "better-auth";
 import { HTTPException } from "hono/http-exception";
 import { and, asc, eq, inArray, type InferSelectModel } from "drizzle-orm";
+import type { Browser, Page } from "puppeteer";
 
 import { db } from "@/db";
 import { executionPhase, workflow, workflowExecution } from "@/db/schema";
@@ -22,6 +23,7 @@ import type {
 
 import type { RunWorkflowDto } from "./dto/run-workflow";
 import WorkflowService from "../workflows.service";
+import { TaskParamType } from "@packages/workflow/types/task.ts";
 
 @Service()
 export default class ExecuctionService {
@@ -200,7 +202,9 @@ export default class ExecuctionService {
       executionFailed,
       creditsConsumed,
     );
-    // TODO: cleanup env
+
+    //  cleanup env
+    await this.cleanUpEnvironment(environment);
 
     // revalidate run path
   }
@@ -287,6 +291,7 @@ export default class ExecuctionService {
       .set({
         status: IExecutionPhaseStatus.RUNNING,
         startedAt,
+        inputs: JSON.stringify(environment.phases[node.id]?.inputs ?? "[]"),
       })
       .where(eq(executionPhase.id, phase.id));
 
@@ -340,6 +345,8 @@ export default class ExecuctionService {
     const inputs = TaskRegistry[node.data.type].inputs || [];
 
     for (const input of inputs) {
+      if (input.type === TaskParamType.BROWSER_INSTANCE) continue;
+
       const inputValue = node.data.inputs[input.name];
       if (inputValue) {
         if (!environment.phases[node.id]) {
@@ -352,11 +359,31 @@ export default class ExecuctionService {
     }
   }
 
-  createExecutionEnvironment(node: AppNode, environment: Environment) {
+  createExecutionEnvironment(
+    node: AppNode,
+    environment: Environment,
+  ): ExecutionEnvironment<any> {
     return {
       getInput: (name: string) =>
         environment.phases[node.id]?.inputs[name] ?? "",
+      getBrowser: () => environment.browser,
+      setBrowser: (browser: Browser) => {
+        environment.browser = browser;
+      },
+
+      getPage: () => environment.page,
+      setPage: (page: Page) => {
+        environment.page = page;
+      },
     };
+  }
+
+  async cleanUpEnvironment(environment: Environment) {
+    if (environment.browser) {
+      await environment.browser
+        .close()
+        .catch((err) => console.error("Cannot close browser: ", err));
+    }
   }
 }
 

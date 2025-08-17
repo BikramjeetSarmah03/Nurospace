@@ -17,7 +17,7 @@ import { GetPhasesTotalCost } from "@/lib/helpers/phases";
 import {
   IWorkflowExecutionStatus,
   type IWorkflowExecution,
-} from "@packages/workflow/types/workflow.js";
+} from "@packages/workflow/types/workflow.ts";
 import { DatesToDurationString } from "@/lib/helpers/date";
 import { cn } from "@/lib/utils";
 

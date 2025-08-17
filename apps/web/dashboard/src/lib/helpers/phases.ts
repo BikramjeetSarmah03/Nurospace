@@ -1,4 +1,4 @@
-import type { IWorkflowExecutionPhase } from "@packages/workflow/types/workflow.js";
+import type { IWorkflowExecutionPhase } from "@packages/workflow/types/workflow.ts";
 
 type Phase = Pick<IWorkflowExecutionPhase, "creditsConsumed">;
 

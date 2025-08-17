@@ -2,7 +2,6 @@ import puppeteer from "puppeteer";
 
 import env from "@packages/env/server";
 
-import { waitFor } from "../../lib/waitFor";
 import type { ExecutionEnvironment } from "../../types/executor";
 import type { LaunchBrowserTask } from "../task/launch-browser";
 
@@ -20,8 +19,12 @@ export async function LaunchBrowserExecutor(
 
     console.log("LAUNCHED BROWSER");
 
-    await waitFor(3000);
-    await browser.close();
+    environment.setBrowser(browser);
+
+    const page = await browser.newPage();
+    await page.goto(websiteUrl);
+
+    environment.setPage(page);
 
     console.log("CLOSED BROWSER");
 
