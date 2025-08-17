@@ -16,7 +16,6 @@ import WorkflowService from "./workflows.service";
 
 import type { CreateWorkflowDto } from "./dto/create-workflow";
 import type { UpdateWorkflowDto } from "./dto/update-workflow";
-import type { RunWorkflowDto } from "./dto/run-workflow";
 
 @Controller("workflow")
 @UseGuards(AuthGuard)
@@ -66,38 +65,6 @@ class WorkflowController {
     @AuthContext() authContext: IAuthContext,
   ) {
     return await this.workflowService.deleteWorkflow(id, authContext.user.id);
-  }
-
-  @Post("run/:id")
-  async runWorkflow(
-    @Param("id") workflowId: string,
-    @Body() body: RunWorkflowDto,
-    @AuthContext() authContext: IAuthContext,
-  ) {
-    return await this.workflowService.runWorkflow(
-      workflowId,
-      body,
-      authContext.user,
-    );
-  }
-
-  @Get("/execution/:id")
-  async getWorkflowExecutionWithPhases(
-    @Param("id") executionId: string,
-    @AuthContext() authContext: IAuthContext,
-  ) {
-    return this.workflowService.getWorkflowExecutionWithPhases(
-      executionId,
-      authContext.user.id,
-    );
-  }
-
-  @Get("/phase/:id")
-  async getPhaseDetails(
-    @Param("id") phaseId: string,
-    @AuthContext() authContext: IAuthContext,
-  ) {
-    return this.workflowService.getPhaseDetails(phaseId, authContext.user.id);
   }
 }
 

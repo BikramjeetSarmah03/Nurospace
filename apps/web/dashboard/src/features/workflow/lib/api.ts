@@ -4,7 +4,7 @@ export const workflowUrls = {
   get_single_workflow: "workflow",
   update: "workflow",
   delete: "workflow",
-  run_workflow: "workflow/run",
+  run_workflow: "workflow/execution/run",
   get_exection_details_with_phases: "workflow/execution",
-  get_phase_details: "workflow/phase",
+  get_phase_details: "workflow/execution/phase",
 };

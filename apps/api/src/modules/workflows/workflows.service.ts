@@ -1,27 +1,18 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Service } from "honestjs";
 import { HTTPException } from "hono/http-exception";
 import { v4 as uuidV4 } from "uuid";
-import type { User } from "better-auth";
 
-import { FlowToExecutionPlan } from "@packages/workflow/lib/execution-plan.ts";
 import { CreateFlowNode } from "@packages/workflow/lib/create-flow-node.ts";
 
 import type { AppNode, Edge } from "@packages/workflow/types/app-node.ts";
-import {
-  IExecutionPhaseStatus,
-  IWorkflowExecutionStatus,
-  IWorkflowExecutionTrigger,
-} from "@packages/workflow/types/workflow.ts";
-import { TaskRegistry } from "@packages/workflow/registry/task/registry.ts";
 import { TaskType } from "@packages/workflow/types/task.ts";
 
 import { db } from "@/db";
-import { executionPhase, workflow, workflowExecution } from "@/db/schema";
+import { workflow } from "@/db/schema";
 
 import type { CreateWorkflowDto } from "./dto/create-workflow";
 import type { UpdateWorkflowDto } from "./dto/update-workflow";
-import type { RunWorkflowDto } from "./dto/run-workflow";
 
 @Service()
 export default class WorkflowService {
@@ -98,19 +89,6 @@ export default class WorkflowService {
     };
   }
 
-  async getWorkflowDetails(workflowId: string, userId: string) {
-    const result = await db.query.workflow.findFirst({
-      where: and(eq(workflow.id, workflowId), eq(workflow.userId, userId)),
-    });
-
-    if (!result) throw new HTTPException(404, { message: "Not Found" });
-
-    return {
-      success: true,
-      data: result,
-    };
-  }
-
   async deleteWorkflow(workflowId: string, userId: string) {
     const result = await db
       .delete(workflow)
@@ -129,118 +107,17 @@ export default class WorkflowService {
     };
   }
 
-  async runWorkflow(worflowId: string, body: RunWorkflowDto, user: User) {
-    const { flowDefination } = body;
-
-    if (!flowDefination)
-      throw new HTTPException(404, {
-        message: "Flow Defination is not defined",
-      });
-
-    const workflow = await this.getWorkflowDetails(worflowId, user.id);
-
-    if (!workflow.data)
-      throw new HTTPException(404, { message: "Workflow not found" });
-
-    const flow = JSON.parse(flowDefination);
-    const result = FlowToExecutionPlan(flow.nodes, flow.edges);
-
-    if (result.error)
-      throw new HTTPException(400, { message: "Flow defination not valid" });
-
-    if (!result.executionPlan)
-      throw new HTTPException(404, {
-        message: "No execution plan generated",
-      });
-
-    const executionPlan = result.executionPlan;
-
-    // 3. Transaction: Insert execution + phases
-    const execution = await db.transaction(async (tx) => {
-      // a. Insert workflow execution
-      const [insertedExecution] = await tx
-        .insert(workflowExecution)
-        .values({
-          workflowId: workflow.data.id,
-          userId: user.id,
-          status: IWorkflowExecutionStatus.PENDING,
-          startedAt: new Date(),
-          trigger: IWorkflowExecutionTrigger.MANUAL,
-        })
-        .returning({
-          id: workflowExecution.id,
-        });
-
-      if (!insertedExecution) {
-        throw new HTTPException(500, {
-          message: "Workflow execution could not be created",
-        });
-      }
-
-      // b. Prepare phases
-      const phases = executionPlan.flatMap((phase) =>
-        phase.nodes.map((node) => ({
-          userId: user.id,
-          workflowExecutionId: insertedExecution.id,
-          status: IExecutionPhaseStatus.CREATED,
-          number: phase.phase,
-          node: JSON.stringify(node),
-          name: TaskRegistry[node.data.type].label,
-        })),
-      );
-
-      // c. Insert phases
-      await tx.insert(executionPhase).values(phases);
-
-      return {
-        id: insertedExecution.id,
-        phases,
-      };
+  async getWorkflowDetails(workflowId: string, userId: string) {
+    const result = await db.query.workflow.findFirst({
+      where: and(eq(workflow.id, workflowId), eq(workflow.userId, userId)),
     });
 
-    if (!execution)
-      throw new HTTPException(500, {
-        message: "Workflow Execution not created",
-      });
+    if (!result) throw new HTTPException(404, { message: "Not Found" });
 
     return {
       success: true,
-      data: {
-        workflowId: workflow.data.id,
-        executionId: execution.id,
-      },
+      data: result,
     };
-  }
-
-  async getWorkflowExecutionWithPhases(executionId: string, userId: string) {
-    const data = await db.query.workflowExecution.findFirst({
-      where: (fields, { eq, and }) =>
-        and(eq(fields.id, executionId), eq(fields.userId, userId)),
-      with: {
-        phases: {
-          orderBy: (fields) => [asc(fields.number)],
-        },
-      },
-    });
-
-    if (!data) {
-      throw new HTTPException(404, { message: "Execution not found" });
-    }
-
-    return data;
-  }
-
-  async getPhaseDetails(phaseId: string, userId: string) {
-    const data = await db.query.executionPhase.findFirst({
-      where: (fields, { eq, and }) =>
-        and(eq(fields.id, phaseId), eq(fields.userId, userId)),
-    });
-
-    if (!data) {
-      throw new HTTPException(404, { message: "Phase not found" });
-    }
-
-    return data;
   }
 
   generateSlug(input: string): string {
