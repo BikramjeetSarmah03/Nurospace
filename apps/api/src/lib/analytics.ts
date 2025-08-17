@@ -16,14 +16,16 @@ interface AgentMetrics {
 class AgentAnalytics {
   private metrics: AgentMetrics[] = [];
 
-  recordRequest(metrics: Omit<AgentMetrics, 'timestamp'>) {
+  recordRequest(metrics: Omit<AgentMetrics, "timestamp">) {
     const record: AgentMetrics = {
       ...metrics,
       timestamp: new Date(),
     };
-    
+
     this.metrics.push(record);
-    console.log(`[ANALYTICS] ${record.requestId} - ${record.queryType} - ${record.toolsUsed.join(', ')} - ${record.responseTime}ms`);
+    console.log(
+      `[ANALYTICS] ${record.requestId} - ${record.queryType} - ${record.toolsUsed.join(", ")} - ${record.responseTime}ms`,
+    );
   }
 
   getMetrics() {
@@ -31,15 +33,20 @@ class AgentAnalytics {
   }
 
   getPerformanceStats() {
-    const successful = this.metrics.filter(m => m.success);
-    const failed = this.metrics.filter(m => !m.success);
-    
+    const successful = this.metrics.filter((m) => m.success);
+    const failed = this.metrics.filter((m) => !m.success);
+
     return {
       totalRequests: this.metrics.length,
-      successRate: this.metrics.length > 0 ? (successful.length / this.metrics.length) * 100 : 0,
-      averageResponseTime: successful.length > 0 
-        ? successful.reduce((sum, m) => sum + m.responseTime, 0) / successful.length 
-        : 0,
+      successRate:
+        this.metrics.length > 0
+          ? (successful.length / this.metrics.length) * 100
+          : 0,
+      averageResponseTime:
+        successful.length > 0
+          ? successful.reduce((sum, m) => sum + m.responseTime, 0) /
+            successful.length
+          : 0,
       toolUsage: this.getToolUsageStats(),
       errorTypes: this.getErrorTypeStats(),
     };
@@ -47,8 +54,8 @@ class AgentAnalytics {
 
   private getToolUsageStats() {
     const toolCounts: Record<string, number> = {};
-    this.metrics.forEach(m => {
-      m.toolsUsed.forEach(tool => {
+    this.metrics.forEach((m) => {
+      m.toolsUsed.forEach((tool) => {
         toolCounts[tool] = (toolCounts[tool] || 0) + 1;
       });
     });
@@ -57,10 +64,12 @@ class AgentAnalytics {
 
   private getErrorTypeStats() {
     const errorCounts: Record<string, number> = {};
-    this.metrics.filter(m => !m.success).forEach(m => {
-      const errorType = m.errorType || 'unknown';
-      errorCounts[errorType] = (errorCounts[errorType] || 0) + 1;
-    });
+    this.metrics
+      .filter((m) => !m.success)
+      .forEach((m) => {
+        const errorType = m.errorType || "unknown";
+        errorCounts[errorType] = (errorCounts[errorType] || 0) + 1;
+      });
     return errorCounts;
   }
 }
@@ -72,7 +81,7 @@ export const agentAnalytics = new AgentAnalytics();
  */
 export function monitorPerformance(requestId: string, userId: string) {
   const startTime = Date.now();
-  
+
   return {
     recordSuccess: (queryType: string, toolsUsed: string[]) => {
       const responseTime = Date.now() - startTime;
@@ -85,8 +94,12 @@ export function monitorPerformance(requestId: string, userId: string) {
         success: true,
       });
     },
-    
-    recordError: (queryType: string, toolsUsed: string[], errorType: string) => {
+
+    recordError: (
+      queryType: string,
+      toolsUsed: string[],
+      errorType: string,
+    ) => {
       const responseTime = Date.now() - startTime;
       agentAnalytics.recordRequest({
         requestId,
@@ -99,4 +112,4 @@ export function monitorPerformance(requestId: string, userId: string) {
       });
     },
   };
-} 
+}

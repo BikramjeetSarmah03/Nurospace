@@ -7,7 +7,6 @@ import { tavilySearch, formatSearchResults } from "./tavilySearchTool";
 
 //schedule email tool
 
-
 export const toolset = [
   retrieveRelevantChunksTool,
 

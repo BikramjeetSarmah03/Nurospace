@@ -22,8 +22,12 @@ console.log("\n=== Verification ===");
 console.log("System date:", `${currentMonth}/${currentDay}/${currentYear}`);
 console.log("Tool date:", `${result.month}/${result.day}/${result.year}`);
 
-if (result.year === currentYear && result.month === currentMonth && result.day === currentDay) {
+if (
+  result.year === currentYear &&
+  result.month === currentMonth &&
+  result.day === currentDay
+) {
   console.log("✅ Date is correct!");
 } else {
   console.log("❌ Date is incorrect!");
-} 
+}

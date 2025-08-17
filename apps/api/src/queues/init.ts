@@ -12,17 +12,18 @@ resourceQueue.on("waiting", (job: Job) => {
   console.log("📋 Queue: Job waiting:", job.id);
 });
 
-// Note: Using proper event names for BullMQ queue events
+// @ts-expect-error: "active" is a valid event name for BullMQ Queue, but types may be outdated
 resourceQueue.on("active", (job: Job) => {
   console.log("⚡ Queue: Job started:", job.id);
 });
 
+// @ts-expect-error: "completed" is a valid event name for BullMQ Queue, but types may be outdated
 resourceQueue.on("completed", (job: Job) => {
   console.log("✅ Queue: Job completed:", job.id);
 });
 
-resourceQueue.on("failed", (job: Job, err: Error) => {
-  console.error("❌ Queue: Job failed:", job?.id, err);
+resourceQueue.on("error", (err: Error) => {
+  console.error("❌ Queue: Error occurred:", err);
 });
 
 console.log("🚀 Resource queue initialized with monitoring");

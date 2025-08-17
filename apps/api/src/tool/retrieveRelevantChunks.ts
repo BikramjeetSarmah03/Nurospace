@@ -16,15 +16,23 @@ export async function retrieveRelevantChunks(
   userId: string,
   topK = 5,
 ) {
-  console.log("[DEBUG] retrieveRelevantChunks called with query:", query, "userId:", userId);
-  
+  console.log(
+    "[DEBUG] retrieveRelevantChunks called with query:",
+    query,
+    "userId:",
+    userId,
+  );
+
   const embeddingModel = new GoogleGenerativeAIEmbeddings({
     modelName: "embedding-001",
     apiKey: process.env.GOOGLE_API_KEY,
   });
 
   const queryEmbedding = await embeddingModel.embedQuery(query);
-  console.log("[DEBUG] Generated query embedding, length:", queryEmbedding.length);
+  console.log(
+    "[DEBUG] Generated query embedding, length:",
+    queryEmbedding.length,
+  );
 
   const results = await db
     .select({ content: resourceEmbeddings.content })
@@ -36,7 +44,10 @@ export async function retrieveRelevantChunks(
     .limit(topK);
 
   console.log("[DEBUG] Database query returned", results.length, "results");
-  console.log("[DEBUG] Results:", results.map(r => r.content.substring(0, 100) + "..."));
+  console.log(
+    "[DEBUG] Results:",
+    results.map((r) => r.content.substring(0, 100) + "..."),
+  );
 
   return results.map((r) => r.content);
 }
@@ -90,7 +101,7 @@ export const retrieveRelevantChunksTool = new DynamicTool({
 
     const result = chunks.join("\n\n");
     console.log("[DEBUG] Returning result:", result);
-    
+
     if (chunks.length === 0) {
       console.log("[WARNING] No relevant chunks found for query:", input);
       return "I searched through your documents but couldn't find any information related to your query. Please make sure you have uploaded the relevant documents or try rephrasing your question.";

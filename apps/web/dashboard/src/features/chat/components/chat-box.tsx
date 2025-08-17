@@ -138,7 +138,7 @@ export default function ChatBox({ onSubmit }: ChatBoxProps) {
       },
     ];
 
-    const fileOptions: MentionOption[] = documents.map((doc) => ({
+    const fileOptions: MentionOption[] = (Array.isArray(documents) ? documents : []).map((doc) => ({
       id: doc.id,
       name: doc.name,
       type: "file" as const,
@@ -197,7 +197,7 @@ export default function ChatBox({ onSubmit }: ChatBoxProps) {
         // Handle the correct response structure: { success: true, data: resources[] }
         let docs = [];
         if (response.data?.success && Array.isArray(response.data.data)) {
-          docs = response.data;
+          docs = response.data.data;
         } else if (response.data?.data && Array.isArray(response.data.data)) {
           docs = response.data.data;
         } else if (

@@ -21,7 +21,7 @@ export function ChatHistoryList() {
     try {
       setLoading(true);
       const response = await apiClient.chat.$get();
-      
+
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.chats) {
@@ -56,14 +56,18 @@ export function ChatHistoryList() {
     const date = new Date(dateString);
     const now = new Date();
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
-    
+
     if (diffInHours < 24) {
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } else if (diffInHours < 168) { // 7 days
-      return date.toLocaleDateString([], { weekday: 'short' });
-    } else {
-      return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+      return date.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
     }
+    if (diffInHours < 168) {
+      // 7 days
+      return date.toLocaleDateString([], { weekday: "short" });
+    }
+    return date.toLocaleDateString([], { month: "short", day: "numeric" });
   };
 
   return (
@@ -82,7 +86,7 @@ export function ChatHistoryList() {
       {loading ? (
         <div className="px-2 py-1.5 text-sm text-muted-foreground">
           <div className="flex items-center space-x-2">
-            <div className="animate-spin rounded-full h-3 w-3 border-b border-current"></div>
+            <div className="animate-spin rounded-full h-3 w-3 border-b border-current" />
             <span>Loading chats...</span>
           </div>
         </div>
@@ -98,7 +102,7 @@ export function ChatHistoryList() {
             className={cn(
               "w-full flex items-center justify-between px-2 py-1.5 text-sm rounded-md",
               "hover:bg-accent hover:text-accent-foreground transition-colors",
-              "text-left"
+              "text-left",
             )}
           >
             <div className="flex items-center space-x-2 min-w-0 flex-1">
@@ -114,4 +118,4 @@ export function ChatHistoryList() {
       )}
     </div>
   );
-} 
+}

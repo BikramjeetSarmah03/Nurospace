@@ -11,15 +11,11 @@ const EnvSchema = z.object({
   REDIS_HOST: z.string().default("localhost"),
   REDIS_PORT: z.coerce.number().default(6379),
   DATABASE_URL: z.string(),
-<<<<<<< HEAD:apps/server/src/config/env.ts
-  GOOGLE_API_KEY: z.string(),
-  TAVILY_API_KEY: z.string().optional(),
-=======
->>>>>>> main:packages/env/src/server.ts
   CORS_ORIGIN: z.string(),
   BETTER_AUTH_SECRET: z.string(),
   BETTER_AUTH_URL: z.string(),
   GOOGLE_API_KEY: z.string(),
+  TAVILY_API_KEY: z.string().optional(),
 });
 
 export type env = z.infer<typeof EnvSchema>;
