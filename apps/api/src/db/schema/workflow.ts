@@ -52,6 +52,7 @@ export const workflowExecution = pgTable("workflow_executions", {
     .notNull(),
   trigger: text("trigger"),
   status: text("status"),
+  defination: text("defination"),
   creditsConsumed: integer("credits_consumed").default(0),
   createdAt: timestamp("created_at")
     .$defaultFn(() => /* @__PURE__ */ new Date())

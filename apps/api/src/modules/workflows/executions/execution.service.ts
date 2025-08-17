@@ -15,7 +15,7 @@ import {
 import { FlowToExecutionPlan } from "@packages/workflow/lib/execution-plan.ts";
 import { TaskRegistry } from "@packages/workflow/registry/task/registry.ts";
 import { ExecutorRegistry } from "@packages/workflow/registry/executor/registry.ts";
-import type { AppNode } from "@packages/workflow/types/app-node.ts";
+import type { AppNode, Edge } from "@packages/workflow/types/app-node.ts";
 import type {
   Environment,
   ExecutionEnvironment,
@@ -81,6 +81,7 @@ export default class ExecuctionService {
           status: IWorkflowExecutionStatus.PENDING,
           startedAt: new Date(),
           trigger: IWorkflowExecutionTrigger.MANUAL,
+          defination: body.flowDefination,
         })
         .returning({
           id: workflowExecution.id,
@@ -165,6 +166,8 @@ export default class ExecuctionService {
     if (!execution)
       throw new HTTPException(404, { message: "Execution not found" });
 
+    const edges = JSON.parse(execution.defination || "").edges as Edge[];
+
     // Setup execution env
     const environment: Environment = {
       phases: {},
@@ -187,6 +190,7 @@ export default class ExecuctionService {
       const phaseExecution = await this.executeWorkflowPhase(
         phase,
         environment,
+        edges,
       );
 
       if (!phaseExecution.success) {
@@ -280,11 +284,12 @@ export default class ExecuctionService {
   async executeWorkflowPhase(
     phase: InferSelectModel<typeof executionPhase>,
     environment: Environment,
+    edges: Edge[],
   ) {
     const startedAt = new Date();
     const node = JSON.parse(phase.node || "{}") as AppNode;
 
-    await this.setupEnvironmentForPhase(node, environment);
+    await this.setupEnvironmentForPhase(node, environment, edges);
 
     await db
       .update(executionPhase)
@@ -303,11 +308,17 @@ export default class ExecuctionService {
     // Decrement user balance ( with required credits )
     const success = await this.executePhase(phase, node, environment);
 
-    await this.finalizePhase(phase.id, success);
+    const outputs = environment.phases[node.id]?.outputs;
+
+    await this.finalizePhase(phase.id, success, outputs);
     return { success };
   }
 
-  async finalizePhase(phaseId: string, success: boolean) {
+  async finalizePhase(
+    phaseId: string,
+    success: boolean,
+    outputs: Record<string, string> | undefined,
+  ) {
     const finalStatus = success
       ? IExecutionPhaseStatus.COMPLETED
       : IExecutionPhaseStatus.FAILED;
@@ -317,6 +328,7 @@ export default class ExecuctionService {
       .set({
         status: finalStatus,
         completedAt: new Date(),
+        outputs: JSON.stringify(outputs),
       })
       .where(eq(executionPhase.id, phaseId));
   }
@@ -336,7 +348,11 @@ export default class ExecuctionService {
     return await runFn(executionEnvironment);
   }
 
-  async setupEnvironmentForPhase(node: AppNode, environment: Environment) {
+  async setupEnvironmentForPhase(
+    node: AppNode,
+    environment: Environment,
+    edges: Edge[],
+  ) {
     environment.phases[node.id] = {
       inputs: {},
       outputs: {},
@@ -347,15 +363,28 @@ export default class ExecuctionService {
     for (const input of inputs) {
       if (input.type === TaskParamType.BROWSER_INSTANCE) continue;
 
-      const inputValue = node.data.inputs[input.name];
-      if (inputValue) {
-        if (!environment.phases[node.id]) {
-          environment.phases[node.id] = { inputs: {}, outputs: {} };
-        }
-
-        const phase = environment.phases[node.id]!;
-        phase.inputs[input.name] = inputValue;
+      // ensule phase exist
+      if (!environment.phases[node.id]) {
+        environment.phases[node.id] = { inputs: {}, outputs: {} };
       }
+
+      let resolvedValue: string | undefined = node.data.inputs[input.name];
+
+      // if no hardcoded value, check edge
+      if (!resolvedValue) {
+        const connectedEdge = edges.find(
+          (edg) => edg.target === node.id && edg.targetHandle === input.name,
+        );
+
+        console.log({ connectedEdge });
+        if (connectedEdge) {
+          const sourcePhase = environment.phases[connectedEdge.source];
+          resolvedValue = sourcePhase?.outputs[connectedEdge.sourceHandle!];
+        }
+      }
+
+      // always set input (even if undefined)
+      environment.phases[node.id]!.inputs[input.name] = resolvedValue ?? "";
     }
   }
 
@@ -366,6 +395,13 @@ export default class ExecuctionService {
     return {
       getInput: (name: string) =>
         environment.phases[node.id]?.inputs[name] ?? "",
+      setOutput: (name: string, value: string) => {
+        if (!environment.phases[node.id]) {
+          environment.phases[node.id] = { inputs: {}, outputs: {} };
+        }
+        environment.phases[node.id]!.outputs[name] = value;
+      },
+
       getBrowser: () => environment.browser,
       setBrowser: (browser: Browser) => {
         environment.browser = browser;

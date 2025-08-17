@@ -1,5 +1,6 @@
 import type { IWorkflowTask, TaskType } from "../../types";
 import type { ExecutionEnvironment } from "../../types/executor";
+import { ExtractTextFromElementExecutor } from "./extract-text-from-element";
 
 import { LaunchBrowserExecutor } from "./launch-browser";
 import { PageToHtmlExecutor } from "./page-to-html";
@@ -15,5 +16,5 @@ type IRegistry = {
 export const ExecutorRegistry: IRegistry = {
   LAUNCH_BROWSER: LaunchBrowserExecutor,
   PAGE_TO_HTML: PageToHtmlExecutor,
-  EXTRACT_TEXT_FROM_ELEMENT: () => Promise.resolve(true),
+  EXTRACT_TEXT_FROM_ELEMENT: ExtractTextFromElementExecutor,
 };
