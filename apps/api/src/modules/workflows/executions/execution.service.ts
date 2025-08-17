@@ -1,10 +1,10 @@
 import { Service } from "honestjs";
 import type { User } from "better-auth";
 import { HTTPException } from "hono/http-exception";
-import { asc } from "drizzle-orm";
+import { and, asc, eq, inArray, type InferSelectModel } from "drizzle-orm";
 
 import { db } from "@/db";
-import { executionPhase, workflowExecution } from "@/db/schema";
+import { executionPhase, workflow, workflowExecution } from "@/db/schema";
 
 import {
   IExecutionPhaseStatus,
@@ -13,6 +13,12 @@ import {
 } from "@packages/workflow/types/workflow.ts";
 import { FlowToExecutionPlan } from "@packages/workflow/lib/execution-plan.ts";
 import { TaskRegistry } from "@packages/workflow/registry/task/registry.ts";
+import { ExecutorRegistry } from "@packages/workflow/registry/executor/registry.ts";
+import type { AppNode } from "@packages/workflow/types/app-node.ts";
+import type {
+  Environment,
+  ExecutionEnvironment,
+} from "@packages/workflow/types/executor.ts";
 
 import type { RunWorkflowDto } from "./dto/run-workflow";
 import WorkflowService from "../workflows.service";
@@ -20,6 +26,18 @@ import WorkflowService from "../workflows.service";
 @Service()
 export default class ExecuctionService {
   private readonly workflowService = new WorkflowService();
+
+  async getExecution(executionId: string) {
+    return await db.query.workflowExecution.findFirst({
+      where: (field, { eq }) => eq(field.id, executionId),
+      with: {
+        phases: {
+          orderBy: (fields) => [asc(fields.number)],
+        },
+        workflow: true,
+      },
+    });
+  }
 
   async runWorkflow(worflowId: string, body: RunWorkflowDto, user: User) {
     const { flowDefination } = body;
@@ -145,33 +163,205 @@ export default class ExecuctionService {
     if (!execution)
       throw new HTTPException(404, { message: "Execution not found" });
 
-    // TODO: setup execution env
+    // Setup execution env
+    const environment: Environment = {
+      phases: {},
+    };
 
-    // TODO: initialize workflow execution
-    // TODO: initialize phases status
+    // Initialize workflow execution
+    await this.initializeWorkflowExecution(executionId, execution.workflowId);
 
-    const executionFailed = false;
+    //  initialize phases status
+    await this.initializePhaseStatuses(execution);
+
+    const creditsConsumed = 0;
+    let executionFailed = false;
     console.log({ executionFailed });
     for (const phase of execution.phases) {
-      console.log({ phase });
-      // TODO: execute phase
+      // TODO: consume credits
+      console.log({ creditsConsumed });
+
+      // Execute phase
+      const phaseExecution = await this.executeWorkflowPhase(
+        phase,
+        environment,
+      );
+
+      if (!phaseExecution.success) {
+        executionFailed = true;
+        break;
+      }
     }
 
-    // TODO: finalize execution
+    // Finalize execution
+    await this.finalizeWokflowExecution(
+      executionId,
+      execution.workflowId,
+      executionFailed,
+      creditsConsumed,
+    );
     // TODO: cleanup env
 
     // revalidate run path
   }
 
-  async getExecution(executionId: string) {
-    return await db.query.workflowExecution.findFirst({
-      where: (field, { eq }) => eq(field.id, executionId),
-      with: {
-        phases: {
-          orderBy: (fields) => [asc(fields.number)],
-        },
-        workflow: true,
-      },
-    });
+  async initializeWorkflowExecution(executionId: string, workflowId: string) {
+    await db
+      .update(workflowExecution)
+      .set({
+        startedAt: new Date(),
+        status: IWorkflowExecutionStatus.RUNNING, // assuming this is a string enum
+      })
+      .where(eq(workflowExecution.id, executionId));
+
+    await db
+      .update(workflow)
+      .set({
+        lastRunAt: new Date(),
+        lastRunStatus: IWorkflowExecutionStatus.RUNNING,
+        lastRunId: executionId,
+      })
+      .where(eq(workflow.id, workflowId));
   }
+
+  async initializePhaseStatuses(execution: IWorkflowExecution) {
+    const phaseIds = execution?.phases?.map((ph) => ph.id);
+
+    if (!Array.isArray(phaseIds) || phaseIds.length === 0) {
+      throw new Error("Invalid or empty phase IDs");
+    }
+
+    await db
+      .update(executionPhase)
+      .set({
+        status: IExecutionPhaseStatus.PENDING,
+      })
+      .where(inArray(executionPhase.id, phaseIds));
+  }
+
+  async finalizeWokflowExecution(
+    executionId: string,
+    workflowId: string,
+    executionFailed: boolean,
+    creditsConsumed: number,
+  ) {
+    const finalStatus = executionFailed
+      ? IWorkflowExecutionStatus.FAILED
+      : IWorkflowExecutionStatus.COMPLETED;
+
+    await db
+      .update(workflowExecution)
+      .set({
+        status: finalStatus,
+        completedAt: new Date(),
+        creditsConsumed,
+      })
+      .where(eq(workflowExecution.id, executionId));
+
+    await db
+      .update(workflow)
+      .set({
+        lastRunStatus: finalStatus,
+      })
+      .where(
+        and(eq(workflow.id, workflowId), eq(workflow.lastRunId, executionId)),
+      )
+      .catch((err) => {
+        // ignoe
+        // this means that we have triggered other runs for this workflow
+        // while an execution was running
+      });
+  }
+
+  async executeWorkflowPhase(
+    phase: InferSelectModel<typeof executionPhase>,
+    environment: Environment,
+  ) {
+    const startedAt = new Date();
+    const node = JSON.parse(phase.node || "{}") as AppNode;
+
+    await this.setupEnvironmentForPhase(node, environment);
+
+    await db
+      .update(executionPhase)
+      .set({
+        status: IExecutionPhaseStatus.RUNNING,
+        startedAt,
+      })
+      .where(eq(executionPhase.id, phase.id));
+
+    const creditsRequired = TaskRegistry[node.data.type].credits;
+    console.log(
+      `Executing phase: ${phase.name} with ${creditsRequired} credits required`,
+    );
+
+    // Decrement user balance ( with required credits )
+    const success = await this.executePhase(phase, node, environment);
+
+    await this.finalizePhase(phase.id, success);
+    return { success };
+  }
+
+  async finalizePhase(phaseId: string, success: boolean) {
+    const finalStatus = success
+      ? IExecutionPhaseStatus.COMPLETED
+      : IExecutionPhaseStatus.FAILED;
+
+    await db
+      .update(executionPhase)
+      .set({
+        status: finalStatus,
+        completedAt: new Date(),
+      })
+      .where(eq(executionPhase.id, phaseId));
+  }
+
+  async executePhase(
+    phase: InferSelectModel<typeof executionPhase>,
+    node: AppNode,
+    environment: Environment,
+  ): Promise<boolean> {
+    const runFn = ExecutorRegistry[node.data.type];
+
+    if (!runFn) return false;
+
+    const executionEnvironment: ExecutionEnvironment<any> =
+      this.createExecutionEnvironment(node, environment);
+
+    return await runFn(executionEnvironment);
+  }
+
+  async setupEnvironmentForPhase(node: AppNode, environment: Environment) {
+    environment.phases[node.id] = {
+      inputs: {},
+      outputs: {},
+    };
+
+    const inputs = TaskRegistry[node.data.type].inputs || [];
+
+    for (const input of inputs) {
+      const inputValue = node.data.inputs[input.name];
+      if (inputValue) {
+        if (!environment.phases[node.id]) {
+          environment.phases[node.id] = { inputs: {}, outputs: {} };
+        }
+
+        const phase = environment.phases[node.id]!;
+        phase.inputs[input.name] = inputValue;
+      }
+    }
+  }
+
+  createExecutionEnvironment(node: AppNode, environment: Environment) {
+    return {
+      getInput: (name: string) =>
+        environment.phases[node.id]?.inputs[name] ?? "",
+    };
+  }
+}
+
+interface IWorkflowExecution
+  extends InferSelectModel<typeof workflowExecution> {
+  phases: InferSelectModel<typeof executionPhase>[];
+  workflow: InferSelectModel<typeof workflow>;
 }

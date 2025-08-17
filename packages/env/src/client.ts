@@ -2,7 +2,7 @@ import * as z from "zod";
 
 const EnvSchema = z.object({
   VITE_SERVER_URL: z.url(),
-  VITE_DEV_MODE: z.coerce.boolean(),
+  VITE_DEV_MODE: z.coerce.boolean().optional(),
 });
 
 const { success, data, error } = EnvSchema.safeParse(import.meta.env);

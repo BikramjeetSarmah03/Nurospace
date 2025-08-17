@@ -22,7 +22,7 @@ export const workflow = pgTable(
     defination: text("defination"),
     execuationPlan: text("execution_plan"),
     oron: text("oron"),
-    status: text("status").default("DRAFT"),
+    status: text("status").default("DRAFT"), // DRAFT | PUBLISHED
     creditCost: integer("credit_cost"),
     lastRunId: text("last_run_id"),
     lastRunStatus: text("last_run_status"),
@@ -52,7 +52,7 @@ export const workflowExecution = pgTable("workflow_executions", {
     .notNull(),
   trigger: text("trigger"),
   status: text("status"),
-  creditsConsumed: integer("credits_consumed"),
+  creditsConsumed: integer("credits_consumed").default(0),
   createdAt: timestamp("created_at")
     .$defaultFn(() => /* @__PURE__ */ new Date())
     .notNull(),
@@ -74,8 +74,8 @@ export const executionPhase = pgTable("execution_phase", {
   number: integer("number"),
   node: text("node"),
   name: text("name"),
-  startedAt: text("started_at"),
-  completedAt: text("completed_at"),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
   inputs: text("inputs"),
   outputs: text("outputs"),
   creditsConsumed: integer("credits_consumed"),

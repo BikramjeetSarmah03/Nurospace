@@ -32,8 +32,8 @@ export interface IWorkflowTask {
   label: string;
   icon: React.FC<LucideProps>;
   isEntryPoint?: boolean;
-  inputs?: TaskParam[];
-  outputs?: TaskParam[];
+  inputs: TaskParam[];
+  outputs: TaskParam[];
   credits: number;
 }
 

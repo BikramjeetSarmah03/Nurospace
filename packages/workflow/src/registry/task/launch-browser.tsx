@@ -17,7 +17,7 @@ export const LaunchBrowserTask = {
       required: true,
       hideHandle: true,
     },
-  ],
+  ] as const,
   outputs: [
     {
       name: "Web page",

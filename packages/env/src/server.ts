@@ -15,6 +15,7 @@ const EnvSchema = z.object({
   BETTER_AUTH_SECRET: z.string(),
   BETTER_AUTH_URL: z.string(),
   GOOGLE_API_KEY: z.string(),
+  DEV_MODE: z.coerce.boolean().optional(),
 });
 
 export type env = z.infer<typeof EnvSchema>;
