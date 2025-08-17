@@ -68,6 +68,7 @@ export default function ChatBox({ onSubmit }: ChatBoxProps) {
     ResourceDocument[]
   >([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const popupScrollRef = useRef<HTMLDivElement>(null);
 
   // Define all mention options
   const getAllMentionOptions = (): MentionOption[] => {
@@ -286,14 +287,20 @@ export default function ChatBox({ onSubmit }: ChatBoxProps) {
       }
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        setSelectedMentionIndex((prev) =>
-          prev < filteredOptions.length - 1 ? prev + 1 : 0,
-        );
+        setSelectedMentionIndex((prev) => {
+          const newIndex = prev < filteredOptions.length - 1 ? prev + 1 : 0;
+          // Auto-scroll to the selected item after state update
+          setTimeout(() => scrollToSelectedItem(newIndex), 0);
+          return newIndex;
+        });
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        setSelectedMentionIndex((prev) =>
-          prev > 0 ? prev - 1 : filteredOptions.length - 1,
-        );
+        setSelectedMentionIndex((prev) => {
+          const newIndex = prev > 0 ? prev - 1 : filteredOptions.length - 1;
+          // Auto-scroll to the selected item after state update
+          setTimeout(() => scrollToSelectedItem(newIndex), 0);
+          return newIndex;
+        });
       } else if (e.key === "Escape") {
         e.preventDefault();
         setShowMentionPopup(false);
@@ -337,6 +344,8 @@ export default function ChatBox({ onSubmit }: ChatBoxProps) {
         setMentionQuery(afterAt);
         setShowMentionPopup(true);
         setSelectedMentionIndex(0);
+        // Scroll to first item when popup opens
+        setTimeout(() => scrollToSelectedItem(0), 0);
         return;
       }
     }
@@ -431,6 +440,21 @@ export default function ChatBox({ onSubmit }: ChatBoxProps) {
 
   const removeSelectedDocument = (documentId: string) => {
     setSelectedDocuments((prev) => prev.filter((doc) => doc.id !== documentId));
+  };
+
+  // Auto-scroll to keep selected item visible in the mention popup
+  const scrollToSelectedItem = (selectedIndex: number) => {
+    if (popupScrollRef.current) {
+      // Find all the actual option buttons (excluding section headers)
+      const optionElements = popupScrollRef.current.querySelectorAll('button[type="button"]');
+      if (optionElements[selectedIndex]) {
+        optionElements[selectedIndex].scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'nearest'
+        });
+      }
+    }
   };
 
   const filteredOptions = getFilteredOptions();
@@ -602,6 +626,8 @@ export default function ChatBox({ onSubmit }: ChatBoxProps) {
               setMentionQuery("");
               setShowMentionPopup(true);
               setSelectedMentionIndex(0);
+              // Scroll to first item when popup opens
+              setTimeout(() => scrollToSelectedItem(0), 0);
             }
           }}
           className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground transition-colors hover:text-foreground hover:bg-muted border border-border/50"
@@ -616,7 +642,7 @@ export default function ChatBox({ onSubmit }: ChatBoxProps) {
       {showMentionPopup && (
         <div className="absolute bottom-full left-0 mb-2 w-96 max-h-80 overflow-hidden rounded-lg border border-border bg-background shadow-lg z-50">
           {/* Content */}
-          <div className="max-h-64 overflow-y-auto">
+          <div ref={popupScrollRef} className="max-h-64 overflow-y-auto">
             {loadingDocuments && filteredOptions.length === 0 ? (
               <div className="flex items-center justify-center p-4">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500" />

@@ -6,16 +6,17 @@ import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 import type { IMessage } from "@/features/chat/types/chat";
 import { cn } from "@/lib/utils";
+import MessageFeedback from "./message-feedback";
 
 interface MessageProps extends IMessage {
   className?: string;
 }
 
-const Message = React.memo(({ className, content, role }: MessageProps) => {
+const Message = React.memo(({ className, content, role, id }: MessageProps) => {
   return (
     <div
       className={cn(
-        "bg-white dark:bg-background/40 p-3 border rounded-lg w-fit max-w-[90%] lg:max-w-[70%] text-sm whitespace-pre-wrap",
+        "group bg-white dark:bg-background/40 p-3 border rounded-lg w-fit max-w-[90%] lg:max-w-[70%] text-sm whitespace-pre-wrap",
         role === "user" ? "self-end text-right" : "self-start ",
         className,
       )}
@@ -48,6 +49,19 @@ const Message = React.memo(({ className, content, role }: MessageProps) => {
       >
         {content}
       </ReactMarkdown>
+      
+      {/* Show feedback options only for AI messages */}
+      {role === "assistant" && id && (
+        <MessageFeedback
+          messageId={id}
+          messageContent={content}
+          onCopy={() => console.log("Message copied")}
+          onGoodResponse={() => console.log("Good response feedback")}
+          onBadResponse={() => console.log("Bad response feedback")}
+          onReadAloud={() => console.log("Read aloud triggered")}
+          onRetry={() => console.log("Retry triggered")}
+        />
+      )}
     </div>
   );
 });

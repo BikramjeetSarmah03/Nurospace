@@ -72,7 +72,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
             style={{
               opacity: props.value ? 1 : 0,
             }}
-            id={_rippleId}
+            // Removed id={_rippleId} because _rippleId is not defined in this scope
           />
         )}
       </div>
