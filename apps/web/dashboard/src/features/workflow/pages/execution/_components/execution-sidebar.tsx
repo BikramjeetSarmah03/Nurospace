@@ -23,6 +23,7 @@ import {
 } from "@packages/workflow/types/workflow.ts";
 import { DatesToDurationString } from "@/lib/helpers/date";
 import { cn } from "@/lib/utils";
+import CountUp from "react-countup";
 
 interface ExecutionSidebarProps {
   query: IWorkflowExecution;
@@ -101,7 +102,14 @@ export default function ExecutionSidebar({
         <ExecutionLabel
           icon={CoinsIcon}
           label="Credits Consumed"
-          value={creditsConsumed}
+          value={
+            <CountUp
+              duration={0.5}
+              preserveValue
+              end={creditsConsumed}
+              decimal={"0"}
+            />
+          }
         />
 
         <Separator />

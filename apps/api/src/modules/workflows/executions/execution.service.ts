@@ -1,13 +1,22 @@
 import { Service } from "honestjs";
 import type { User } from "better-auth";
 import { HTTPException } from "hono/http-exception";
-import { and, asc, eq, inArray, type InferSelectModel } from "drizzle-orm";
+import {
+  and,
+  asc,
+  eq,
+  gte,
+  inArray,
+  sql,
+  type InferSelectModel,
+} from "drizzle-orm";
 import type { Browser, Page } from "puppeteer";
 
 import { db } from "@/db";
 import {
   execuationLogs,
   executionPhase,
+  userBalance,
   workflow,
   workflowExecution,
 } from "@/db/schema";
@@ -126,7 +135,7 @@ export default class ExecuctionService {
         message: "Workflow Execution not created",
       });
 
-    this.executeWorkflow(execution.id);
+    this.executeWorkflow(execution.id, user.id);
     return {
       success: true,
       data: {
@@ -177,7 +186,7 @@ export default class ExecuctionService {
     }
   }
 
-  async executeWorkflow(executionId: string) {
+  async executeWorkflow(executionId: string, userId: string) {
     const execution = await this.getExecution(executionId);
 
     if (!execution)
@@ -196,19 +205,20 @@ export default class ExecuctionService {
     //  initialize phases status
     await this.initializePhaseStatuses(execution);
 
-    const creditsConsumed = 0;
+    let creditsConsumed = 0;
     let executionFailed = false;
 
     for (const phase of execution.phases) {
-      // TODO: consume credits
-      console.log({ creditsConsumed });
-
       // Execute phase
       const phaseExecution = await this.executeWorkflowPhase(
         phase,
         environment,
         edges,
+        execution.userId,
       );
+
+      // consume credits
+      creditsConsumed += phaseExecution.creditsConsumed;
 
       if (!phaseExecution.success) {
         executionFailed = true;
@@ -302,6 +312,7 @@ export default class ExecuctionService {
     phase: InferSelectModel<typeof executionPhase>,
     environment: Environment,
     edges: Edge[],
+    userId: string,
   ) {
     const logCollector: LogCollector = createLogCollector();
 
@@ -320,22 +331,31 @@ export default class ExecuctionService {
       .where(eq(executionPhase.id, phase.id));
 
     const creditsRequired = TaskRegistry[node.data.type].credits;
-    console.log(
-      `Executing phase: ${phase.name} with ${creditsRequired} credits required`,
-    );
 
     // Decrement user balance ( with required credits )
-    const success = await this.executePhase(
-      phase,
-      node,
-      environment,
+    let success = await this.decrementCredits(
+      userId,
+      creditsRequired,
       logCollector,
     );
 
+    const creditsConsumed = success ? creditsRequired : 0;
+
+    if (success) {
+      // we can execute the phase i the credits are sufficient
+      success = await this.executePhase(phase, node, environment, logCollector);
+    }
+
     const outputs = environment.phases[node.id]?.outputs;
 
-    await this.finalizePhase(phase.id, success, outputs, logCollector);
-    return { success };
+    await this.finalizePhase(
+      phase.id,
+      success,
+      outputs,
+      logCollector,
+      creditsConsumed,
+    );
+    return { success, creditsConsumed };
   }
 
   async finalizePhase(
@@ -343,6 +363,7 @@ export default class ExecuctionService {
     success: boolean,
     outputs: Record<string, string> | undefined,
     logCollector: LogCollector,
+    creditsConsumed: number,
   ) {
     try {
       const finalStatus = success
@@ -355,6 +376,7 @@ export default class ExecuctionService {
           status: finalStatus,
           completedAt: new Date(),
           outputs: JSON.stringify(outputs),
+          creditsConsumed,
         })
         .where(eq(executionPhase.id, phaseId));
 
@@ -463,6 +485,55 @@ export default class ExecuctionService {
       await environment.browser
         .close()
         .catch((err) => console.error("Cannot close browser: ", err));
+    }
+  }
+
+  async decrementCredits(
+    userId: string,
+    amount: number,
+    logCollector: LogCollector,
+  ) {
+    try {
+      // Attempt decrement
+      const credits = await db
+        .update(userBalance)
+        .set({
+          credits: sql`${userBalance.credits} - ${amount}`, // decrement
+        })
+        .where(
+          and(
+            eq(userBalance.userId, userId),
+            gte(userBalance.credits, amount), // prevent negative
+          ),
+        )
+        .returning({ credits: userBalance.credits });
+
+      // Case 1: No row updated (user not found / not enough credits)
+      if (credits.length === 0) {
+        logCollector.error("Insufficient balance");
+        return false;
+      }
+
+      const balance = credits[0]?.credits;
+
+      // Case 2: Balance is null (shouldn't happen unless schema allows)
+      if (balance === null) {
+        logCollector.error("Balance null after decrement");
+        return false;
+      }
+
+      // Case 3: Balance ended up negative (should be prevented by query)
+      if ((balance ?? -1) < 0) {
+        logCollector.error("Negative balance detected");
+        return false;
+      }
+
+      // Success ✅
+      return true;
+    } catch {
+      // Case 4: Query/DB failure
+      logCollector.error("Failed to decrement credits");
+      return false;
     }
   }
 }

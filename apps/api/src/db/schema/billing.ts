@@ -4,7 +4,7 @@ import { relations } from "drizzle-orm";
 
 export const userBalance = pgTable("user_balance", {
   id: uuid("id").defaultRandom().primaryKey(),
-  credits: integer("credits").default(0),
+  credits: integer("credits").notNull().default(0),
   userId: text("user_id")
     .references(() => user.id, { onDelete: "cascade" })
     .notNull(),

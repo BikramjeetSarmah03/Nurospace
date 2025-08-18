@@ -36,7 +36,7 @@ export default function PhaseDetails({ phaseDetails }: PhaseDetailsProps) {
             <CoinsIcon size={14} className="stroke-muted-foreground" />
             <span>Credits</span>
           </div>
-          <span>{0}</span>
+          <span>{phaseDetails.creditsConsumed}</span>
         </Badge>
 
         <Badge variant={"outline"} className="space-x-2 bg-background">
