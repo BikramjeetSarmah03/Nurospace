@@ -7,6 +7,7 @@ import {
 
 import { NavUser } from "./nav-user";
 import SidebarMenuItems from "./sidebar-menu-items";
+import CreditsCounter from "./credit-counter";
 
 export function AppSidebar() {
   return (
@@ -31,6 +32,7 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="border-t">
+        <CreditsCounter />
         <NavUser />
       </SidebarFooter>
     </Sidebar>
