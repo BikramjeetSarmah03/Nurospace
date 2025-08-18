@@ -2,6 +2,7 @@ import type { LucideProps } from "lucide-react";
 
 import type { TaskParam, TaskType } from "./task";
 import type { AppNode } from "./app-node";
+import type { IExecutionLog } from "./log";
 
 export enum IWorkflowExecutionStatus {
   PENDING = "PENDING",
@@ -87,6 +88,9 @@ export type IWorkflowExecution = {
   startedAt: Date | null;
   completedAt: Date | null;
   phases: IWorkflowExecutionPhase[];
+  inputs: string;
+  outputs: string;
+  logs?: IExecutionLog[];
 };
 
 export type IWorkflowExecutionPlan = IWorkflowExecutionPlanPhase[];

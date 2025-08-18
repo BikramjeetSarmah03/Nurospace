@@ -14,3 +14,11 @@ export type LogCollector = {
 } & {
   [K in ILogLevel]: LogFunction;
 };
+
+export type IExecutionLog = {
+  id: string;
+  executionPhase: string;
+  logLevel: ILogLevel;
+  message: string;
+  timestamp: Date;
+};

@@ -3,7 +3,9 @@ import type { ReactNode } from "react";
 
 import {
   CalendarIcon,
+  CircleCheckIcon,
   CircleDashedIcon,
+  CircleXIcon,
   ClockIcon,
   CoinsIcon,
   Loader2Icon,
@@ -15,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { GetPhasesTotalCost } from "@/lib/helpers/phases";
 import {
+  IExecutionPhaseStatus,
   IWorkflowExecutionStatus,
   type IWorkflowExecution,
 } from "@packages/workflow/types/workflow.ts";
@@ -56,7 +59,7 @@ export default function ExecutionSidebar({
     <aside
       className={cn(
         "flex flex-col bg-white border-r-2 overflow-hidden border-separate",
-        "w-[440px]",
+        "w-[350px] min-w-[350px] max-w-[350px]",
         // "transition-all duration-300",
         // open ? "w-[440px]" : "w-10"
       )}
@@ -125,10 +128,10 @@ export default function ExecutionSidebar({
             >
               <div className="flex items-center gap-2">
                 <Badge variant={"outline"}>{idx + 1}</Badge>
-                <p className="font-semibold">{phase.name}</p>
+                <p className="font-semibold text-xs">{phase.name}</p>
               </div>
 
-              <span className="text-muted-foreground">{phase.status}</span>
+              <PhaseStatusBadge status={phase.status} />
             </Button>
           ))}
         </div>
@@ -159,4 +162,21 @@ function ExecutionLabel({
       </div>
     </div>
   );
+}
+
+function PhaseStatusBadge({ status }: { status: IExecutionPhaseStatus }) {
+  switch (status) {
+    case IExecutionPhaseStatus.PENDING:
+      return <CircleDashedIcon size={20} className="stroke-muted-foreground" />;
+    case IExecutionPhaseStatus.RUNNING:
+      return (
+        <Loader2Icon size={20} className="stroke-yellow-500 animate-spin" />
+      );
+    case IExecutionPhaseStatus.FAILED:
+      return <CircleXIcon size={20} className="stroke-destructive" />;
+    case IExecutionPhaseStatus.COMPLETED:
+      return <CircleCheckIcon size={20} className="stroke-green-500" />;
+    default:
+      return <div className="rounded-full">{status}</div>;
+  }
 }
