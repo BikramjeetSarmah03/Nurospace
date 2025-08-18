@@ -11,13 +11,9 @@ export async function LaunchBrowserExecutor(
   try {
     const websiteUrl = environment.getInput("Website Url");
 
-    console.log({ websiteUrl });
-
     const browser = await puppeteer.launch({
       headless: !env.DEV_MODE,
     });
-
-    console.log("LAUNCHED BROWSER");
 
     environment.setBrowser(browser);
 
@@ -26,12 +22,11 @@ export async function LaunchBrowserExecutor(
 
     environment.setPage(page);
 
-    console.log("CLOSED BROWSER");
-
     return true;
   } catch (error) {
     console.log("Error from LAUNCH_BROWSER_EXECUTOR: ");
     console.log({ error });
+    environment.log.error((error as Error).message);
     console.log("Error from LAUNCH_BROWSER_EXECUTOR: ");
     return false;
   }

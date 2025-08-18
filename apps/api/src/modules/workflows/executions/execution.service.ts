@@ -5,7 +5,12 @@ import { and, asc, eq, inArray, type InferSelectModel } from "drizzle-orm";
 import type { Browser, Page } from "puppeteer";
 
 import { db } from "@/db";
-import { executionPhase, workflow, workflowExecution } from "@/db/schema";
+import {
+  execuationLogs,
+  executionPhase,
+  workflow,
+  workflowExecution,
+} from "@/db/schema";
 
 import {
   IExecutionPhaseStatus,
@@ -13,6 +18,7 @@ import {
   IWorkflowExecutionTrigger,
 } from "@packages/workflow/types/workflow.ts";
 import { FlowToExecutionPlan } from "@packages/workflow/lib/execution-plan.ts";
+import { createLogCollector } from "@packages/workflow/lib/create-log-collector.ts";
 import { TaskRegistry } from "@packages/workflow/registry/task/registry.ts";
 import { ExecutorRegistry } from "@packages/workflow/registry/executor/registry.ts";
 import type { AppNode, Edge } from "@packages/workflow/types/app-node.ts";
@@ -24,6 +30,7 @@ import type {
 import type { RunWorkflowDto } from "./dto/run-workflow";
 import WorkflowService from "../workflows.service";
 import { TaskParamType } from "@packages/workflow/types/task.ts";
+import type { LogCollector } from "@packages/workflow/types/log.ts";
 
 @Service()
 export default class ExecuctionService {
@@ -148,16 +155,26 @@ export default class ExecuctionService {
   }
 
   async getPhaseDetails(phaseId: string, userId: string) {
-    const data = await db.query.executionPhase.findFirst({
-      where: (fields, { eq, and }) =>
-        and(eq(fields.id, phaseId), eq(fields.userId, userId)),
-    });
+    try {
+      const data = await db.query.executionPhase.findFirst({
+        where: (fields, { eq, and }) =>
+          and(eq(fields.id, phaseId), eq(fields.userId, userId)),
+        with: {
+          logs: {
+            orderBy: (fields) => [asc(fields.timestamp)],
+          },
+        },
+      });
 
-    if (!data) {
-      throw new HTTPException(404, { message: "Phase not found" });
+      if (!data) {
+        throw new HTTPException(404, { message: "Phase not found" });
+      }
+
+      return data;
+    } catch (error) {
+      console.log({ error });
+      return null;
     }
-
-    return data;
   }
 
   async executeWorkflow(executionId: string) {
@@ -181,7 +198,7 @@ export default class ExecuctionService {
 
     const creditsConsumed = 0;
     let executionFailed = false;
-    console.log({ executionFailed });
+
     for (const phase of execution.phases) {
       // TODO: consume credits
       console.log({ creditsConsumed });
@@ -286,6 +303,8 @@ export default class ExecuctionService {
     environment: Environment,
     edges: Edge[],
   ) {
+    const logCollector: LogCollector = createLogCollector();
+
     const startedAt = new Date();
     const node = JSON.parse(phase.node || "{}") as AppNode;
 
@@ -306,11 +325,16 @@ export default class ExecuctionService {
     );
 
     // Decrement user balance ( with required credits )
-    const success = await this.executePhase(phase, node, environment);
+    const success = await this.executePhase(
+      phase,
+      node,
+      environment,
+      logCollector,
+    );
 
     const outputs = environment.phases[node.id]?.outputs;
 
-    await this.finalizePhase(phase.id, success, outputs);
+    await this.finalizePhase(phase.id, success, outputs, logCollector);
     return { success };
   }
 
@@ -318,32 +342,50 @@ export default class ExecuctionService {
     phaseId: string,
     success: boolean,
     outputs: Record<string, string> | undefined,
+    logCollector: LogCollector,
   ) {
-    const finalStatus = success
-      ? IExecutionPhaseStatus.COMPLETED
-      : IExecutionPhaseStatus.FAILED;
+    try {
+      const finalStatus = success
+        ? IExecutionPhaseStatus.COMPLETED
+        : IExecutionPhaseStatus.FAILED;
 
-    await db
-      .update(executionPhase)
-      .set({
-        status: finalStatus,
-        completedAt: new Date(),
-        outputs: JSON.stringify(outputs),
-      })
-      .where(eq(executionPhase.id, phaseId));
+      await db
+        .update(executionPhase)
+        .set({
+          status: finalStatus,
+          completedAt: new Date(),
+          outputs: JSON.stringify(outputs),
+        })
+        .where(eq(executionPhase.id, phaseId));
+
+      const logs = logCollector.getAll().map((log) => ({
+        message: log.message,
+        timestamp: log.timestamp,
+        logLevel: log.level,
+        executionPhase: phaseId,
+      }));
+
+      if (logs.length > 0) {
+        console.log({ logs });
+        await db.insert(execuationLogs).values(logs);
+      }
+    } catch (error) {
+      console.log({ error });
+    }
   }
 
   async executePhase(
     phase: InferSelectModel<typeof executionPhase>,
     node: AppNode,
     environment: Environment,
+    logCollector: LogCollector,
   ): Promise<boolean> {
     const runFn = ExecutorRegistry[node.data.type];
 
     if (!runFn) return false;
 
     const executionEnvironment: ExecutionEnvironment<any> =
-      this.createExecutionEnvironment(node, environment);
+      this.createExecutionEnvironment(node, environment, logCollector);
 
     return await runFn(executionEnvironment);
   }
@@ -391,6 +433,7 @@ export default class ExecuctionService {
   createExecutionEnvironment(
     node: AppNode,
     environment: Environment,
+    logCollector: LogCollector,
   ): ExecutionEnvironment<any> {
     return {
       getInput: (name: string) =>
@@ -411,6 +454,7 @@ export default class ExecuctionService {
       setPage: (page: Page) => {
         environment.page = page;
       },
+      log: logCollector,
     };
   }
 

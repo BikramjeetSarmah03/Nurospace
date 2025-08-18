@@ -13,6 +13,7 @@ export async function PageToHtmlExecutor(
   } catch (error) {
     console.log("Error from PAGE_TO_HTML_EXECUTOR: ");
     console.log({ error });
+    environment.log.error((error as Error).message);
     console.log("Error from PAGE_TO_HTML_EXECUTOR: ");
     return false;
   }

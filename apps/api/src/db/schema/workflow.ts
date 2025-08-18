@@ -82,6 +82,18 @@ export const executionPhase = pgTable("execution_phase", {
   creditsConsumed: integer("credits_consumed"),
 });
 
+export const execuationLogs = pgTable("execution_logs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  executionPhase: uuid("execution_phase").references(() => executionPhase.id, {
+    onDelete: "cascade",
+  }),
+  logLevel: text("log_level").notNull(),
+  message: text("message").notNull(),
+  timestamp: timestamp("timestamp")
+    .$defaultFn(() => /* @__PURE__ */ new Date())
+    .notNull(),
+});
+
 // 👤 User → Workflows, WorkflowExecutions, ExecutionPhases
 export const userRelations = relations(user, ({ many }) => ({
   workflows: many(workflow),
@@ -115,13 +127,24 @@ export const workflowExecutionRelations = relations(
 );
 
 // 🔁 executionPhase → User, WorkflowExecution
-export const executionPhaseRelations = relations(executionPhase, ({ one }) => ({
-  user: one(user, {
-    fields: [executionPhase.userId],
-    references: [user.id],
+export const executionPhaseRelations = relations(
+  executionPhase,
+  ({ one, many }) => ({
+    user: one(user, {
+      fields: [executionPhase.userId],
+      references: [user.id],
+    }),
+    workflowExecution: one(workflowExecution, {
+      fields: [executionPhase.workflowExecutionId],
+      references: [workflowExecution.id],
+    }),
+    logs: many(execuationLogs),
   }),
-  workflowExecution: one(workflowExecution, {
-    fields: [executionPhase.workflowExecutionId],
-    references: [workflowExecution.id],
+);
+
+export const executionLogsRelations = relations(execuationLogs, ({ one }) => ({
+  phase: one(executionPhase, {
+    fields: [execuationLogs.executionPhase], // 👈 FK in logs table
+    references: [executionPhase.id],
   }),
 }));
