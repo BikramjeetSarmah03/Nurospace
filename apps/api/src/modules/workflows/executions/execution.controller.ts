@@ -24,6 +24,17 @@ export default class ExecutionController {
     );
   }
 
+  @Get("all/:id")
+  async getAllExecutionsOfWorkflow(
+    @Param("id") workflowId: string,
+    @AuthContext() authContext: IAuthContext,
+  ) {
+    return this.exectionService.getAllExecutionsOfWorkflow(
+      workflowId,
+      authContext.user.id,
+    );
+  }
+
   @Get(":id")
   async getWorkflowExecutionWithPhases(
     @Param("id") executionId: string,

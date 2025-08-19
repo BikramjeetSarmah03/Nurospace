@@ -67,6 +67,11 @@ class WorkflowService {
   async getPhaseDetails(phaseId: string): Promise<IWorkflowExecution> {
     return (await API.get(`${workflowUrls.get_phase_details}/${phaseId}`)).data;
   }
+
+  async getAllExecutions(workflowId: string): Promise<IWorkflowExecution[]> {
+    return (await API.get(`${workflowUrls.get_all_executions}/${workflowId}`))
+      .data;
+  }
 }
 
 export const workflowService = new WorkflowService();

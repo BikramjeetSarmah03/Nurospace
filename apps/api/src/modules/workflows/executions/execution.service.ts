@@ -4,6 +4,7 @@ import { HTTPException } from "hono/http-exception";
 import {
   and,
   asc,
+  desc,
   eq,
   gte,
   inArray,
@@ -54,6 +55,14 @@ export default class ExecuctionService {
         },
         workflow: true,
       },
+    });
+  }
+
+  async getAllExecutionsOfWorkflow(workflowId: string, userId: string) {
+    return await db.query.workflowExecution.findMany({
+      where: (field, { eq, and }) =>
+        and(eq(field.workflowId, workflowId), eq(field.userId, userId)),
+      orderBy: (fields) => [desc(fields.createdAt)],
     });
   }
 

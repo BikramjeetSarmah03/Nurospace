@@ -22,6 +22,7 @@ import { Route as AuthPasswordForgotRouteImport } from './pages/auth/password/fo
 import { Route as ProtectedCNewRouteImport } from './pages/_protected/c/new'
 import { Route as ProtectedCSlugRouteImport } from './pages/_protected/c/$slug'
 import { Route as ProtectedWWorkflowIdIndexRouteImport } from './pages/_protected/w/$workflowId/index'
+import { Route as ProtectedWWorkflowIdRunsIndexRouteImport } from './pages/_protected/w/$workflowId/runs/index'
 import { Route as ProtectedWWorkflowIdRunsExecutionIdRouteImport } from './pages/_protected/w/$workflowId/runs/$executionId'
 
 const ProtectedWWorkflowIdEditorIndexLazyRouteImport = createFileRoute(
@@ -93,6 +94,12 @@ const ProtectedWWorkflowIdEditorIndexLazyRoute =
       (d) => d.Route,
     ),
   )
+const ProtectedWWorkflowIdRunsIndexRoute =
+  ProtectedWWorkflowIdRunsIndexRouteImport.update({
+    id: '/w/$workflowId/runs/',
+    path: '/w/$workflowId/runs/',
+    getParentRoute: () => ProtectedLayoutRoute,
+  } as any)
 const ProtectedWWorkflowIdRunsExecutionIdRoute =
   ProtectedWWorkflowIdRunsExecutionIdRouteImport.update({
     id: '/w/$workflowId/runs/$executionId',
@@ -112,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/auth/register': typeof AuthRegisterIndexRoute
   '/w/$workflowId': typeof ProtectedWWorkflowIdIndexRoute
   '/w/$workflowId/runs/$executionId': typeof ProtectedWWorkflowIdRunsExecutionIdRoute
+  '/w/$workflowId/runs': typeof ProtectedWWorkflowIdRunsIndexRoute
   '/w/$workflowId/editor': typeof ProtectedWWorkflowIdEditorIndexLazyRoute
 }
 export interface FileRoutesByTo {
@@ -126,6 +134,7 @@ export interface FileRoutesByTo {
   '/auth/register': typeof AuthRegisterIndexRoute
   '/w/$workflowId': typeof ProtectedWWorkflowIdIndexRoute
   '/w/$workflowId/runs/$executionId': typeof ProtectedWWorkflowIdRunsExecutionIdRoute
+  '/w/$workflowId/runs': typeof ProtectedWWorkflowIdRunsIndexRoute
   '/w/$workflowId/editor': typeof ProtectedWWorkflowIdEditorIndexLazyRoute
 }
 export interface FileRoutesById {
@@ -142,6 +151,7 @@ export interface FileRoutesById {
   '/auth/register/': typeof AuthRegisterIndexRoute
   '/_protected/w/$workflowId/': typeof ProtectedWWorkflowIdIndexRoute
   '/_protected/w/$workflowId/runs/$executionId': typeof ProtectedWWorkflowIdRunsExecutionIdRoute
+  '/_protected/w/$workflowId/runs/': typeof ProtectedWWorkflowIdRunsIndexRoute
   '/_protected/w/$workflowId/editor/': typeof ProtectedWWorkflowIdEditorIndexLazyRoute
 }
 export interface FileRouteTypes {
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/auth/register'
     | '/w/$workflowId'
     | '/w/$workflowId/runs/$executionId'
+    | '/w/$workflowId/runs'
     | '/w/$workflowId/editor'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -172,6 +183,7 @@ export interface FileRouteTypes {
     | '/auth/register'
     | '/w/$workflowId'
     | '/w/$workflowId/runs/$executionId'
+    | '/w/$workflowId/runs'
     | '/w/$workflowId/editor'
   id:
     | '__root__'
@@ -187,6 +199,7 @@ export interface FileRouteTypes {
     | '/auth/register/'
     | '/_protected/w/$workflowId/'
     | '/_protected/w/$workflowId/runs/$executionId'
+    | '/_protected/w/$workflowId/runs/'
     | '/_protected/w/$workflowId/editor/'
   fileRoutesById: FileRoutesById
 }
@@ -281,6 +294,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedWWorkflowIdEditorIndexLazyRouteImport
       parentRoute: typeof ProtectedLayoutRoute
     }
+    '/_protected/w/$workflowId/runs/': {
+      id: '/_protected/w/$workflowId/runs/'
+      path: '/w/$workflowId/runs'
+      fullPath: '/w/$workflowId/runs'
+      preLoaderRoute: typeof ProtectedWWorkflowIdRunsIndexRouteImport
+      parentRoute: typeof ProtectedLayoutRoute
+    }
     '/_protected/w/$workflowId/runs/$executionId': {
       id: '/_protected/w/$workflowId/runs/$executionId'
       path: '/w/$workflowId/runs/$executionId'
@@ -299,6 +319,7 @@ interface ProtectedLayoutRouteChildren {
   ProtectedWIndexRoute: typeof ProtectedWIndexRoute
   ProtectedWWorkflowIdIndexRoute: typeof ProtectedWWorkflowIdIndexRoute
   ProtectedWWorkflowIdRunsExecutionIdRoute: typeof ProtectedWWorkflowIdRunsExecutionIdRoute
+  ProtectedWWorkflowIdRunsIndexRoute: typeof ProtectedWWorkflowIdRunsIndexRoute
   ProtectedWWorkflowIdEditorIndexLazyRoute: typeof ProtectedWWorkflowIdEditorIndexLazyRoute
 }
 
@@ -311,6 +332,7 @@ const ProtectedLayoutRouteChildren: ProtectedLayoutRouteChildren = {
   ProtectedWWorkflowIdIndexRoute: ProtectedWWorkflowIdIndexRoute,
   ProtectedWWorkflowIdRunsExecutionIdRoute:
     ProtectedWWorkflowIdRunsExecutionIdRoute,
+  ProtectedWWorkflowIdRunsIndexRoute: ProtectedWWorkflowIdRunsIndexRoute,
   ProtectedWWorkflowIdEditorIndexLazyRoute:
     ProtectedWWorkflowIdEditorIndexLazyRoute,
 }

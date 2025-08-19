@@ -17,6 +17,7 @@ import type { IWorkflow } from "@packages/workflow/types/workflow.ts";
 import { workflowService } from "../services/workflow.service";
 import { WORKFLOW_KEYS } from "../lib/query-keys";
 import type { SuccessResponse } from "@/config/types";
+import { Badge } from "@/components/ui/badge";
 
 export default function AllWorkflowPage({
   workflows,
@@ -66,6 +67,16 @@ export default function AllWorkflowPage({
             >
               {workflow.name}
             </Link>
+
+            <Badge
+              variant={"outline"}
+              className={cn(
+                "mx-4",
+                workflow.status === "DRAFT" ? "bg-yellow-400" : "bg-green-400",
+              )}
+            >
+              {workflow.status}
+            </Badge>
 
             <ConfirmDialog
               description={

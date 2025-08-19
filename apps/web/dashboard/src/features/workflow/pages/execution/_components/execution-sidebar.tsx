@@ -70,7 +70,14 @@ export default function ExecutionSidebar({
         <ExecutionLabel
           icon={CircleDashedIcon}
           label="Status"
-          value={query?.status}
+          value={
+            <div className="flex items-center gap-2 font-semibold capitalize">
+              <PhaseStatusBadge
+                status={query?.status as unknown as IExecutionPhaseStatus}
+              />
+              <span>{query.status}</span>
+            </div>
+          }
         />
 
         {/* started at label */}

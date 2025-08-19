@@ -4,6 +4,8 @@ import { BackButton } from "@/components/common/back-button";
 
 import { SaveBtn } from "./save-btn";
 import { ExecuteBtn } from "./execute-btn";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Link, useLocation } from "@tanstack/react-router";
 
 interface TopBarProps {
   title: string;
@@ -18,8 +20,12 @@ export default function TopBar({
   workflowId,
   hideButtons,
 }: TopBarProps) {
+  const { pathname } = useLocation();
+
+  const currentTab = pathname.includes("/runs") ? "runs" : "editor";
+
   return (
-    <header className="top-0 z-10 sticky flex justify-between bg-background p-2 border-b-2 w-full h-16 border-separate">
+    <header className="top-0 z-10 sticky flex justify-between items-center bg-background p-2 border-b-2 w-full h-16 border-separate">
       <div className="flex flex-1 gap-4">
         <BackButton size={"sm"} variant={"outline"}>
           <ChevronLeftIcon />
@@ -35,11 +41,38 @@ export default function TopBar({
         </div>
       </div>
 
-      {!hideButtons && (
-        <div className="flex justify-end gap-1">
+      <Tabs defaultValue={currentTab} className="w-full max-w-md">
+        <TabsList className="w-full">
+          <TabsTrigger value="editor" className="w-full" asChild>
+            <Link
+              to="/w/$workflowId/editor"
+              params={{
+                workflowId,
+              }}
+            >
+              Editor
+            </Link>
+          </TabsTrigger>
+          <TabsTrigger value="runs" className="w-full" asChild>
+            <Link
+              to="/w/$workflowId/runs"
+              params={{
+                workflowId,
+              }}
+            >
+              Runs
+            </Link>
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      {!hideButtons ? (
+        <div className="flex justify-end gap-1 w-full max-w-md">
           <SaveBtn workflowId={workflowId} />
           <ExecuteBtn workflowId={workflowId} />
         </div>
+      ) : (
+        <div className="w-full max-w-md" />
       )}
     </header>
   );
