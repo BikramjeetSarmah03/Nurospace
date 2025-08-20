@@ -47,3 +47,39 @@ export const getFallbackLLM = () => {
     maxConcurrency: 1,
   });
 };
+
+// Function calling schema for tool selection (LangChain compatible)
+export const ROUTING_FUNCTION_SCHEMA = {
+  name: 'route_task',
+  description: 'Route user query to appropriate agent with tool selection',
+  parameters: {
+    type: 'object',
+    properties: {
+      agent: {
+        type: 'string',
+        enum: ['research', 'analysis', 'execution', 'planning'],
+        description: 'The agent type to route to'
+      },
+      confidence: {
+        type: 'number',
+        minimum: 0,
+        maximum: 1,
+        description: 'Confidence level in routing decision (0-1)'
+      },
+      reasoning: {
+        type: 'string',
+        description: 'Brief explanation of why this agent was chosen'
+      },
+      requiredTools: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Specific tools needed for this task'
+      },
+      cacheKey: {
+        type: 'string',
+        description: 'Unique key for caching this routing decision'
+      }
+    },
+    required: ['agent', 'confidence', 'reasoning', 'requiredTools', 'cacheKey']
+  }
+};

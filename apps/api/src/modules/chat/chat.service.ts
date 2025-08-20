@@ -12,7 +12,7 @@ import { StringOutputParser } from "@langchain/core/output_parsers";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 
 import { google } from "@packages/llm/models/google";
-import { createToolCallingSupervisedAgent } from "@/lib/agent";
+import { createSemanticSupervisedAgent } from "@/lib/agent";
 
 import { db } from "@/db";
 import { chats } from "@/db/schema/chat";
@@ -151,8 +151,8 @@ export default class ChatService {
         user.id,
       );
 
-      // 🎯 Create supervisor agent with userId context
-      const supervisorAgent = createToolCallingSupervisedAgent(false);
+      // 🎯 Create semantic supervisor agent with userId context
+      const supervisorAgent = createSemanticSupervisedAgent(false);
       console.log("[DEBUG] Starting supervisor agent stream...");
 
       // For existing conversations, let LangGraph memory handle context
@@ -161,41 +161,43 @@ export default class ChatService {
       
       if (existingMessages.length === 0) {
         // This is a new conversation, add system message
-        let systemContent = `You are a supervisor agent that routes tasks to specialized agents.
+        let systemContent = `You are an advanced AI assistant powered by semantic tool selection and ensemble voting.
 
-            🎯 AVAILABLE AGENTS:
-            • Research Agent: For searching, gathering information, web searches, document retrieval
-            • Analysis Agent: For data analysis, calculations, reasoning, problem-solving  
-            • Execution Agent: For taking actions, API calls, tool execution
-            • Planning Agent: For creating plans, strategies, step-by-step thinking
+            🧠 SEMANTIC INTELLIGENCE:
+            • Uses vector embeddings to understand query meaning beyond keywords
+            • Combines semantic analysis with keyword matching for optimal accuracy
+            • Continuously learns from tool usage to improve future selections
+            • Automatically selects the most relevant tools for each specific query
 
-            🧠 INTELLIGENT ROUTING:
-            • "Find information about..." → Research Agent
-            • "Calculate..." → Analysis Agent
-            • "Execute..." → Execution Agent  
-            • "Plan..." → Planning Agent
-            • "Tell me about..." → Research Agent
-            • "How to..." → Planning Agent
+            🛠️ AVAILABLE TOOLS:
+            • Document Analysis: retrieveRelevantChunks for analyzing uploaded documents
+            • Web Search: tavilySearch for current information, news, and research
+            • Weather Data: getCurrentWeather for weather information and forecasts
+            • Time/Date: getCurrentDateTime for current time and date queries
 
-            📋 SPECIALIZED TOOLS:
-            • Document Analysis: retrieveRelevantChunksTool for user's uploaded documents
-            • Web Search: tavilySearch for current information and news
-            • Weather Data: getCurrentWeather for weather information
-            • Time/Date: getCurrentDateTime for current time and date
+            🎯 INTELLIGENT CAPABILITIES:
+            • Multi-tool orchestration for complex queries requiring multiple tools
+            • Semantic understanding of compound requests (e.g., "time and news")
+            • Contextual tool selection based on query intent and meaning
+            • Performance tracking and optimization for better results
 
-            🎯 RESPONSE FORMAT:
-            Always respond with ONLY the agent name (research, analysis, execution, or planning) based on the user's request.`;
+            💡 EXAMPLES:
+            • "What's the time and latest news?" → getCurrentDateTime + tavilySearch
+            • "Analyze my resume @doc123 and find job openings" → retrieveRelevantChunks + tavilySearch
+            • "Weather in London and current date" → getCurrentWeather + getCurrentDateTime
+
+            Your responses are intelligent, helpful, and contextually aware.`;
 
         // Add document context if documents are mentioned
-        if (mentionedDocs.length > 0) {
-          const docContext = mentionedDocs
-            .map(
-              (doc) =>
+      if (mentionedDocs.length > 0) {
+        const docContext = mentionedDocs
+          .map(
+            (doc) =>
                 `Document ID: ${doc.id}\nName: ${doc.name}\nType: ${doc.type}`,
-            )
-            .join("\n\n");
+          )
+          .join("\n\n");
 
-                     systemContent += `\n\n📄 MENTIONED DOCUMENTS:\n${docContext}\n\nIMPORTANT: When documents are mentioned (@resource_id), route to RESEARCH AGENT to analyze the document content using the provided Document ID.`;
+                     systemContent += `\n\n📄 MENTIONED DOCUMENTS:\n${docContext}\n\nIMPORTANT: When documents are mentioned (@resource_id), the system will automatically use the document retrieval tool to analyze the document content using the provided Document ID.`;
         }
 
         agentMessages.push(new SystemMessage(systemContent));
@@ -287,10 +289,10 @@ export default class ChatService {
         }
       });
 
-    } catch (error) {
+      } catch (error) {
       console.error("[ERROR] Chat route error:", error);
       return c.json({
-        success: false,
+            success: false,
         error: "Failed to process chat message",
         message: error instanceof Error ? error.message : "Unknown error",
       }, 500);

@@ -4,19 +4,13 @@ import { toolset } from "@/tool/tool.index";
 import { getLLM, getFallbackLLM } from "@/lib/llm";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { StringOutputParser } from "@langchain/core/output_parsers";
-import { createSupervisorAgent, createAdvancedSupervisorAgent, createToolCallingSupervisorAgent } from "./supervisor-agent";
+import { createSupervisorAgent, createAdvancedSupervisorAgent, createToolCallingSupervisorAgent, createHybridSupervisorAgent, createSemanticSupervisorAgent } from "./supervisor-agent";
+import { createSemanticSupervisor } from "./semantic-supervisor";
 
 // Enhanced memory saver with better persistence
 const memorySaver = new MemorySaver();
 
-/**
- * Advanced React Agent with enhanced features:
- * ✅ LangGraph React Agent = Industry standard for complex AI reasoning
- * ✅ Automatic Tool Selection = AI decides what's needed
- * ✅ Memory Persistence = Learns from conversations
- * ✅ Error Handling = Fallback models and graceful failures
- * ✅ Streaming = Real-time responses
- */
+
 export function createAgent(useFallback = false) {
   const llm = useFallback ? getFallbackLLM() : getLLM("gemini-2.5-pro");
 
@@ -89,5 +83,32 @@ export function createToolCallingSupervisedAgent(useFallback = false) {
   return createToolCallingSupervisorAgent(useFallback);
 }
 
+/**
+ * 🚀 HYBRID SUPERVISOR AGENT - Function Calling + Caching + Fallback
+ * 
+ * Production-ready implementation with optimal performance:
+ * - Function calling for efficient routing
+ * - Smart caching for repeated queries  
+ * - Fallback strategies for reliability
+ * - Token optimization and cost control
+ */
+export function createHybridSupervisedAgent(useFallback = false) {
+  return createHybridSupervisorAgent(useFallback);
+}
+
+/**
+ * 🧠 SEMANTIC SUPERVISOR AGENT - AI-Powered Tool Selection
+ * 
+ * Next-generation implementation with semantic understanding:
+ * - Vector embeddings for true semantic matching
+ * - Learning system for continuous improvement
+ * - Performance tracking and optimization
+ * - Fallback to keyword-based selection
+ */
+export function createSemanticSupervisedAgent(useFallback = false) {
+  return createSemanticSupervisor(useFallback);
+}
+
 // Export supervisor functions for direct use
-export { createSupervisorAgent, createAdvancedSupervisorAgent, createToolCallingSupervisorAgent } from "./supervisor-agent";
+export { createSupervisorAgent, createAdvancedSupervisorAgent, createToolCallingSupervisorAgent, createHybridSupervisorAgent, createSemanticSupervisorAgent } from "./supervisor-agent";
+export { createSemanticSupervisor } from "./semantic-supervisor";

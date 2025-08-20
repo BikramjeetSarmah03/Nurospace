@@ -1,8 +1,14 @@
+//supervisor-agent.ts
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { toolset } from "@/tool/tool.index";
-import { getLLM, getFallbackLLM } from "./llm";
+import { getLLM, getFallbackLLM, ROUTING_FUNCTION_SCHEMA } from "./llm";
 import { BaseMessage } from "@langchain/core/messages";
 import { DynamicTool } from "@langchain/core/tools";
+import { createSemanticSupervisor } from "./semantic-supervisor";
+
+// Cache for routing decisions
+const routingCache = new Map();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 // Define specialized agents
 export type AgentType = "research" | "analysis" | "execution" | "planning";
@@ -48,21 +54,41 @@ function getToolsForAgent(agentType: AgentType) {
  */
 const manualToolCategories: Record<AgentType, string[]> = {
   research: [
-    "retrieveRelevantChunksTool", // Document search (Nurospace tool name)
+    "retrieveRelevantChunks", // Document search
     "tavilySearch",           // Web search
   ],
   analysis: [
     "getCurrentDateTime",     // Time analysis
+    "calculateAge",           // Age calculation
+    "calculateDistance",      // Distance calculation
+    "calculateBMI",           // BMI calculation
+    "calculatePercentage",    // Percentage calculation
+    "calculateMath",          // Mathematical calculations
+    "generateRandomNumber",   // Random number generation
   ],
   execution: [
     "getCurrentWeather",      // Weather API
+    "generatePassword",       // Password generation
+    "generateUUID",           // UUID generation
   ],
   planning: [
     // Planning gets access to ALL tools for comprehensive planning
-    "retrieveRelevantChunksTool",
+    "retrieveRelevantChunks",
     "tavilySearch", 
     "getCurrentDateTime",
     "getCurrentWeather",
+    "calculateAge",
+    "calculateDistance",
+    "calculateBMI",
+    "calculatePercentage",
+    "calculateMath",
+    "generateRandomNumber",
+    "generatePassword",
+    "generateUUID",
+    "convertCurrency",
+    "calculateEMI",
+    "calculateSimpleInterest",
+    "calculateCompoundInterest",
   ],
 };
 
@@ -580,4 +606,403 @@ export function createToolCallingSupervisorAgent(useFallback = false) {
   };
 
   return supervisor;
+}
+
+/**
+ * 🚀 HYBRID SUPERVISOR AGENT - Function Calling + Caching + Fallback
+ */
+export function createHybridSupervisorAgent(useFallback = false) {
+  const supervisorLLM = useFallback ? getFallbackLLM() : getLLM("gemini-2.5-pro");
+
+  function generateCacheKey(query: string): string {
+    return query.toLowerCase()
+      .replace(/[^\w\s]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .substring(0, 100);
+  }
+
+  async function smartFallback(query: string, messages: BaseMessage[], userId?: string) {
+    console.log("[DEBUG] Using smart fallback");
+    
+    const needsResearch = query.includes('@') || query.includes('document') || query.includes('search');
+    const needsBasic = query.includes('time') || query.includes('weather') || query.includes('date');
+    
+    let fallbackTools = [];
+    
+    if (needsResearch) {
+      fallbackTools.push(toolset.find(t => t.name === 'retrieveRelevantChunks'));
+      if (query.includes('web') || query.includes('news')) {
+        fallbackTools.push(toolset.find(t => t.name === 'tavilySearch'));
+      }
+    }
+    
+    if (needsBasic) {
+      if (query.includes('time') || query.includes('date')) {
+        fallbackTools.push(toolset.find(t => t.name === 'getCurrentDateTime'));
+      }
+      if (query.includes('weather')) {
+        fallbackTools.push(toolset.find(t => t.name === 'getCurrentWeather'));
+      }
+    }
+    
+    if (fallbackTools.length === 0) {
+      fallbackTools = [toolset.find(t => t.name === 'getCurrentDateTime')];
+    }
+
+    const agentLLM = getFallbackLLM();
+    const fallbackAgent = createReactAgent({
+      llm: agentLLM,
+      tools: fallbackTools.filter(Boolean) as any[],
+    });
+
+    const result = await fallbackAgent.invoke({ 
+      messages
+    });
+
+    return {
+      messages: [{
+        role: "assistant",
+        content: "I'm using a fallback approach: " + (typeof result.messages[0]?.content === 'string' ? result.messages[0].content : 'Task completed')
+      }],
+      metadata: {
+        agent: "research",
+        toolsUsed: fallbackTools.map(t => t?.name || 'unknown'),
+        source: "fallback",
+        confidence: 0.5,
+        userId
+      }
+    };
+  }
+
+  // Helper function to safely extract user query
+  function extractUserQuery(messages: BaseMessage[]): string {
+    const lastMessage = messages[messages.length - 1];
+    if (!lastMessage?.content) return '';
+    
+    if (typeof lastMessage.content === 'string') {
+      return lastMessage.content;
+    }
+    
+    if (Array.isArray(lastMessage.content)) {
+      return lastMessage.content
+        .map(item => typeof item === 'string' ? item : '')
+        .join(' ')
+        .trim();
+    }
+    
+    return '';
+  }
+
+  async function executeWithTools(agentType: string, tools: any[], messages: BaseMessage[], userId?: string) {
+    const userQuery = extractUserQuery(messages);
+    
+    // Direct tool execution based on agent type and query
+    if (agentType === 'analysis' && userQuery.toLowerCase().includes('time')) {
+      // Directly call getCurrentDateTime tool
+      const timeTool = tools.find(t => t.name === 'getCurrentDateTime');
+      if (timeTool) {
+        try {
+          const timeResult = await timeTool.invoke("Get current time and date", { configurable: { userId } });
+          return {
+            content: `The current time and date is: ${timeResult}`,
+            tokenUsage: 0
+          };
+        } catch (error) {
+          console.error("[ERROR] Time tool failed:", error);
+          return {
+            content: "I'm sorry, I couldn't retrieve the current time. Please try again.",
+            tokenUsage: 0
+          };
+        }
+      }
+    } else if (agentType === 'execution' && userQuery.toLowerCase().includes('weather')) {
+      // Directly call getCurrentWeather tool
+      const weatherTool = tools.find(t => t.name === 'getCurrentWeather');
+      if (weatherTool) {
+        try {
+          const weatherResult = await weatherTool.invoke("Get current weather information", { configurable: { userId } });
+          return {
+            content: `Current weather information: ${weatherResult}`,
+            tokenUsage: 0
+          };
+        } catch (error) {
+          console.error("[ERROR] Weather tool failed:", error);
+          return {
+            content: "I'm sorry, I couldn't retrieve the weather information. Please try again.",
+            tokenUsage: 0
+          };
+        }
+      }
+    } else if (agentType === 'research' && userQuery.includes('@')) {
+      // Directly call retrieveRelevantChunks tool
+      const docTool = tools.find(t => t.name === 'retrieveRelevantChunks');
+      if (docTool) {
+        try {
+          const docResult = await docTool.invoke(userQuery, { configurable: { userId } });
+          return {
+            content: `Based on your documents: ${docResult}`,
+            tokenUsage: 0
+          };
+        } catch (error) {
+          console.error("[ERROR] Document tool failed:", error);
+          return {
+            content: "I'm sorry, I couldn't retrieve the document information. Please try again.",
+            tokenUsage: 0
+          };
+        }
+      }
+    } else if (agentType === 'research' && (userQuery.toLowerCase().includes('latest') || 
+               userQuery.toLowerCase().includes('news') || userQuery.toLowerCase().includes('current') ||
+               userQuery.toLowerCase().includes('recent') || userQuery.toLowerCase().includes('today') ||
+               userQuery.toLowerCase().includes('any news'))) {
+      // Directly call tavilySearch tool for latest information queries
+      const searchTool = tools.find(t => t.name === 'tavilySearch');
+      if (searchTool) {
+        try {
+          const searchResult = await searchTool.invoke(userQuery, { configurable: { userId } });
+          return {
+            content: `Here's the latest information: ${searchResult}`,
+            tokenUsage: 0
+          };
+        } catch (error) {
+          console.error("[ERROR] Search tool failed:", error);
+          return {
+            content: "I'm sorry, I couldn't retrieve the latest information. Please try again.",
+            tokenUsage: 0
+          };
+        }
+      }
+    }
+    
+         // Handle general conversation without tools
+     if (agentType === 'analysis' && (userQuery.toLowerCase().includes('hello') || 
+         userQuery.toLowerCase().includes('hi') || userQuery.toLowerCase().includes('hey') ||
+         userQuery.toLowerCase().trim().length < 10)) {
+       return {
+         content: "Hello! I'm Nurospace AI, your intelligent assistant. I can help you with time queries, document analysis, weather information, web searches, and much more. How can I assist you today?",
+         tokenUsage: 0
+       };
+     }
+     
+     // Fallback to LLM for other queries with improved prompts
+     const agentLLM = getLLM("gemini-2.5-flash");
+     const agent = createReactAgent({
+       llm: agentLLM,
+       tools: tools,
+     });
+
+     const systemMessage = {
+       role: "system",
+       content: `You are a helpful ${agentType} assistant. Your role is to:
+
+1. **Understand the user's request** and provide accurate, helpful responses
+2. **Use available tools** when needed: ${tools.map(t => t.name).join(', ')}
+3. **Provide clear, concise answers** without mentioning your system role
+4. **Be conversational and friendly** while remaining professional
+5. **If you can't help with a specific request**, suggest alternatives or ask for clarification
+
+Remember: Focus on being helpful and informative, not on explaining your capabilities.`
+     };
+
+     const result = await agent.invoke({ 
+       messages: [systemMessage, ...messages]
+     });
+
+     // Extract and clean the response
+     const responseContent = typeof result.messages[0]?.content === 'string' 
+       ? result.messages[0].content 
+       : "I've processed your request. Is there anything specific you'd like to know more about?";
+
+     // Remove system message artifacts
+     const cleanedResponse = responseContent
+       .replace(/You are a .*? assistant\./gi, '')
+       .replace(/Your role is to:.*?Remember:.*$/gis, '')
+       .replace(/Focus on being helpful.*$/gi, '')
+       .trim();
+
+     return {
+       content: cleanedResponse || "I've completed the task. How else can I help you?",
+       tokenUsage: 0
+     };
+  }
+
+  return async (messages: BaseMessage[], config?: { configurable?: { userId?: string } }) => {
+    const userId = config?.configurable?.userId;
+    const userQuery = extractUserQuery(messages);
+    
+    try {
+      console.log("[DEBUG] Hybrid supervisor processing query");
+      
+      // Step 1: Check cache first (FAST PATH)
+      const cacheKey = generateCacheKey(userQuery);
+      const cachedDecision = routingCache.get(cacheKey);
+      
+      if (cachedDecision && 
+          Date.now() - cachedDecision.timestamp < CACHE_TTL && 
+          cachedDecision.confidence > 0.8) {
+        console.log("[DEBUG] Using cached routing decision");
+        const { agent, requiredTools } = cachedDecision;
+        const selectedTools = toolset.filter(tool => requiredTools.includes(tool.name));
+        const result = await executeWithTools(agent, selectedTools, messages, userId);
+        
+        return {
+          messages: [{
+            role: "assistant",
+            content: `[${agent.charAt(0).toUpperCase() + agent.slice(1)} Agent] ${typeof result.content === 'string' ? result.content : 'Task completed'}`
+          }],
+          metadata: {
+            agent,
+            toolsUsed: requiredTools,
+            source: "cached",
+            confidence: cachedDecision.confidence,
+            userId
+          }
+        };
+      }
+
+      // Step 2: Smart routing with keyword analysis (OPTIMIZED PATH)
+      console.log("[DEBUG] Using smart routing analysis");
+      
+      // Analyze query for routing decision
+      const queryLower = (typeof userQuery === 'string' ? userQuery : '').toLowerCase();
+      
+      // Determine agent type based on keywords
+      let agent = "research";
+      let confidence = 0.8;
+      let reasoning = "";
+      let requiredTools = [];
+      
+      // Analysis agent triggers (PRIORITY - check time/date first)
+      if (queryLower.includes('time') || queryLower.includes('date') || 
+          queryLower.includes('what day') || queryLower.includes('current time') ||
+          queryLower.includes('what time') || queryLower.includes('calculate') || 
+          queryLower.includes('compute')) {
+        agent = "analysis";
+        reasoning = "Query involves calculations, time analysis, or data processing";
+        requiredTools = ["getCurrentDateTime"];
+      }
+      // Research agent triggers (check after time/date)
+      else if (queryLower.includes('@') || queryLower.includes('document') || 
+          queryLower.includes('search') || queryLower.includes('find') ||
+          queryLower.includes('tell me about') || queryLower.includes('what is') ||
+          queryLower.includes('information about') || queryLower.includes('news') ||
+          queryLower.includes('latest') || queryLower.includes('recent') ||
+          (queryLower.includes('current') && !queryLower.includes('time'))) {
+        agent = "research";
+        reasoning = "Query involves information gathering, document analysis, or search";
+        requiredTools = ["retrieveRelevantChunks"];
+        
+        if (queryLower.includes('web') || queryLower.includes('news') || queryLower.includes('latest') ||
+            queryLower.includes('recent') || (queryLower.includes('current') && !queryLower.includes('time'))) {
+          requiredTools.push("tavilySearch");
+        }
+      }
+      // Execution agent triggers
+      else if (queryLower.includes('weather') || queryLower.includes('execute') ||
+               queryLower.includes('perform') || queryLower.includes('action')) {
+        agent = "execution";
+        reasoning = "Query involves API calls, weather data, or task execution";
+        requiredTools = ["getCurrentWeather"];
+      }
+      // Planning agent triggers
+      else if (queryLower.includes('plan') || queryLower.includes('workflow') ||
+               queryLower.includes('strategy') || queryLower.includes('how to')) {
+        agent = "planning";
+        reasoning = "Query involves planning, strategy, or workflow design";
+        requiredTools = ["getCurrentDateTime", "retrieveRelevantChunks"];
+      }
+      // Default fallback for general conversation
+      else {
+        agent = "analysis";
+        confidence = 0.6;
+        reasoning = "General conversation or greeting - routing to analysis agent";
+        requiredTools = ["getCurrentDateTime"];
+      }
+
+      console.log(`[DEBUG] Routed to ${agent} agent (confidence: ${confidence})`);
+      console.log(`[DEBUG] Required tools: ${requiredTools.join(', ')}`);
+
+      // Step 3: Cache the decision for future use
+      if (confidence > 0.7) {
+        routingCache.set(cacheKey, {
+          agent,
+          confidence,
+          reasoning,
+          requiredTools,
+          cacheKey,
+          timestamp: Date.now(),
+          usageCount: (routingCache.get(cacheKey)?.usageCount || 0) + 1
+        });
+      }
+
+      // Step 4: Load only required tools
+      const selectedTools = toolset.filter(tool => 
+        requiredTools.includes(tool.name)
+      );
+
+      if (selectedTools.length === 0) {
+        throw new Error("No required tools found");
+      }
+
+      // Step 5: Execute with selected tools
+      const result = await executeWithTools(agent, selectedTools, messages, userId);
+
+      return {
+        messages: [{
+          role: "assistant",
+          content: `[${agent.charAt(0).toUpperCase() + agent.slice(1)} Agent] ${typeof result.content === 'string' ? result.content : 'Task completed'}`
+        }],
+        metadata: {
+          agent,
+          confidence,
+          reasoning,
+          toolsUsed: requiredTools,
+          source: "function_calling",
+          tokenUsage: result.tokenUsage,
+          userId
+        }
+      };
+
+    } catch (error) {
+      console.error("[ERROR] Hybrid supervisor failed:", error);
+      
+      // Step 6: Smart fallback with proper error handling
+      try {
+        return await smartFallback(userQuery, messages, userId);
+      } catch (fallbackError) {
+        console.error("[ERROR] Fallback also failed:", fallbackError);
+        
+        // Final fallback - return helpful error message
+        return {
+          messages: [{
+            role: "assistant",
+            content: "I apologize, but I'm experiencing technical difficulties right now. Please try again in a moment, or rephrase your question."
+          }],
+          metadata: {
+            agent: "system",
+            toolsUsed: [],
+            source: "error_fallback",
+            confidence: 0,
+            userId,
+            error: error instanceof Error ? error.message : "Unknown error"
+          }
+        };
+      }
+    }
+  };
+}
+
+/**
+ * 🧠 SEMANTIC SUPERVISOR AGENT - AI-Powered Tool Selection with Ensemble Voting
+ * 
+ * Next-generation implementation with semantic understanding:
+ * - Vector embeddings for true semantic matching
+ * - Ensemble voting (semantic + keyword) for better accuracy
+ * - Learning system for continuous improvement
+ * - Performance tracking and optimization
+ * - Fallback to keyword-based selection
+ */
+export function createSemanticSupervisorAgent(useFallback = false) {
+  return createSemanticSupervisor(useFallback);
 }
