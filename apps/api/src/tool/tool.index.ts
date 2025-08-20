@@ -1,9 +1,9 @@
 // tools/index.ts
 import { DynamicTool } from "@langchain/core/tools";
-import { getCurrentWeather } from "./weatherTool";
-import { getCurrentDateTime } from "./currentDateTool";
-import { retrieveRelevantChunksTool } from "./retrieveRelevantChunks";
-import { tavilySearch, formatSearchResults } from "./tavilySearchTool";
+import { getCurrentWeather } from "./analysis/weatherTool";
+import { getCurrentDateTime } from "./analysis/currentDateTool";
+import { retrieveRelevantChunksTool } from "./research/retrieveRelevantChunks";
+import { tavilySearch, formatSearchResults } from "./research/tavilySearchTool";
 
 //schedule email tool
 

@@ -26,6 +26,68 @@
   background-color: hsl(var(--muted-foreground));
 }
 
+/* Enhanced scrollbar for modern chat interface */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(156 163 175) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: rgb(156 163 175);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(107 114 128);
+}
+
+.scrollbar-thumb-gray-300::-webkit-scrollbar-thumb {
+  background-color: rgb(209 213 219);
+}
+
+.scrollbar-track-transparent::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Smooth animations for chat elements */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chat-message-enter {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+/* Gradient text animation */
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.gradient-text-animate {
+  background-size: 200% 200%;
+  animation: gradientShift 3s ease infinite;
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

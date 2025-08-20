@@ -23,6 +23,30 @@ export async function retrieveRelevantChunks(
     userId,
   );
 
+  // Check if query contains specific document ID
+  const docIdMatch = query.match(/\[DOC_ID:([^\]]+)\]/);
+  
+  if (docIdMatch) {
+    const docId = docIdMatch[1];
+    console.log("[DEBUG] Found specific document ID:", docId);
+    
+    // Search specifically for this document
+    const results = await db
+      .select({ content: resourceEmbeddings.content })
+      .from(resourceEmbeddings)
+      .where(sql`user_id = ${userId} AND resource_id = ${docId}`)
+      .limit(topK);
+
+    console.log("[DEBUG] Document-specific query returned", results.length, "results");
+    console.log(
+      "[DEBUG] Results:",
+      results.map((r) => r.content.substring(0, 100) + "..."),
+    );
+
+    return results.map((r) => r.content);
+  }
+
+  // Fallback to vector search for general queries
   const embeddingModel = new GoogleGenerativeAIEmbeddings({
     modelName: "embedding-001",
     apiKey: process.env.GOOGLE_API_KEY,
@@ -43,7 +67,7 @@ export async function retrieveRelevantChunks(
     ) // cosine distance
     .limit(topK);
 
-  console.log("[DEBUG] Database query returned", results.length, "results");
+  console.log("[DEBUG] Vector search returned", results.length, "results");
   console.log(
     "[DEBUG] Results:",
     results.map((r) => r.content.substring(0, 100) + "..."),
@@ -59,7 +83,7 @@ export async function retrieveRelevantChunks(
 export const retrieveRelevantChunksTool = new DynamicTool({
   name: "retrieveRelevantChunks",
   description:
-    "CRITICAL: ALWAYS use this tool FIRST when the user asks about ANY information that might be in their uploaded documents, files, or personal content. This includes names, addresses, personal details, facts, or any information the user has provided in their documents. IMPORTANT: If the user asks about specific names, people, addresses, or personal information that they have uploaded, you MUST use this tool to search their documents first. Do NOT refuse to provide information from their own documents. Examples: 'Tell me about John Smith', 'What's the address for...', 'Tell me a fact about...', 'What does my document say about...', 'news about...', 'district of...', 'news regarding [name]', etc. Input should be the user's question about their documents.",
+    "CRITICAL: ALWAYS use this tool FIRST when the user asks about ANY information that might be in their uploaded documents, files, or personal content. This includes names, addresses, personal details, facts, or any information the user has provided in their documents. IMPORTANT: If the user asks about specific names, people, addresses, or personal information that they have uploaded, you MUST use this tool to search their documents first. Do NOT refuse to provide information from their own documents. The tool can handle both general queries and specific document ID queries (format: [DOC_ID:resource_id]). Examples: 'Tell me about John Smith', 'What's the address for...', 'Tell me a fact about...', 'What does my document say about...', 'news about...', 'district of...', 'news regarding [name]', etc. Input should be the user's question about their documents.",
   func: async (
     input: string,
     _runManager,
@@ -84,7 +108,7 @@ export const retrieveRelevantChunksTool = new DynamicTool({
     if (!userId) {
       // For now, we'll use a default userId for testing
       // In production, this should come from the authenticated user context
-      userId = process.env.DEFAULT_USER_ID || "test-user";
+      userId = process.env.DEFAULT_USER_ID || "mC7pqADICzQTvOfUQ1e6HpxQMVhYaJmm";
       console.log("[DEBUG] Using default userId:", userId);
     }
 

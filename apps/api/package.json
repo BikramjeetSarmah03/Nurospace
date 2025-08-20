@@ -17,6 +17,7 @@
     "@honestjs/class-validator-pipe": "^1.1.0",
     "@langchain/community": "^0.3.22",
     "@langchain/google-genai": "^0.2.16",
+    "@langchain/langgraph": "^0.4.5",
     "@packages/env": "workspace:*",
     "@packages/llm": "workspace:*",
     "@scalar/hono-api-reference": "^0.9.13",

@@ -1,9 +1,10 @@
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { MemorySaver } from "@langchain/langgraph";
 import { toolset } from "@/tool/tool.index";
-import { getLLM, getFallbackLLM } from "./llm";
+import { getLLM, getFallbackLLM } from "@/lib/llm";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { StringOutputParser } from "@langchain/core/output_parsers";
+import { createSupervisorAgent, createAdvancedSupervisorAgent, createToolCallingSupervisorAgent } from "./supervisor-agent";
 
 // Enhanced memory saver with better persistence
 const memorySaver = new MemorySaver();
@@ -59,3 +60,34 @@ export function createMemoryAgent(useFallback = false) {
 
   return agent;
 }
+
+/**
+ * 🎯 SUPERVISOR AGENT - Routes tasks to specialized agents
+ * 
+ * This is the main supervisor agent that intelligently routes user requests
+ * to specialized agents based on the nature of the task.
+ */
+export function createSupervisedAgent(useFallback = false) {
+  return createSupervisorAgent(useFallback);
+}
+
+/**
+ * 🚀 ADVANCED SUPERVISOR AGENT - Enhanced routing with dynamic tool selection
+ * 
+ * Advanced version with better tool routing and performance optimization
+ */
+export function createAdvancedSupervisedAgent(useFallback = false) {
+  return createAdvancedSupervisorAgent(useFallback);
+}
+
+/**
+ * 🔧 TOOL-CALLING SUPERVISOR AGENT - Uses tool-calling for agent selection
+ * 
+ * Experimental version that uses tool-calling for more precise agent routing
+ */
+export function createToolCallingSupervisedAgent(useFallback = false) {
+  return createToolCallingSupervisorAgent(useFallback);
+}
+
+// Export supervisor functions for direct use
+export { createSupervisorAgent, createAdvancedSupervisorAgent, createToolCallingSupervisorAgent } from "./supervisor-agent";

@@ -9,12 +9,14 @@ import { streamText } from "hono/streaming";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { StringOutputParser } from "@langchain/core/output_parsers";
+import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 
 import { google } from "@packages/llm/models/google";
+import { createToolCallingSupervisedAgent } from "@/lib/agent";
 
 import { db } from "@/db";
 import { chats } from "@/db/schema/chat";
-import { retrieveRelevantChunks } from "@/tool/retrieveRelevantChunks";
+import { retrieveRelevantChunks } from "@/tool/research/retrieveRelevantChunks";
 
 import type { NewChatDto } from "./dto/new-chat";
 
@@ -143,110 +145,155 @@ export default class ChatService {
       await this.messageService.createMessage(chatId.id, "user", body.msg);
       console.log("[DEBUG] Saved user message for chat:", chatId.id);
 
-      // Get conversation history for context
-      let conversationHistory = "";
+      // 📄 Parse document mentions and fetch their content
+      const mentionedDocs = await this.parseDocumentMentions(
+        body.msg ?? "",
+        user.id,
+      );
+
+      // 🎯 Create supervisor agent with userId context
+      const supervisorAgent = createToolCallingSupervisedAgent(false);
+      console.log("[DEBUG] Starting supervisor agent stream...");
+
+      // For existing conversations, let LangGraph memory handle context
+      // For new conversations, add system message
+      const agentMessages: any[] = [];
+      
+      if (existingMessages.length === 0) {
+        // This is a new conversation, add system message
+        let systemContent = `You are a supervisor agent that routes tasks to specialized agents.
+
+            🎯 AVAILABLE AGENTS:
+            • Research Agent: For searching, gathering information, web searches, document retrieval
+            • Analysis Agent: For data analysis, calculations, reasoning, problem-solving  
+            • Execution Agent: For taking actions, API calls, tool execution
+            • Planning Agent: For creating plans, strategies, step-by-step thinking
+
+            🧠 INTELLIGENT ROUTING:
+            • "Find information about..." → Research Agent
+            • "Calculate..." → Analysis Agent
+            • "Execute..." → Execution Agent  
+            • "Plan..." → Planning Agent
+            • "Tell me about..." → Research Agent
+            • "How to..." → Planning Agent
+
+            📋 SPECIALIZED TOOLS:
+            • Document Analysis: retrieveRelevantChunksTool for user's uploaded documents
+            • Web Search: tavilySearch for current information and news
+            • Weather Data: getCurrentWeather for weather information
+            • Time/Date: getCurrentDateTime for current time and date
+
+            🎯 RESPONSE FORMAT:
+            Always respond with ONLY the agent name (research, analysis, execution, or planning) based on the user's request.`;
+
+        // Add document context if documents are mentioned
+        if (mentionedDocs.length > 0) {
+          const docContext = mentionedDocs
+            .map(
+              (doc) =>
+                `Document ID: ${doc.id}\nName: ${doc.name}\nType: ${doc.type}`,
+            )
+            .join("\n\n");
+
+                     systemContent += `\n\n📄 MENTIONED DOCUMENTS:\n${docContext}\n\nIMPORTANT: When documents are mentioned (@resource_id), route to RESEARCH AGENT to analyze the document content using the provided Document ID.`;
+        }
+
+        agentMessages.push(new SystemMessage(systemContent));
+      }
+
+      // Add user message (replace @resource_id mentions with [DOC_ID:resource_id] format)
+      let userMessage = body.msg ?? "";
+      
+      // Replace @resource_id mentions with [DOC_ID:resource_id] format
+      if (mentionedDocs.length > 0) {
+        for (const doc of mentionedDocs) {
+          const mentionPattern = new RegExp(`@${doc.id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g');
+          userMessage = userMessage.replace(mentionPattern, `[DOC_ID:${doc.id}]`);
+        }
+      }
+      
+      agentMessages.push(new HumanMessage(userMessage));
+
+      // Get existing messages for context
       if (existingMessages.length > 0) {
         const previousMessages = await db.query.messages.findMany({
           where: (messages, { eq }) => eq(messages.chatId, chatId.id),
           orderBy: (messages, { asc }) => [asc(messages.createdAt)],
         });
 
-        conversationHistory = previousMessages
-          .map((msg) => `${msg.role}: ${msg.content}`)
-          .join("\n");
-      }
-
-      // Parse document mentions and fetch their content
-      const mentionedDocs = await this.parseDocumentMentions(
-        body.msg ?? "",
-        user.id,
-      );
-
-      // Get context based on mentioned documents or semantic search
-      let context = "";
-
-      if (mentionedDocs.length > 0) {
-        // Get content from mentioned documents only
-        const mentionedDocIds = mentionedDocs.map((doc) => doc.id);
-        const contextChunks = await retrieveRelevantChunks(
-          body.msg ?? "",
-          user.id,
-          5,
-          mentionedDocIds,
-        );
-
-        const docContext = mentionedDocs
-          .map(
-            (doc) =>
-              `Document: ${doc.name}\nType: ${doc.type}\nURL: ${doc.url}\n---`,
-          )
-          .join("\n\n");
-
-        context += `Mentioned Documents:\n${docContext}\n\n`;
-
-        if (contextChunks.length > 0) {
-          context += `Document Content:\n${contextChunks.join("\n\n")}`;
-        }
-      } else {
-        // No documents mentioned, use semantic search across all documents
-        const contextChunks = await retrieveRelevantChunks(
-          body.msg ?? "",
-          user.id,
-          5,
-        );
-
-        if (contextChunks.length > 0) {
-          context += `Relevant Context:\n${contextChunks.join("\n\n")}`;
+        // Convert database messages to LangChain messages
+        for (const msg of previousMessages) {
+          if (msg.role === "user") {
+            agentMessages.push(new HumanMessage(msg.content));
+          } else if (msg.role === "assistant") {
+            agentMessages.push(new HumanMessage(msg.content));
+          }
         }
       }
 
-      console.log("[DEBUG] Final context:", `${context.substring(0, 200)}...`);
+      return streamText(c, async (stream) => {
+        try {
+          console.log("[DEBUG] Starting supervisor agent invocation...");
+          
+          // 🎯 Use supervisor agent with userId context
+          const result = await supervisorAgent(agentMessages, {
+            configurable: { userId: user.id }
+          });
 
-      try {
-        const stream = await this.runLLMStream(
-          body.msg ?? "",
-          context,
-          conversationHistory,
-        );
+          console.log("[DEBUG] Supervisor agent completed");
 
-        let response = "";
-
-        return streamText(c, async (writer) => {
-          try {
-            for await (const chunk of stream) {
-              response += chunk;
-              await writer.write(chunk);
-            }
-
-            await writer.write(`[CHAT_SLUG]:${finalSlug}`);
-            await writer.close();
+          // Save the final response
+          const finalResponse = result.messages[result.messages.length - 1];
+          if (finalResponse && finalResponse.content) {
+            const responseContent = typeof finalResponse.content === 'string' 
+              ? finalResponse.content 
+              : '';
 
             await this.messageService.createMessage(
               chatId.id,
               "assistant",
-              response,
+              responseContent,
             );
-          } catch (streamError) {
-            console.error("[ERROR] Stream processing failed:", streamError);
-            await writer.write(
-              "Sorry, there was an error processing your request. Please try again.",
-            );
-            await writer.close();
           }
-        });
-      } catch (error) {
-        console.error("[ERROR] Failed to create stream:", error);
-        return c.json(
-          {
-            success: false,
-            message: "Failed to process chat request",
-            error: error instanceof Error ? error.message : "Unknown error",
-          },
-          500,
-        );
-      }
+
+          // Send the final response
+          const responseContent = result.messages[result.messages.length - 1]?.content;
+          console.log("[DEBUG] Response content:", responseContent);
+          if (responseContent) {
+            const content = typeof responseContent === 'string' 
+              ? responseContent 
+              : '';
+
+            await stream.write(content);
+            await stream.write(`[CHAT_SLUG]:${finalSlug}`);
+            await stream.close();
+          }
+
+        } catch (error) {
+          console.error("[ERROR] Supervisor agent error:", error);
+          
+          // Save error message
+          await this.messageService.createMessage(
+            chatId.id,
+            "assistant",
+            `I apologize, but I encountered an error while processing your request. Please try again.`,
+          );
+
+          await stream.write(
+            `I apologize, but I encountered an error while processing your request. Please try again.`
+          );
+          await stream.write(`[CHAT_SLUG]:${finalSlug}`);
+          await stream.close();
+        }
+      });
+
     } catch (error) {
-      console.log({ error });
+      console.error("[ERROR] Chat route error:", error);
+      return c.json({
+        success: false,
+        error: "Failed to process chat message",
+        message: error instanceof Error ? error.message : "Unknown error",
+      }, 500);
     }
   }
 
@@ -272,51 +319,28 @@ export default class ChatService {
   }
 
   async parseDocumentMentions(message: string, userId: string) {
-    // Extract document mentions like @filename.pdf
+    // Extract document mentions like @resource_id
     const mentionRegex = /@([^\s]+)/g;
     const mentions = message.match(mentionRegex);
 
     if (!mentions) return [];
 
-    const documentNames = mentions.map((mention) => mention.slice(1)); // Remove @ symbol
-    console.log("[DEBUG] Found document mentions:", documentNames);
+    const resourceIds = mentions.map((mention) => mention.slice(1)); // Remove @ symbol
+    console.log("[DEBUG] Found resource ID mentions:", resourceIds);
 
-    // Fetch mentioned documents from database
+    // Fetch mentioned documents from database by ID
     const mentionedDocs = await db.query.resources.findMany({
       where: (resources, { eq, and, inArray }) =>
         and(
           eq(resources.userId, userId),
-          inArray(resources.name, documentNames),
+          inArray(resources.id, resourceIds),
         ),
     });
 
     console.log(
       "[DEBUG] Found mentioned documents:",
-      mentionedDocs.map((d) => d.name),
+      mentionedDocs,
     );
     return mentionedDocs;
-  }
-
-  async runLLMStream(input: string, context: string, conversationHistory = "") {
-    const systemMessage = conversationHistory
-      ? "You are a helpful AI assistant. Use the provided context and conversation history to answer the user's question. When documents are mentioned, use their information to provide accurate answers. Maintain context from the previous conversation."
-      : "You are a helpful AI assistant. Use the provided context to answer the user's question. When documents are mentioned, use their information to provide accurate answers.";
-
-    const userMessage = conversationHistory
-      ? "Context:\n{context}\n\nConversation History:\n{conversationHistory}\n\nCurrent Question:\n{input}"
-      : "Context:\n{context}\n\nQuestion:\n{input}";
-
-    const prompt = ChatPromptTemplate.fromMessages([
-      ["system", systemMessage],
-      ["user", userMessage],
-    ]);
-
-    const chain = RunnableSequence.from([
-      prompt,
-      google,
-      new StringOutputParser(),
-    ]);
-
-    return await chain.stream({ input, context, conversationHistory });
   }
 }

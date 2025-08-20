@@ -120,7 +120,7 @@ export function ChatPage() {
       </div>
 
       {/* Chat Input - Fixed at bottom */}
-      <div className="sticky bottom-0 bg-background p-4">
+      <div className="sticky bottom-0 p-4 rounded-lg bg-background">
         <ChatBox onSubmit={handleSendChat} />
       </div>
     </div>

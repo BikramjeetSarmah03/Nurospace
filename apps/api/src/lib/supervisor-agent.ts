@@ -1,7 +1,7 @@
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { toolset } from "@/tool/tool.index";
 import { getLLM, getFallbackLLM } from "./llm";
-import type { BaseMessage } from "@langchain/core/messages";
+import { BaseMessage } from "@langchain/core/messages";
 import { DynamicTool } from "@langchain/core/tools";
 
 // Define specialized agents
@@ -12,53 +12,35 @@ export type AgentType = "research" | "analysis" | "execution" | "planning";
  */
 function categorizeTool(tool: any): AgentType {
   const name = tool.name.toLowerCase();
-  const description = (tool.description || "").toLowerCase();
-
+  const description = (tool.description || '').toLowerCase();
+  
   // Research tools - search, find, retrieve, gather information
-  if (
-    name.includes("search") ||
-    name.includes("find") ||
-    name.includes("retrieve") ||
-    description.includes("search") ||
-    description.includes("find") ||
-    description.includes("gather")
-  ) {
-    return "research";
+  if (name.includes('search') || name.includes('find') || name.includes('retrieve') || 
+      description.includes('search') || description.includes('find') || description.includes('gather')) {
+    return 'research';
   }
-
+  
   // Analysis tools - analyze, calculate, compute, process data
-  if (
-    name.includes("analyze") ||
-    name.includes("calculate") ||
-    name.includes("compute") ||
-    description.includes("analysis") ||
-    description.includes("calculation") ||
-    description.includes("data")
-  ) {
-    return "analysis";
+  if (name.includes('analyze') || name.includes('calculate') || name.includes('compute') || 
+      description.includes('analysis') || description.includes('calculation') || description.includes('data')) {
+    return 'analysis';
   }
-
+  
   // Execution tools - execute, send, perform actions, API calls
-  if (
-    name.includes("execute") ||
-    name.includes("send") ||
-    name.includes("perform") ||
-    description.includes("action") ||
-    description.includes("execute") ||
-    description.includes("api")
-  ) {
-    return "execution";
+  if (name.includes('execute') || name.includes('send') || name.includes('perform') || 
+      description.includes('action') || description.includes('execute') || description.includes('api')) {
+    return 'execution';
   }
-
+  
   // Default to planning for complex tools that might need multiple capabilities
-  return "planning";
+  return 'planning';
 }
 
 /**
  * Get tools for a specific agent type (automatic categorization)
  */
 function getToolsForAgent(agentType: AgentType) {
-  return toolset.filter((tool) => categorizeTool(tool) === agentType);
+  return toolset.filter(tool => categorizeTool(tool) === agentType);
 }
 
 /**
@@ -66,19 +48,19 @@ function getToolsForAgent(agentType: AgentType) {
  */
 const manualToolCategories: Record<AgentType, string[]> = {
   research: [
-    "retrieveRelevantChunks", // Document search
-    "tavilySearch", // Web search
+    "retrieveRelevantChunksTool", // Document search (Nurospace tool name)
+    "tavilySearch",           // Web search
   ],
   analysis: [
-    "getCurrentDateTime", // Time analysis
+    "getCurrentDateTime",     // Time analysis
   ],
   execution: [
-    "getCurrentWeather", // Weather API
+    "getCurrentWeather",      // Weather API
   ],
   planning: [
     // Planning gets access to ALL tools for comprehensive planning
-    "retrieveRelevantChunks",
-    "tavilySearch",
+    "retrieveRelevantChunksTool",
+    "tavilySearch", 
     "getCurrentDateTime",
     "getCurrentWeather",
   ],
@@ -88,37 +70,23 @@ const manualToolCategories: Record<AgentType, string[]> = {
  * Get tools for a specific agent type (with manual overrides)
  */
 function getToolsForAgentWithOverrides(agentType: AgentType) {
-  // Use manual categorization if available, otherwise use automatic
-  const manualTools = manualToolCategories[agentType] || [];
-  const autoTools = toolset.filter(
-    (tool) => categorizeTool(tool) === agentType,
+  // Use manual categorization for specific tools
+  const manualToolNames = manualToolCategories[agentType] || [];
+  
+  // Get tools by name from manual categorization
+  const manualTools = toolset.filter(tool => 
+    manualToolNames.includes(tool.name)
   );
-
-  // Combine manual and automatic tools, removing duplicates
-  const allTools = [...manualTools, ...autoTools];
-  const uniqueTools = allTools.filter((tool, index, self) => {
-    if (typeof tool === "string") {
-      return (
-        self.findIndex((t) => (typeof t === "string" ? t : t.name) === tool) ===
-        index
-      );
-    }
-    return (
-      self.findIndex(
-        (t) => (typeof t === "string" ? t : t.name) === tool.name,
-      ) === index
-    );
+  
+  // Get additional tools by automatic categorization (excluding already included ones)
+  const autoTools = toolset.filter(tool => {
+    const isAlreadyIncluded = manualToolNames.includes(tool.name);
+    const matchesCategory = categorizeTool(tool) === agentType;
+    return !isAlreadyIncluded && matchesCategory;
   });
-
-  // Convert string tool names to actual tool objects
-  return uniqueTools
-    .map((tool) => {
-      if (typeof tool === "string") {
-        return toolset.find((t) => t.name === tool) || tool;
-      }
-      return tool;
-    })
-    .filter((tool) => tool !== undefined) as any[];
+  
+  // Combine and return unique tools
+  return [...manualTools, ...autoTools];
 }
 
 /**
@@ -179,11 +147,7 @@ Examples:
 /**
  * Modular planning - breaks complex plans across multiple agents
  */
-async function executeModularPlan(
-  messages: BaseMessage[],
-  supervisorLLM: any,
-  createSpecializedAgent: (agentType: AgentType) => any,
-) {
+async function executeModularPlan(messages: BaseMessage[], supervisorLLM: any, createSpecializedAgent: (agentType: AgentType) => any) {
   // First, create a high-level plan
   const planningResponse = await supervisorLLM.invoke([
     {
@@ -207,11 +171,8 @@ async function executeModularPlan(
     // Execute each step with the appropriate agent
     for (const step of plan) {
       const agent = createSpecializedAgent(step.agent);
-      const stepResult = await agent.invoke({
-        messages: [
-          ...messages,
-          { role: "system", content: `Execute step: ${step.action}` },
-        ],
+      const stepResult = await agent.invoke({ 
+        messages: [...messages, { role: "system", content: `Execute step: ${step.action}` }] 
       });
       results.push(stepResult);
     }
@@ -220,15 +181,13 @@ async function executeModularPlan(
       messages: [
         {
           role: "assistant",
-          content: `[Modular Planning] Completed ${plan.length} steps: ${results.map((r) => r.messages[0]?.content).join("; ")}`,
+          content: `[Modular Planning] Completed ${plan.length} steps: ${results.map(r => r.messages[0]?.content).join('; ')}`,
         },
       ],
     };
   } catch (error) {
     // Fallback to single agent if planning fails
-    console.log(
-      "[DEBUG] Modular planning failed, falling back to single agent",
-    );
+    console.log("[DEBUG] Modular planning failed, falling back to single agent");
     return null;
   }
 }
@@ -237,20 +196,14 @@ async function executeModularPlan(
  * Optimized Supervisor Agent - Handles large tool counts efficiently
  */
 export function createSupervisorAgent(useFallback = false) {
-  const supervisorLLM = useFallback
-    ? getFallbackLLM()
-    : getLLM("gemini-2.5-pro");
+  const supervisorLLM = useFallback ? getFallbackLLM() : getLLM("gemini-2.5-pro");
 
   // Create specialized agents with optimized tool access
   const createSpecializedAgent = (agentType: AgentType, userId?: string) => {
-    const agentLLM = useFallback
-      ? getFallbackLLM()
-      : getLLM(
-          agentType === "analysis" || agentType === "planning"
-            ? "gemini-2.5-pro"
-            : "gemini-2.5-flash",
-        );
-
+    const agentLLM = useFallback ? getFallbackLLM() : getLLM(
+      agentType === "analysis" || agentType === "planning" ? "gemini-2.5-pro" : "gemini-2.5-flash"
+    );
+    
     // Optimize tool selection for large tool counts
     let agentTools;
     if (agentType === "planning") {
@@ -259,12 +212,9 @@ export function createSupervisorAgent(useFallback = false) {
     } else {
       agentTools = getToolsForAgentWithOverrides(agentType);
     }
-
-    console.log(
-      `[DEBUG] ${agentType.toUpperCase()} Agent - Available tools:`,
-      agentTools.map((t) => (typeof t === "string" ? t : t.name)),
-    );
-
+    
+    console.log(`[DEBUG] ${agentType.toUpperCase()} Agent - Available tools:`, agentTools.map(t => typeof t === 'string' ? t : t.name));
+    
     return createReactAgent({
       llm: agentLLM,
       tools: agentTools,
@@ -274,12 +224,12 @@ export function createSupervisorAgent(useFallback = false) {
   // Get essential tools for planning (subset of all tools)
   function getEssentialTools() {
     const essentialToolNames = [
-      "retrieveRelevantChunks",
-      "tavilySearch",
+      "retrieveRelevantChunksTool", // Nurospace tool name
+      "tavilySearch", 
       "getCurrentDateTime",
       "getCurrentWeather",
     ];
-    return toolset.filter((tool) => essentialToolNames.includes(tool.name));
+    return toolset.filter(tool => essentialToolNames.includes(tool.name));
   }
 
   // Create all specialized agents
@@ -289,13 +239,10 @@ export function createSupervisorAgent(useFallback = false) {
   const planningAgent = createSpecializedAgent("planning");
 
   // Main supervisor function with optimized prompt
-  const supervisor = async (
-    messages: BaseMessage[],
-    config?: { configurable?: { userId?: string } },
-  ) => {
+  const supervisor = async (messages: BaseMessage[], config?: { configurable?: { userId?: string } }) => {
     const userId = config?.configurable?.userId;
     console.log("[DEBUG] Supervisor received userId:", userId);
-
+    
     // Use optimized prompt (no detailed tool descriptions)
     const routingResponse = await supervisorLLM.invoke([
       {
@@ -305,39 +252,23 @@ export function createSupervisorAgent(useFallback = false) {
       ...messages,
     ]);
 
-    const agentChoice =
-      typeof routingResponse.content === "string"
-        ? routingResponse.content.toLowerCase().trim()
-        : "";
-
+    const agentChoice = typeof routingResponse.content === 'string' ? routingResponse.content.toLowerCase().trim() : '';
+    
     // Validate agent choice
-    const validAgents: AgentType[] = [
-      "research",
-      "analysis",
-      "execution",
-      "planning",
-    ];
-    const selectedAgent =
-      validAgents.find((agent) => agentChoice.includes(agent)) || "research";
+    const validAgents: AgentType[] = ["research", "analysis", "execution", "planning"];
+    const selectedAgent = validAgents.find(agent => agentChoice.includes(agent)) || "research";
 
     console.log(`[DEBUG] Supervisor routing to: ${selectedAgent} agent`);
 
     // Check if this is a complex planning task that needs modular execution
-    const userMessage = messages[messages.length - 1]?.content || "";
-    const userMessageStr = typeof userMessage === "string" ? userMessage : "";
-    const isComplexPlanning =
-      selectedAgent === "planning" &&
-      (userMessageStr.includes("complex") ||
-        userMessageStr.includes("multiple steps") ||
-        userMessageStr.includes("workflow"));
+    const userMessage = messages[messages.length - 1]?.content || '';
+    const userMessageStr = typeof userMessage === 'string' ? userMessage : '';
+    const isComplexPlanning = selectedAgent === "planning" && 
+      (userMessageStr.includes("complex") || userMessageStr.includes("multiple steps") || userMessageStr.includes("workflow"));
 
     if (isComplexPlanning) {
       console.log("[DEBUG] Using modular planning for complex task");
-      const modularResult = await executeModularPlan(
-        messages,
-        supervisorLLM,
-        (agentType) => createSpecializedAgent(agentType, userId),
-      );
+      const modularResult = await executeModularPlan(messages, supervisorLLM, (agentType) => createSpecializedAgent(agentType, userId));
       if (modularResult) {
         return modularResult;
       }
@@ -347,37 +278,35 @@ export function createSupervisorAgent(useFallback = false) {
     let agentResponse;
     switch (selectedAgent) {
       case "research":
-        agentResponse = await researchAgent.invoke({
-          messages,
+        agentResponse = await researchAgent.invoke({ 
+          messages
         });
         break;
       case "analysis":
-        agentResponse = await analysisAgent.invoke({
-          messages,
+        agentResponse = await analysisAgent.invoke({ 
+          messages
         });
         break;
       case "execution":
-        agentResponse = await executionAgent.invoke({
-          messages,
+        agentResponse = await executionAgent.invoke({ 
+          messages
         });
         break;
       case "planning":
-        agentResponse = await planningAgent.invoke({
-          messages,
+        agentResponse = await planningAgent.invoke({ 
+          messages
         });
         break;
       default:
-        agentResponse = await researchAgent.invoke({
-          messages,
+        agentResponse = await researchAgent.invoke({ 
+          messages
         });
     }
 
     // Extract the final response
-    const finalMessage =
-      agentResponse.messages && agentResponse.messages.length > 0
-        ? agentResponse.messages[agentResponse.messages.length - 1]?.content ||
-          `${selectedAgent} task completed`
-        : `${selectedAgent} task completed`;
+    const finalMessage = agentResponse.messages && agentResponse.messages.length > 0 
+      ? agentResponse.messages[agentResponse.messages.length - 1]?.content || `${selectedAgent} task completed`
+      : `${selectedAgent} task completed`;
 
     return {
       messages: [
@@ -397,20 +326,14 @@ export function createSupervisorAgent(useFallback = false) {
  * For handling 30+ tools efficiently
  */
 export function createAdvancedSupervisorAgent(useFallback = false) {
-  const supervisorLLM = useFallback
-    ? getFallbackLLM()
-    : getLLM("gemini-2.5-pro");
+  const supervisorLLM = useFallback ? getFallbackLLM() : getLLM("gemini-2.5-pro");
 
   // Create specialized agents with enhanced tool routing
   const createSpecializedAgent = (agentType: AgentType, userId?: string) => {
-    const agentLLM = useFallback
-      ? getFallbackLLM()
-      : getLLM(
-          agentType === "analysis" || agentType === "planning"
-            ? "gemini-2.5-pro"
-            : "gemini-2.5-flash",
-        );
-
+    const agentLLM = useFallback ? getFallbackLLM() : getLLM(
+      agentType === "analysis" || agentType === "planning" ? "gemini-2.5-pro" : "gemini-2.5-flash"
+    );
+    
     // Optimize tool selection for large tool counts
     let agentTools;
     if (agentType === "planning") {
@@ -418,12 +341,9 @@ export function createAdvancedSupervisorAgent(useFallback = false) {
     } else {
       agentTools = getToolsForAgentWithOverrides(agentType);
     }
-
-    console.log(
-      `[DEBUG] ${agentType.toUpperCase()} Agent - Available tools:`,
-      agentTools.map((t) => (typeof t === "string" ? t : t.name)),
-    );
-
+    
+    console.log(`[DEBUG] ${agentType.toUpperCase()} Agent - Available tools:`, agentTools.map(t => typeof t === 'string' ? t : t.name));
+    
     return createReactAgent({
       llm: agentLLM,
       tools: agentTools,
@@ -433,12 +353,12 @@ export function createAdvancedSupervisorAgent(useFallback = false) {
   // Get essential tools for planning (subset of all tools)
   function getEssentialTools() {
     const essentialToolNames = [
-      "retrieveRelevantChunks",
-      "tavilySearch",
+      "retrieveRelevantChunksTool", // Nurospace tool name
+      "tavilySearch", 
       "getCurrentDateTime",
       "getCurrentWeather",
     ];
-    return toolset.filter((tool) => essentialToolNames.includes(tool.name));
+    return toolset.filter(tool => essentialToolNames.includes(tool.name));
   }
 
   // Create all specialized agents
@@ -448,13 +368,10 @@ export function createAdvancedSupervisorAgent(useFallback = false) {
   const planningAgent = createSpecializedAgent("planning");
 
   // Enhanced supervisor with tool-aware routing
-  const supervisor = async (
-    messages: BaseMessage[],
-    config?: { configurable?: { userId?: string } },
-  ) => {
+  const supervisor = async (messages: BaseMessage[], config?: { configurable?: { userId?: string } }) => {
     const userId = config?.configurable?.userId;
     console.log("[DEBUG] Advanced Supervisor received userId:", userId);
-
+    
     const routingResponse = await supervisorLLM.invoke([
       {
         role: "system",
@@ -463,39 +380,21 @@ export function createAdvancedSupervisorAgent(useFallback = false) {
       ...messages,
     ]);
 
-    const agentChoice =
-      typeof routingResponse.content === "string"
-        ? routingResponse.content.toLowerCase().trim()
-        : "";
-    const validAgents: AgentType[] = [
-      "research",
-      "analysis",
-      "execution",
-      "planning",
-    ];
-    const selectedAgent =
-      validAgents.find((agent) => agentChoice.includes(agent)) || "research";
+    const agentChoice = typeof routingResponse.content === 'string' ? routingResponse.content.toLowerCase().trim() : '';
+    const validAgents: AgentType[] = ["research", "analysis", "execution", "planning"];
+    const selectedAgent = validAgents.find(agent => agentChoice.includes(agent)) || "research";
 
-    console.log(
-      `[DEBUG] Advanced Supervisor routing to: ${selectedAgent} agent with specialized tools`,
-    );
+    console.log(`[DEBUG] Advanced Supervisor routing to: ${selectedAgent} agent with specialized tools`);
 
     // Check for complex planning tasks
-    const userMessage = messages[messages.length - 1]?.content || "";
-    const userMessageStr = typeof userMessage === "string" ? userMessage : "";
-    const isComplexPlanning =
-      selectedAgent === "planning" &&
-      (userMessageStr.includes("complex") ||
-        userMessageStr.includes("multiple steps") ||
-        userMessageStr.includes("workflow"));
+    const userMessage = messages[messages.length - 1]?.content || '';
+    const userMessageStr = typeof userMessage === 'string' ? userMessage : '';
+    const isComplexPlanning = selectedAgent === "planning" && 
+      (userMessageStr.includes("complex") || userMessageStr.includes("multiple steps") || userMessageStr.includes("workflow"));
 
     if (isComplexPlanning) {
       console.log("[DEBUG] Using modular planning for complex task");
-      const modularResult = await executeModularPlan(
-        messages,
-        supervisorLLM,
-        (agentType) => createSpecializedAgent(agentType, userId),
-      );
+      const modularResult = await executeModularPlan(messages, supervisorLLM, (agentType) => createSpecializedAgent(agentType, userId));
       if (modularResult) {
         return modularResult;
       }
@@ -505,37 +404,35 @@ export function createAdvancedSupervisorAgent(useFallback = false) {
     let agentResponse;
     switch (selectedAgent) {
       case "research":
-        agentResponse = await researchAgent.invoke({
-          messages,
+        agentResponse = await researchAgent.invoke({ 
+          messages
         });
         break;
       case "analysis":
-        agentResponse = await analysisAgent.invoke({
-          messages,
+        agentResponse = await analysisAgent.invoke({ 
+          messages
         });
         break;
       case "execution":
-        agentResponse = await executionAgent.invoke({
-          messages,
+        agentResponse = await executionAgent.invoke({ 
+          messages
         });
         break;
       case "planning":
-        agentResponse = await planningAgent.invoke({
-          messages,
+        agentResponse = await planningAgent.invoke({ 
+          messages
         });
         break;
       default:
-        agentResponse = await researchAgent.invoke({
-          messages,
+        agentResponse = await researchAgent.invoke({ 
+          messages
         });
     }
 
     // Extract the final response
-    const finalMessage =
-      agentResponse.messages && agentResponse.messages.length > 0
-        ? agentResponse.messages[agentResponse.messages.length - 1]?.content ||
-          `${selectedAgent} task completed`
-        : `${selectedAgent} task completed`;
+    const finalMessage = agentResponse.messages && agentResponse.messages.length > 0 
+      ? agentResponse.messages[agentResponse.messages.length - 1]?.content || `${selectedAgent} task completed`
+      : `${selectedAgent} task completed`;
 
     return {
       messages: [
@@ -554,20 +451,14 @@ export function createAdvancedSupervisorAgent(useFallback = false) {
  * Create a supervisor agent with tool-calling capabilities
  */
 export function createToolCallingSupervisorAgent(useFallback = false) {
-  const supervisorLLM = useFallback
-    ? getFallbackLLM()
-    : getLLM("gemini-2.5-pro");
+  const supervisorLLM = useFallback ? getFallbackLLM() : getLLM("gemini-2.5-pro");
 
   // Create specialized agents
   const createSpecializedAgent = (agentType: AgentType, userId?: string) => {
-    const agentLLM = useFallback
-      ? getFallbackLLM()
-      : getLLM(
-          agentType === "analysis" || agentType === "planning"
-            ? "gemini-2.5-pro"
-            : "gemini-2.5-flash",
-        );
-
+    const agentLLM = useFallback ? getFallbackLLM() : getLLM(
+      agentType === "analysis" || agentType === "planning" ? "gemini-2.5-pro" : "gemini-2.5-flash"
+    );
+    
     // Optimize tool selection for large tool counts
     let agentTools;
     if (agentType === "planning") {
@@ -575,7 +466,7 @@ export function createToolCallingSupervisorAgent(useFallback = false) {
     } else {
       agentTools = getToolsForAgentWithOverrides(agentType);
     }
-
+    
     return createReactAgent({
       llm: agentLLM,
       tools: agentTools,
@@ -585,12 +476,12 @@ export function createToolCallingSupervisorAgent(useFallback = false) {
   // Get essential tools for planning (subset of all tools)
   function getEssentialTools() {
     const essentialToolNames = [
-      "retrieveRelevantChunks",
-      "tavilySearch",
+      "retrieveRelevantChunksTool",
+      "tavilySearch", 
       "getCurrentDateTime",
       "getCurrentWeather",
     ];
-    return toolset.filter((tool) => essentialToolNames.includes(tool.name));
+    return toolset.filter(tool => essentialToolNames.includes(tool.name));
   }
 
   // Create all specialized agents
@@ -619,21 +510,16 @@ export function createToolCallingSupervisorAgent(useFallback = false) {
       required: ["agent", "reason"],
     },
     func: async (args: { agent: AgentType; reason: string }) => {
-      console.log(
-        `[DEBUG] Tool calling routing to: ${args.agent} agent - ${args.reason}`,
-      );
+      console.log(`[DEBUG] Tool calling routing to: ${args.agent} agent - ${args.reason}`);
       return `Routing to ${args.agent} agent: ${args.reason}`;
     },
   };
 
   // Supervisor with tool-calling for agent selection
-  const supervisor = async (
-    messages: BaseMessage[],
-    config?: { configurable?: { userId?: string } },
-  ) => {
+  const supervisor = async (messages: BaseMessage[], config?: { configurable?: { userId?: string } }) => {
     const userId = config?.configurable?.userId;
     console.log("[DEBUG] Tool Calling Supervisor received userId:", userId);
-
+    
     const routingResponse = await supervisorLLM.invoke([
       {
         role: "system",
@@ -643,58 +529,45 @@ export function createToolCallingSupervisorAgent(useFallback = false) {
     ]);
 
     // For now, use simple routing logic
-    const agentChoice =
-      typeof routingResponse.content === "string"
-        ? routingResponse.content.toLowerCase().trim()
-        : "";
-    const validAgents: AgentType[] = [
-      "research",
-      "analysis",
-      "execution",
-      "planning",
-    ];
-    const selectedAgent =
-      validAgents.find((agent) => agentChoice.includes(agent)) || "research";
+    const agentChoice = typeof routingResponse.content === 'string' ? routingResponse.content.toLowerCase().trim() : '';
+    const validAgents: AgentType[] = ["research", "analysis", "execution", "planning"];
+    const selectedAgent = validAgents.find(agent => agentChoice.includes(agent)) || "research";
 
-    console.log(
-      `[DEBUG] Tool Calling Supervisor routing to: ${selectedAgent} agent`,
-    );
+    console.log(`[DEBUG] Tool Calling Supervisor routing to: ${selectedAgent} agent`);
 
     // Route to the appropriate agent with userId context
     let agentResponse;
     switch (selectedAgent) {
       case "research":
-        agentResponse = await researchAgent.invoke({
-          messages,
+        agentResponse = await researchAgent.invoke({ 
+          messages
         });
         break;
       case "analysis":
-        agentResponse = await analysisAgent.invoke({
-          messages,
+        agentResponse = await analysisAgent.invoke({ 
+          messages
         });
         break;
       case "execution":
-        agentResponse = await executionAgent.invoke({
-          messages,
+        agentResponse = await executionAgent.invoke({ 
+          messages
         });
         break;
       case "planning":
-        agentResponse = await planningAgent.invoke({
-          messages,
+        agentResponse = await planningAgent.invoke({ 
+          messages
         });
         break;
       default:
-        agentResponse = await researchAgent.invoke({
-          messages,
+        agentResponse = await researchAgent.invoke({ 
+          messages
         });
     }
 
     // Extract the final response
-    const finalMessage =
-      agentResponse.messages && agentResponse.messages.length > 0
-        ? agentResponse.messages[agentResponse.messages.length - 1]?.content ||
-          `${selectedAgent} task completed`
-        : `${selectedAgent} task completed`;
+    const finalMessage = agentResponse.messages && agentResponse.messages.length > 0 
+      ? agentResponse.messages[agentResponse.messages.length - 1]?.content || `${selectedAgent} task completed`
+      : `${selectedAgent} task completed`;
 
     return {
       messages: [

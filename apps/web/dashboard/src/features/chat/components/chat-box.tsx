@@ -4,7 +4,6 @@ import {
   SearchIcon,
   YoutubeIcon,
   FileTextIcon,
-  BotIcon,
   GlobeIcon,
   BookOpenIcon,
   ClockIcon,
@@ -313,13 +312,22 @@ export default function ChatBox({ onSubmit }: ChatBoxProps) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (value.trim()) {
+        // Replace document names with their resource IDs before sending
+        let processedValue = value;
+        
+        // Replace @document_name with @resource_id for all selected documents
+        selectedDocuments.forEach((doc) => {
+          const mentionPattern = new RegExp(`@${doc.name.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}`, 'g');
+          processedValue = processedValue.replace(mentionPattern, `@${doc.id}`);
+        });
+
         // Prepare context with selected documents if any
         const context =
           selectedDocuments.length > 0
             ? { documents: selectedDocuments }
             : undefined;
 
-        onSubmit(value, context);
+        onSubmit(processedValue, context);
         setValue("");
         adjustHeight(true);
         setShowMentionPopup(false);
@@ -330,7 +338,6 @@ export default function ChatBox({ onSubmit }: ChatBoxProps) {
 
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value;
-    const _oldValue = value;
     setValue(newValue);
 
     // Check for @ symbol to show mention popup
@@ -371,8 +378,8 @@ export default function ChatBox({ onSubmit }: ChatBoxProps) {
       const atIndex = beforeCursor.lastIndexOf("@");
 
       if (atIndex !== -1) {
-        // Replace "@something" with "@Name"
-        const insertText = `@${option.name}`;
+        // For documents, show the name but store the ID; for agents, use the name
+        const insertText = option.type === "file" ? `@${option.name}` : `@${option.name}`;
         const newValue =
           beforeCursor.slice(0, atIndex) + insertText + afterCursor;
 
@@ -399,26 +406,27 @@ export default function ChatBox({ onSubmit }: ChatBoxProps) {
 
   const handleSubmit = () => {
     if (value.trim()) {
+      // Replace document names with their resource IDs before sending
+      let processedValue = value;
+      
+      // Replace @document_name with @resource_id for all selected documents
+      selectedDocuments.forEach((doc) => {
+        const mentionPattern = new RegExp(`@${doc.name.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}`, 'g');
+        processedValue = processedValue.replace(mentionPattern, `@${doc.id}`);
+      });
+
       // Prepare context with selected documents if any
       const context =
         selectedDocuments.length > 0
           ? { documents: selectedDocuments }
           : undefined;
 
-      onSubmit(value, context);
+      onSubmit(processedValue, context);
       setValue("");
       adjustHeight(true);
       setShowMentionPopup(false);
       setSelectedDocuments([]); // Clear selected documents when sending
     }
-  };
-
-  const _getCategoryIcon = (category: string) => {
-    return category === "agent" ? (
-      <BotIcon className="h-3 w-3" />
-    ) : (
-      <FileTextIcon className="h-3 w-3" />
-    );
   };
 
   const getFileType = (fileName: string): string => {
@@ -588,24 +596,7 @@ export default function ChatBox({ onSubmit }: ChatBoxProps) {
           )}
         </button>
 
-        {/* Send Button */}
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={!value.trim()}
-          className={cn(
-            "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all duration-200",
-            value.trim()
-              ? "bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-lg hover:shadow-xl hover:scale-105"
-              : "bg-muted text-muted-foreground cursor-not-allowed",
-          )}
-        >
-          <ArrowUpIcon className="h-4 w-4" />
-        </button>
-      </div>
-
-      {/* @ Mention Button Below Textarea */}
-      <div className="flex justify-start mt-2 gap-2">
+        {/* @ Mention Button */}
         <button
           type="button"
           onClick={() => {
@@ -630,13 +621,29 @@ export default function ChatBox({ onSubmit }: ChatBoxProps) {
               setTimeout(() => scrollToSelectedItem(0), 0);
             }
           }}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground transition-colors hover:text-foreground hover:bg-muted border border-border/50"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors text-muted-foreground hover:text-foreground hover:bg-muted"
           title="Mention tools and files (@)"
         >
           <AtSignIcon className="h-4 w-4" />
-          <span>Mention</span>
+        </button>
+
+        {/* Send Button */}
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={!value.trim()}
+          className={cn(
+            "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all duration-200",
+            value.trim()
+              ? "bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-lg hover:shadow-xl hover:scale-105"
+              : "bg-muted text-muted-foreground cursor-not-allowed",
+          )}
+        >
+          <ArrowUpIcon className="h-4 w-4" />
         </button>
       </div>
+
+
 
       {/* @ Mention Popup */}
       {showMentionPopup && (
@@ -717,9 +724,12 @@ export default function ChatBox({ onSubmit }: ChatBoxProps) {
                           <p className="text-sm font-medium text-foreground truncate">
                             {option.name}
                           </p>
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                            ID
+                          </span>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          {option.description}
+                          Shows name, sends ID: {option.id}
                         </p>
                       </div>
                     </button>

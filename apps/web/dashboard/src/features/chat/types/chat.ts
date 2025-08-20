@@ -8,6 +8,7 @@ export interface IChat {
 }
 
 export interface IMessage {
+  timestamp: string | undefined;
   id?: string;
   chatId?: string;
   role: string;

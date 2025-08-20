@@ -1,4 +1,4 @@
-import { getCurrentDateTime } from "./tool/currentDateTool";
+import { getCurrentDateTime } from "./tool/analysis/currentDateTool";
 
 console.log("=== Testing Current Date Tool ===");
 const result = getCurrentDateTime();

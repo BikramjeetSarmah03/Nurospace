@@ -11,6 +11,7 @@ import { chatService } from "@/features/chat/services/chat.service";
 import { CHAT_QUERY } from "@/features/chat/lib/query-keys/chat";
 import { chatUrls } from "@/features/chat/lib/api/chat.url";
 
+import type { IMessage } from "@/features/chat/types/chat";
 import ChatMessages from "@/features/chat/components/chat-messages";
 import ChatBox from "@/features/chat/components/chat-box";
 

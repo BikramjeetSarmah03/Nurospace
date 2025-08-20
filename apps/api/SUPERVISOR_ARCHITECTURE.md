@@ -61,25 +61,30 @@ Final Response to User
 
 ```json
 {
-  "@langchain/langgraph": "^0.3.10",     // ✅ Already installed
-  "@langchain/google-genai": "^0.2.15",  // ✅ Already installed  
-  "@langchain/core": "^0.3.64"           // ✅ Already installed
+  "@langchain/langgraph": "^0.4.5",     // ✅ Already installed
+  "@langchain/google-genai": "^0.2.16",  // ✅ Already installed  
+  "@langchain/core": "^0.3.30"           // ✅ Already installed
 }
 ```
 
 ## 🚀 Implementation Files
 
-### 1. **`apps/server/src/lib/supervisor-agent.ts`**
+### 1. **`apps/api/src/lib/supervisor-agent.ts`**
 - Main supervisor architecture implementation
 - Defines specialized agents and routing logic
 - Handles state management and agent communication
 
-### 2. **`apps/server/src/routers/chat.routes.ts`** (Updated)
+### 2. **`apps/api/src/lib/agent.ts`** (Updated)
+- Updated to include supervisor agent functions
+- Maintains backward compatibility with existing agent implementations
+- Provides multiple supervisor variants
+
+### 3. **`apps/api/src/modules/chat/chat.service.ts`** (Updated)
 - Updated to use supervisor agent instead of single agent
 - Maintains backward compatibility with existing chat functionality
 - Enhanced system message for supervisor routing
 
-### 3. **`apps/server/src/test-supervisor.ts`**
+### 4. **`apps/api/src/test-supervisor.ts`**
 - Test file to verify supervisor architecture
 - Demonstrates routing to different agents
 - Validates agent selection logic
@@ -96,12 +101,14 @@ The supervisor uses intelligent routing based on request patterns:
 | "Plan..." | → | Planning | Strategy creation |
 | "Tell me about..." | → | Research | Information gathering |
 | "How to..." | → | Planning | Step-by-step guidance |
+| "Current date/time" | → | Analysis | Time-based queries |
+| "Weather in..." | → | Execution | API interactions |
 
 ## 🔧 Configuration
 
 ### Environment Variables
 No additional environment variables needed - uses existing:
-- `GOOGLE_GENERATIVE_AI_API_KEY`
+- `GOOGLE_API_KEY`
 - `TAVILY_API_KEY` 
 - `OPENWEATHER_API_KEY`
 
@@ -114,183 +121,112 @@ No additional environment variables needed - uses existing:
 
 ## 🧪 Testing
 
-Run the test to verify the supervisor architecture:
-
+### Run the Test Suite
 ```bash
-cd apps/server
+cd apps/api
 bun run src/test-supervisor.ts
 ```
 
-Expected output:
-```
-🧪 Testing Supervisor Architecture...
+### Test Different Agent Types
+The test suite validates:
+- ✅ Research agent routing
+- ✅ Analysis agent routing  
+- ✅ Execution agent routing
+- ✅ Planning agent routing
+- ✅ Personal information queries
+- ✅ Complex multi-step queries
 
-📝 Testing: "Find information about Tribeni Mahanta"
-✅ Result: [Research Agent] Searching for information about Tribeni Mahanta...
+## 🔄 Integration with Existing Code
 
-📝 Testing: "Calculate the weather in London"
-✅ Result: [Analysis Agent] Analyzing weather data for London...
+### Backward Compatibility
+- ✅ Existing chat functionality preserved
+- ✅ All existing tools continue to work
+- ✅ No breaking changes to API endpoints
+- ✅ Fallback to simple LLM if supervisor fails
 
-📝 Testing: "Execute a web search for AI news"
-✅ Result: [Execution Agent] Executing web search for AI news...
-```
+### Enhanced Features
+- 🎯 Intelligent task routing
+- 🔧 Specialized tool access per agent
+- 📊 Better performance optimization
+- 🧠 Context-aware responses
 
-## 🎯 Benefits
+## 🚀 Usage Examples
 
-### 1. **Specialization**
-- Each agent focuses on specific tasks
-- Better performance for specialized domains
-- Optimized model selection per task type
-
-### 2. **Scalability**
-- Easy to add new specialized agents
-- Modular architecture for complex workflows
-- Independent agent development and testing
-
-### 3. **Intelligent Routing**
-- LLM-powered task analysis
-- Dynamic agent selection
-- Context-aware routing decisions
-
-### 4. **Maintainability**
-- Clear separation of concerns
-- Easier debugging and monitoring
-- Modular code structure
-
-## 🔄 Migration from Single Agent
-
-### Before (Single Agent)
+### Basic Usage
 ```typescript
-const agent = createReactAgent({
-  llm,
-  tools: toolset,
+import { createSupervisedAgent } from "@/lib/agent";
+
+const supervisorAgent = createSupervisedAgent();
+const result = await supervisorAgent(messages, {
+  configurable: { userId: "user-123" }
 });
 ```
 
-### After (Supervisor Architecture)
+### Advanced Usage
 ```typescript
-const supervisor = createSupervisorAgent();
-// Automatically routes to specialized agents
+import { createAdvancedSupervisedAgent } from "@/lib/agent";
+
+const advancedAgent = createAdvancedSupervisedAgent();
+const result = await advancedAgent(messages, {
+  configurable: { userId: "user-123" }
+});
 ```
 
-## 🚀 Next Steps
-
-### 1. **Add More Specialized Agents**
+### Tool-Calling Supervisor
 ```typescript
-// Add new agent types
-export type AgentType = "research" | "analysis" | "execution" | "planning" | "creative" | "technical";
+import { createToolCallingSupervisedAgent } from "@/lib/agent";
 
-// Implement new agent
-const creativeAgent = async (state: MessagesState) => {
-  // Creative writing, content generation
-};
+const toolCallingAgent = createToolCallingSupervisedAgent();
+const result = await toolCallingAgent(messages, {
+  configurable: { userId: "user-123" }
+});
 ```
 
-### 2. **Enhanced Routing Logic**
+## 📈 Performance Benefits
+
+### Tool Optimization
+- **Research Agent**: Only gets search and retrieval tools
+- **Analysis Agent**: Only gets calculation and time tools
+- **Execution Agent**: Only gets action and API tools
+- **Planning Agent**: Gets essential tools for planning
+
+### Model Optimization
+- **Fast queries**: Use `gemini-2.5-flash` for speed
+- **Complex reasoning**: Use `gemini-2.5-pro` for accuracy
+- **Automatic fallback**: Graceful degradation on failures
+
+## 🔍 Debugging
+
+### Enable Debug Logging
+The supervisor includes comprehensive debug logging:
 ```typescript
-// Add more sophisticated routing
-const routingRules = {
-  "creative": ["write", "create", "generate", "compose"],
-  "technical": ["debug", "code", "program", "technical"],
-  // ... more rules
-};
+console.log("[DEBUG] Supervisor routing to: research agent");
+console.log("[DEBUG] Research Agent - Available tools:", toolNames);
+console.log("[DEBUG] Supervisor response:", response);
 ```
 
-### 3. **Agent Communication**
-```typescript
-// Enable agents to communicate with each other
-const agentCommunication = {
-  research: ["analysis", "planning"],
-  analysis: ["execution", "planning"],
-  // ... communication matrix
-};
-```
+### Common Issues
+1. **Tool not found**: Check tool categorization in `categorizeTool()`
+2. **Routing errors**: Verify supervisor prompt logic
+3. **Agent failures**: Check fallback mechanism
 
-## 📊 Monitoring and Analytics
+## 🎯 Next Steps
 
-### Agent Usage Tracking
-```typescript
-// Track which agents are used most
-const agentMetrics = {
-  research: 0,
-  analysis: 0,
-  execution: 0,
-  planning: 0,
-};
-```
+### Potential Enhancements
+- [ ] Add more specialized agents (e.g., `creative`, `technical`)
+- [ ] Implement agent memory and learning
+- [ ] Add agent performance metrics
+- [ ] Create agent-specific prompts
+- [ ] Implement agent collaboration
 
-### Performance Monitoring
-```typescript
-// Monitor agent performance
-const performanceMetrics = {
-  responseTime: {},
-  successRate: {},
-  userSatisfaction: {},
-};
-```
+### Monitoring
+- [ ] Add agent routing analytics
+- [ ] Track tool usage per agent
+- [ ] Monitor response times
+- [ ] Log agent selection decisions
 
-## 🔒 Security Considerations
+---
 
-### Agent Isolation
-- Each agent operates independently
-- No shared state between agents
-- Secure tool execution per agent
+## 🎉 Success!
 
-### Access Control
-- Agent-specific permissions
-- Tool access control per agent
-- User role-based agent access
-
-## 🎯 Production Deployment
-
-### 1. **Database Migration**
-```bash
-bun run db:push
-```
-
-### 2. **Environment Setup**
-```bash
-# No additional setup needed - uses existing environment
-```
-
-### 3. **Testing**
-```bash
-# Run supervisor tests
-bun run src/test-supervisor.ts
-
-# Test with real requests
-curl -X POST http://localhost:3000/api/v1/chat \
-  -H "Content-Type: application/json" \
-  -d '{"message": "Find information about Tribeni Mahanta"}'
-```
-
-## 📈 Performance Optimization
-
-### 1. **Model Selection**
-- Use faster models for simple tasks
-- Use more capable models for complex reasoning
-- Balance speed vs. quality per agent
-
-### 2. **Caching**
-- Cache agent responses for similar requests
-- Cache routing decisions
-- Cache tool results
-
-### 3. **Parallel Processing**
-- Run multiple agents in parallel when possible
-- Batch similar requests
-- Optimize agent communication
-
-## 🎯 Conclusion
-
-The supervisor architecture provides a robust, scalable foundation for your AI agent system. It maintains all existing functionality while adding intelligent routing and specialization capabilities.
-
-**Key Advantages:**
-- ✅ No additional dependencies required
-- ✅ Backward compatible with existing code
-- ✅ Intelligent task routing
-- ✅ Specialized agent optimization
-- ✅ Easy to extend and maintain
-- ✅ Production-ready implementation
-
-The implementation is ready for immediate use and can be extended with additional specialized agents as needed. 
+Your Nurospace project now has a **supervisor architecture** that intelligently routes tasks to specialized agents, providing better performance, accuracy, and user experience while maintaining full backward compatibility with your existing codebase. 
