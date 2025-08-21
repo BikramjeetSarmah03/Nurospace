@@ -123,7 +123,7 @@ function LogViewer({ logs }: { logs: IExecutionLog[] }) {
   if (!logs || logs.length === 0) return null;
 
   return (
-    <Card className="gap-0 py-0 rounded-md overflow-hidden">
+    <Card className="gap-0 py-0 pb-2 rounded-md overflow-hidden">
       <CardHeader className="bg-gray-200 dark:bg-sidebar py-4 rounded-md rounded-b-none">
         <CardTitle className="text-base">Logs</CardTitle>
         <CardDescription className="text-muted-foreground text-sm">

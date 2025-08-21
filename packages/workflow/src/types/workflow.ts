@@ -4,6 +4,11 @@ import type { TaskParam, TaskType } from "./task";
 import type { AppNode } from "./app-node";
 import type { IExecutionLog } from "./log";
 
+export enum IWorkflowStatus {
+  DRAFT = "DRAFT",
+  PUBLISHED = "PUBLISHED",
+}
+
 export enum IWorkflowExecutionStatus {
   PENDING = "PENDING",
   RUNNING = "RUNNING",

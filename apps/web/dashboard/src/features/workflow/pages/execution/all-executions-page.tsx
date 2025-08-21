@@ -51,7 +51,7 @@ export default function AllExecutionsPage({
   }
 
   return (
-    <div className="p-6 container">
+    <div className="mx-auto p-4 lg:p-6 w-full lg:container">
       <ExecutionTable workflowId={workflowId} initialData={data || []} />
     </div>
   );
@@ -76,7 +76,7 @@ function ExecutionTable({
   });
 
   return (
-    <div className="bg-white shadow-md border rounded-lg overflow-auto">
+    <div className="bg-sidebar shadow-md border rounded-lg overflow-auto">
       <Table className="h-full">
         <TableHeader className="bg-muted">
           <TableRow>

@@ -35,7 +35,7 @@ export default function TaskMenu() {
   return (
     <aside
       className={cn(
-        "bg-white border-l-2 h-full overflow-auto border-separate",
+        "bg-sidebar border-l-2 h-full overflow-auto border-separate",
         "relative overflow-hidden",
         "transition-[width] duration-300",
         open ? "w-[340px]" : "w-10",
@@ -45,7 +45,7 @@ export default function TaskMenu() {
         <button
           type="button"
           className={cn(
-            "top-0 left-0 absolute bg-gray-200 p-2 border cursor-pointer",
+            "top-0 left-0 absolute bg-sidebar p-2 border cursor-pointer",
             open && "p-2.5",
           )}
           onClick={toggleOpen}

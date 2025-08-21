@@ -56,7 +56,7 @@ export default function AllWorkflowPage({
         workflows.map((workflow, i) => (
           <div
             key={i.toString()}
-            className="relative flex justify-between items-center bg-white hover:shadow-md p-2 border rounded-md cursor-pointer"
+            className="relative flex justify-between items-center bg-sidebar hover:shadow-md p-2 border rounded-md cursor-pointer"
           >
             <Link
               to="/w/$workflowId"

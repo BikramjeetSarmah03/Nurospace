@@ -59,7 +59,7 @@ export default function ExecutionSidebar({
   return (
     <aside
       className={cn(
-        "flex flex-col bg-white border-r-2 overflow-hidden border-separate",
+        "flex flex-col bg-sidebar border-r-2 overflow-hidden border-separate",
         "w-[350px] min-w-[350px] max-w-[350px]",
         // "transition-all duration-300",
         // open ? "w-[440px]" : "w-10"

@@ -23,7 +23,7 @@ export const workflow = pgTable(
     execuationPlan: text("execution_plan"),
     oron: text("oron"),
     status: text("status").default("DRAFT"), // DRAFT | PUBLISHED
-    creditCost: integer("credit_cost"),
+    creditsCost: integer("credits_cost"),
     lastRunId: text("last_run_id"),
     lastRunStatus: text("last_run_status"),
     lastRunAt: timestamp("last_run_at"),

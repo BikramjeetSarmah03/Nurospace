@@ -9,6 +9,7 @@ import { WORKFLOW_KEYS } from "@/features/workflow/lib/query-keys";
 import TopBar from "@/features/workflow/components/editor/topbar/top-bar";
 import FlowEditor from "@/features/workflow/components/editor/flow-editor";
 import TaskMenu from "@/features/workflow/components/editor/task-menu";
+import { IWorkflowStatus } from "@packages/workflow/types/workflow.js";
 
 interface EditorPageProps {
   workflowId: string;
@@ -31,6 +32,7 @@ export default function EditorPage({ workflowId }: EditorPageProps) {
             title="Workflow Editor"
             subTitle="Really long name for workflow..."
             workflowId={workflowId}
+            isPublished={workflow?.status === IWorkflowStatus.PUBLISHED}
           />
 
           <section className="flex h-full overflow-auto">

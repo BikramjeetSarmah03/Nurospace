@@ -11,8 +11,13 @@ import { TaskType } from "@packages/workflow/types/task.ts";
 import { db } from "@/db";
 import { workflow } from "@/db/schema";
 
+import { FlowToExecutionPlan } from "@packages/workflow/lib/execution-plan.ts";
+import { CalculateWorkflowCost } from "@packages/workflow/lib/calculate-workflow-cost.ts";
+
 import type { CreateWorkflowDto } from "./dto/create-workflow";
 import type { UpdateWorkflowDto } from "./dto/update-workflow";
+import { IWorkflowStatus } from "@packages/workflow/types/workflow.ts";
+import type { RunWorkflowDto } from "./executions/dto/run-workflow";
 
 @Service()
 export default class WorkflowService {
@@ -75,6 +80,48 @@ export default class WorkflowService {
     return {
       success: true,
       data: updatedWorkflow,
+    };
+  }
+
+  async publishWorkflow(
+    workflowId: string,
+    body: RunWorkflowDto,
+    userId: string,
+  ) {
+    if (!body.flowDefination)
+      throw new HTTPException(404, { message: "Flow Defination not provided" });
+
+    const workflowDetail = await this.getWorkflowDetails(workflowId, userId);
+
+    if (workflowDetail.data.status !== IWorkflowStatus.DRAFT)
+      throw new HTTPException(405, { message: "Workflow is not a draft" });
+
+    const flow = JSON.parse(body.flowDefination);
+
+    const result = FlowToExecutionPlan(flow.nodes, flow.edges);
+
+    if (result.error)
+      throw new HTTPException(500, { message: "Flow Defination is not valid" });
+
+    if (!result.executionPlan)
+      throw new HTTPException(500, { message: "No Execution plan generated" });
+
+    const creditsCost = CalculateWorkflowCost(flow.nodes);
+
+    const [publishedWorklow] = await db
+      .update(workflow)
+      .set({
+        defination: body.flowDefination,
+        execuationPlan: JSON.stringify(result.executionPlan),
+        creditsCost,
+        status: IWorkflowStatus.PUBLISHED,
+      })
+      .where(and(eq(workflow.userId, userId), eq(workflow.id, workflowId)))
+      .returning();
+
+    return {
+      success: true,
+      data: publishedWorklow,
     };
   }
 

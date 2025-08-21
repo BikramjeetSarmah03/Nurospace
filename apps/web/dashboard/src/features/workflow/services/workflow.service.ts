@@ -43,6 +43,15 @@ class WorkflowService {
     return (await API.delete(`${workflowUrls.delete}/${id}`)).data;
   }
 
+  async publishWorkflow(body: {
+    workflowId: string;
+    flowDefination: string;
+  }): Promise<
+    SuccessResponse<{ workflowId: string; executionId: string }> | ErrorResponse
+  > {
+    return (await API.patch(`${workflowUrls.publish_workflow}`, body)).data;
+  }
+
   async runWorkflow(body: {
     workflowId: string;
     flowDefination: string;

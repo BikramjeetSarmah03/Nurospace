@@ -16,6 +16,7 @@ import WorkflowService from "./workflows.service";
 
 import type { CreateWorkflowDto } from "./dto/create-workflow";
 import type { UpdateWorkflowDto } from "./dto/update-workflow";
+import type { RunWorkflowDto } from "./executions/dto/run-workflow";
 
 @Controller("workflow")
 @UseGuards(AuthGuard)
@@ -54,6 +55,18 @@ class WorkflowController {
   ) {
     return await this.workflowService.updateWorkflow(
       workflowId,
+      body,
+      authContext.user.id,
+    );
+  }
+
+  @Patch("execution/publish")
+  async publishWokflow(
+    @Body() body: RunWorkflowDto,
+    @AuthContext() authContext: IAuthContext,
+  ) {
+    return await this.workflowService.publishWorkflow(
+      body.workflowId ?? "",
       body,
       authContext.user.id,
     );

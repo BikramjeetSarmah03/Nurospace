@@ -12,7 +12,7 @@ function RouteComponent() {
       <Link
         to="/w/$workflowId/editor"
         params={params}
-        className="bg-white p-4 border"
+        className="bg-sidebar p-4 border"
       >
         EDITOR / DEV Mode
       </Link>

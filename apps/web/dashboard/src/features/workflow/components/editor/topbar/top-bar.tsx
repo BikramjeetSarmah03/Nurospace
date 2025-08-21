@@ -6,12 +6,14 @@ import { SaveBtn } from "./save-btn";
 import { ExecuteBtn } from "./execute-btn";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link, useLocation } from "@tanstack/react-router";
+import { PublishBtn } from "./publish-btn";
 
 interface TopBarProps {
   title: string;
   subTitle?: string;
   workflowId: string;
   hideButtons?: boolean;
+  isPublished?: boolean;
 }
 
 export default function TopBar({
@@ -19,6 +21,7 @@ export default function TopBar({
   subTitle,
   workflowId,
   hideButtons,
+  isPublished,
 }: TopBarProps) {
   const { pathname } = useLocation();
 
@@ -68,8 +71,13 @@ export default function TopBar({
 
       {!hideButtons ? (
         <div className="flex justify-end gap-1 w-full max-w-md">
-          <SaveBtn workflowId={workflowId} />
           <ExecuteBtn workflowId={workflowId} />
+          {!isPublished && (
+            <>
+              <SaveBtn workflowId={workflowId} />
+              <PublishBtn workflowId={workflowId} />
+            </>
+          )}
         </div>
       ) : (
         <div className="w-full max-w-md" />
