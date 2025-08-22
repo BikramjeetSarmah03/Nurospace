@@ -3,6 +3,9 @@ import { toolset } from "@/tool/tool.index";
 import { getLLM, getFallbackLLM } from "./llm";
 import { BaseMessage } from "@langchain/core/messages";
 import { SemanticToolRegistry } from "./semantic-tool-registry";
+import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { RunnableSequence } from "@langchain/core/runnables";
+import { StringOutputParser } from "@langchain/core/output_parsers";
 
 async function executeWithTools(tools: any[], messages: BaseMessage[], userId?: string, userQuery?: string) {
   const results: string[] = [];
@@ -21,8 +24,14 @@ async function executeWithTools(tools: any[], messages: BaseMessage[], userId?: 
         results.push(`🌤️ **Weather**: ${toolResult}`);
       }
       else if (tool.name === 'retrieveRelevantChunks') {
-        toolResult = await tool.invoke(userQuery || "", { configurable: { userId } });
-        results.push(`📄 **Document Analysis**: ${toolResult}`);
+        const rawChunks = await tool.invoke(userQuery || "", { configurable: { userId } });
+        
+        // ✅ PRODUCTIFY APPROACH: Return raw chunks, let main LLM process them
+        if (rawChunks && rawChunks.length > 0) {
+          results.push(`📄 **Document Analysis**: ${rawChunks}`);
+        } else {
+          results.push(`📄 **Document Analysis**: No relevant information found in your documents.`);
+        }
       }
       else if (tool.name === 'tavilySearch') {
         toolResult = await tool.invoke(userQuery || "", { configurable: { userId } });
@@ -80,17 +89,8 @@ export function createSemanticSupervisor(useFallback = false) {
     const startTime = Date.now();
 
     try {
-      console.log("[DEBUG] Using TRUE semantic tool selection");
-
       // SEMANTIC TOOL SELECTION (No keywords!)
       const selection = await semanticRegistry.selectToolsSemantically(userQuery, undefined, 3);
-      
-      console.log(`[DEBUG] Semantic selection:`, {
-        method: selection.selectionMethod,
-        tools: selection.tools.map(t => t.name),
-        confidences: selection.confidenceScores.map(s => `${(s * 100).toFixed(1)}%`),
-        reasonings: selection.reasonings
-      });
 
       if (selection.tools.length === 0) {
         return {
@@ -107,7 +107,10 @@ export function createSemanticSupervisor(useFallback = false) {
       }
 
       // Execute with semantically selected tools using direct tool invocation
-      const result = await executeWithTools(selection.tools, messages, userId, userQuery);
+      const toolResult = await executeWithTools(selection.tools, messages, userId, userQuery);
+
+      // ✅ PRODUCTIFY APPROACH: Process tool results with LLM
+      const finalContent = await processToolResultsWithLLM(toolResult.content, userQuery);
 
       // Record performance for learning
       await semanticRegistry.recordToolUsage(
@@ -120,7 +123,7 @@ export function createSemanticSupervisor(useFallback = false) {
       return {
         messages: [{
           role: "assistant",
-          content: result.content
+          content: finalContent
         }],
         metadata: {
           toolsUsed: selection.tools.map(t => t.name),
@@ -151,6 +154,61 @@ export function createSemanticSupervisor(useFallback = false) {
       };
     }
   };
+}
+
+
+
+/**
+ * ✅ PRODUCTIFY APPROACH: Process tool results with LLM
+ * This mimics productify's approach of using LLM to extract specific information
+ */
+export async function processToolResultsWithLLM(toolResults: string, userQuery: string): Promise<string> {
+  try {
+    const llm = getLLM("gemini-2.5-flash");
+    
+    // Create a focused prompt for processing tool results
+    const prompt = ChatPromptTemplate.fromMessages([
+      [
+        "system",
+        `You are a helpful AI assistant that processes tool results and provides focused answers.
+        
+        IMPORTANT INSTRUCTIONS:
+        - Focus ONLY on the information the user is asking for
+        - Be concise and direct in your response
+        - If asking for a name, extract just the name
+        - If asking for contact info, extract just the contact details
+        - If asking for specific facts, extract just those facts
+        - Do NOT include irrelevant information
+        - Do NOT repeat the entire tool results
+        
+        For name queries: Extract and return just the person's name
+        For contact queries: Extract and return just the contact information
+        For fact queries: Extract and return just the relevant facts`
+      ],
+      [
+        "user", 
+        `Tool Results:\n{context}\n\nUser Question: {question}\n\nProvide a focused answer based on the tool results:`
+      ]
+    ]);
+
+    const chain = RunnableSequence.from([
+      prompt,
+      llm,
+      new StringOutputParser(),
+    ]);
+
+    const result = await chain.invoke({ 
+      context: toolResults, 
+      question: userQuery 
+    });
+
+    return result;
+  } catch (error) {
+    console.error("[ERROR] Failed to process tool results with LLM:", error);
+    
+    // Return raw tool results if LLM processing fails
+    return toolResults;
+  }
 }
 
 function extractUserQuery(messages: BaseMessage[]): string {

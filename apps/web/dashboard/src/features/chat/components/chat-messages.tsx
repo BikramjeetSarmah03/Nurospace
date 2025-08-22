@@ -98,7 +98,7 @@ export default function ChatMessages({
             <div className="space-y-4">
               <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent gradient-text-animate">
                 Welcome to Nurospace AI
-              </h1>
+        </h1>
               <p className="text-lg text-muted-foreground max-w-md mx-auto">
                 Your intelligent assistant for research, analysis, and creative problem-solving
               </p>

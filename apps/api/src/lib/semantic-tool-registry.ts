@@ -1,136 +1,50 @@
-import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
+//semantic-tool-registry.ts
 import { ProductionToolRegistry } from "./tool-registry";
+import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
+import { TOOL_CONFIGS, getToolConfig } from "./tool-config";
 
-interface SemanticToolMetadata {
+export interface SemanticToolMetadata {
   name: string;
   category: 'research' | 'analysis' | 'execution' | 'planning';
   keywords: string[];
   priority: number;
   alwaysAvailable: boolean;
   description: string;
-  usageExamples: string[]; // Key addition for semantic understanding
-  semanticContext: string; // Rich context for embeddings
-  inputFormat?: string;
-  outputFormat?: string;
-  dependencies?: string[];
-  tags?: string[];
+  usageExamples: string[];
+  semanticContext: string;
 }
 
 export class SemanticToolRegistry extends ProductionToolRegistry {
-  private embeddings: GoogleGenerativeAIEmbeddings;
-  
-  // Vector embeddings for true semantic matching
+  private embeddings: GoogleGenerativeAIEmbeddings | null = null;
   private toolEmbeddings = new Map<string, number[]>();
-  private queryCache = new Map<string, { tools: any[], confidence: number, timestamp: number }>();
-  
-  // Learning system
-  private toolPerformance = new Map<string, {
-    successCount: number;
-    totalUsage: number;
-    avgRelevanceScore: number;
-    lastUsed: number;
-  }>();
+  private queryCache = new Map<string, { tools: any[]; confidence: number; timestamp: number }>();
+  private toolPerformance = new Map<string, { successCount: number; totalUsage: number; lastUsed: number }>();
+  private queryComplexityHistory = new Map<string, { keywordWorked: boolean; semanticNeeded: boolean; usageCount: number }>();
 
-  constructor(toolset: any[]) {
-    super(toolset);
-    
-    // Initialize embeddings (fallback to null if no API key)
-    try {
-      this.embeddings = new GoogleGenerativeAIEmbeddings({
-        apiKey: process.env.GOOGLE_API_KEY,
-        modelName: "embedding-001", // Google's embedding model
-      });
-      this.initializeSemanticRegistry();
-    } catch (error) {
-      console.log("[DEBUG] Google API key not found, using keyword-based selection only");
-      this.embeddings = null as any;
-    }
+  constructor(tools: any[]) {
+    super(tools);
+    this.initializeSemanticRegistry();
   }
 
   private async initializeSemanticRegistry() {
-    if (!this.embeddings) return;
-    
-    const startTime = Date.now();
-    
-    // Rich semantic metadata for your existing tools
-    const semanticMetadata: SemanticToolMetadata[] = [
-      {
-        name: 'retrieveRelevantChunks',
-        category: 'research',
-        keywords: ['document', 'pdf', 'file', '@'],
-        priority: 10,
-        alwaysAvailable: true,
-        description: 'Search and analyze uploaded documents and personal files',
-        usageExamples: [
-          'analyze my resume',
-          'what does the contract say about payments',
-          'find information in my uploaded document',
-          'search through my personal files',
-          '@doc123 what are the key points'
-        ],
-        semanticContext: 'document analysis, file search, personal information retrieval, content analysis, uploaded documents, PDF processing, text extraction'
-      },
-      {
-        name: 'tavilySearch',
-        category: 'research',
-        keywords: ['search', 'web', 'internet', 'news', 'latest', 'breaking', 'current', 'recent'],
-        priority: 9,
-        alwaysAvailable: true,
-        description: 'Search the internet for current information, news, breaking news, and real-time data',
-        usageExamples: [
-          'what is the latest news about AI',
-          'current stock price of Apple',
-          'recent developments in climate change',
-          'breaking news today',
-          'latest updates on climate change',
-          'current events happening now',
-          'find current information about cryptocurrency'
-        ],
-        semanticContext: 'web search, internet information, current events, news, breaking news, real-time data, external knowledge, public information, recent updates, latest information, current happenings, breaking developments'
-      },
-      {
-        name: 'getCurrentDateTime',
-        category: 'analysis',
-        keywords: ['time', 'date', 'now', 'current', 'moment', 'clock', 'hour', 'minute'],
-        priority: 8,
-        alwaysAvailable: true,
-        description: 'Get current date and time information, time queries, clock information',
-        usageExamples: [
-          'what time is it',
-          'what day is today',
-          'current date and time',
-          'what is the current timestamp',
-          'tell me today\'s date',
-          'whats the time right now',
-          'current moment',
-          'time and date'
-        ],
-        semanticContext: 'current time, present moment, today\'s date, clock, calendar, timestamp, now, present time, time queries, moment queries, clock queries, time information, date information, current time queries'
-      },
-      {
-        name: 'getCurrentWeather',
-        category: 'execution',
-        keywords: ['weather', 'temperature', 'forecast'],
-        priority: 7,
-        alwaysAvailable: true,
-        description: 'Get weather information and forecasts for any location',
-        usageExamples: [
-          'weather in New York',
-          'temperature in London today',
-          'is it going to rain tomorrow',
-          'current weather conditions',
-          'forecast for this weekend'
-        ],
-        semanticContext: 'weather conditions, temperature, precipitation, forecast, climate, atmospheric conditions, meteorology'
+    try {
+      this.embeddings = new GoogleGenerativeAIEmbeddings({
+        modelName: "embedding-001",
+        maxConcurrency: 5,
+      });
+      
+      const startTime = Date.now();
+      
+      // ✅ Use centralized config instead of hardcoded metadata
+      for (const toolConfig of TOOL_CONFIGS) {
+        await this.generateToolEmbedding(toolConfig.name, toolConfig);
       }
-    ];
 
-    // Generate embeddings for each tool
-    for (const metadata of semanticMetadata) {
-      await this.generateToolEmbedding(metadata.name, metadata);
+      console.log(`[DEBUG] Semantic embeddings generated for ${TOOL_CONFIGS.length} tools in ${Date.now() - startTime}ms`);
+    } catch (error) {
+      console.warn("[WARNING] Failed to initialize semantic embeddings, falling back to keyword-only selection:", error);
+      this.embeddings = null;
     }
-
-    console.log(`[DEBUG] Semantic embeddings generated in ${Date.now() - startTime}ms`);
   }
 
   /**
@@ -193,9 +107,7 @@ export class SemanticToolRegistry extends ProductionToolRegistry {
     }
   }
 
-  /**
-   * ✅ Get keyword predictions (your existing enhanced logic)
-   */
+  // ✅ Dynamic keyword predictions from config
   private async getKeywordPredictions(query: string, maxTools: number) {
     const queryLower = query.toLowerCase();
     const predictions: Array<{
@@ -204,80 +116,117 @@ export class SemanticToolRegistry extends ProductionToolRegistry {
       confidence: number;
       method: string;
     }> = [];
-    
-    // Your existing enhanced keyword logic
-    if (queryLower.includes('time') || queryLower.includes('moment') || 
-        queryLower.includes('clock') || queryLower.includes('hour') || 
-        queryLower.includes('minute') || queryLower.includes('date')) {
-      predictions.push({
-        toolName: 'getCurrentDateTime',
-        tool: this.getAllTools().find(t => t.name === 'getCurrentDateTime'),
-        confidence: 0.95, // High confidence for clear keyword matches
-        method: 'keyword'
-      });
-    }
-    
-    if (queryLower.includes('news') || queryLower.includes('breaking') || 
-        queryLower.includes('latest') || queryLower.includes('current') || 
-        queryLower.includes('search') || queryLower.includes('find')) {
-      predictions.push({
-        toolName: 'tavilySearch',
-        tool: this.getAllTools().find(t => t.name === 'tavilySearch'),
-        confidence: 0.9,
-        method: 'keyword'
-      });
-    }
-    
-    if (queryLower.includes('document') || queryLower.includes('uploaded') || 
-        queryLower.includes('@') || queryLower.includes('resume') || 
-        queryLower.includes('contract')) {
-      predictions.push({
-        toolName: 'retrieveRelevantChunks',
-        tool: this.getAllTools().find(t => t.name === 'retrieveRelevantChunks'),
-        confidence: 0.9,
-        method: 'keyword'
-      });
-    }
-    
-    if (queryLower.includes('weather') || queryLower.includes('temperature') || 
-        queryLower.includes('forecast') || queryLower.includes('rain')) {
-      predictions.push({
-        toolName: 'getCurrentWeather',
-        tool: this.getAllTools().find(t => t.name === 'getCurrentWeather'),
-        confidence: 0.9,
-        method: 'keyword'
-      });
+
+    // ✅ Check for document-specific queries first (high priority)
+    if (queryLower.includes('@') || queryLower.match(/[a-f0-9-]{36}/)) {
+      const tool = this.getAllTools().find(t => t.name === 'retrieveRelevantChunks');
+      if (tool) {
+        predictions.push({
+          toolName: 'retrieveRelevantChunks',
+          tool,
+          confidence: 0.95, // Very high confidence for document mentions
+          method: 'document_mention'
+        });
+      }
     }
 
-    return predictions.filter(p => p.tool).slice(0, maxTools);
+    // ✅ Use config triggers instead of hardcoded patterns
+    for (const toolConfig of TOOL_CONFIGS) {
+      const matchCount = toolConfig.triggers.filter(trigger => 
+        queryLower.includes(trigger.toLowerCase())
+      ).length;
+
+      if (matchCount > 0) {
+        const tool = this.getAllTools().find(t => t.name === toolConfig.name);
+        if (tool) {
+          // Higher confidence for more trigger matches
+          const confidence = Math.min(0.95, 0.7 + (matchCount * 0.1));
+          
+          // Don't add if already added for document mention
+          if (!(toolConfig.name === 'retrieveRelevantChunks' && queryLower.includes('@'))) {
+            predictions.push({
+              toolName: toolConfig.name,
+              tool,
+              confidence,
+              method: 'keyword'
+            });
+          }
+        }
+      }
+    }
+
+    return predictions
+      .sort((a, b) => b.confidence - a.confidence)
+      .slice(0, maxTools);
   }
 
   /**
-   * ✅ Ensemble voting: combine semantic + keyword
+   * ✅ IMPROVED: Dynamic weighting based on prediction availability and score distribution
    */
   private ensembleVoting(semanticPredictions: any[], keywordPredictions: any[], maxTools: number) {
     const toolScores = new Map<string, { score: number, tool: any, methods: string[] }>();
     
-    // Keyword vote (weight: 0.7 - higher because more reliable for compound queries)
+    // ✅ Dynamic weighting based on prediction availability
+    let keywordWeight = 0.7;
+    let semanticWeight = 0.3;
+    
+    // ✅ If no keyword predictions, increase semantic weight
+    if (keywordPredictions.length === 0) {
+      console.log(`[DEBUG] No keyword predictions found, increasing semantic weight`);
+      keywordWeight = 0.2;
+      semanticWeight = 0.8; // Give semantic more influence when keywords fail
+    }
+    
+    // ✅ If semantic predictions are all very close, rely more on keywords
+    if (semanticPredictions.length > 1) {
+      const semanticScores = semanticPredictions.map(p => p.confidence).sort((a, b) => b - a);
+      const topTwo = semanticScores.slice(0, 2);
+      if (topTwo.length === 2 && topTwo[0] - topTwo[1] < 0.05) { // Very close scores
+        console.log(`[DEBUG] Semantic scores very close, relying more on keywords`);
+        keywordWeight = 0.85;
+        semanticWeight = 0.15;
+      }
+    }
+    
+    console.log(`[DEBUG] Using weights: keyword=${(keywordWeight*100).toFixed(0)}%, semantic=${(semanticWeight*100).toFixed(0)}%`);
+    
+    // Keyword vote with dynamic weight
     keywordPredictions.forEach(pred => {
       const current = toolScores.get(pred.toolName) || { score: 0, tool: pred.tool, methods: [] };
-      current.score += pred.confidence * 0.7;
+      current.score += pred.confidence * keywordWeight;
       current.methods.push('keyword');
       toolScores.set(pred.toolName, current);
     });
     
-    // Semantic vote (weight: 0.3)
+    // Semantic vote with dynamic weight
     semanticPredictions.forEach(pred => {
       const current = toolScores.get(pred.toolName) || { score: 0, tool: pred.tool, methods: [] };
-      current.score += pred.confidence * 0.3;
+      current.score += pred.confidence * semanticWeight;
       current.methods.push('semantic');
       toolScores.set(pred.toolName, current);
     });
 
-    // Sort by ensemble score
-    const rankedTools = Array.from(toolScores.entries())
-      .sort(([,a], [,b]) => b.score - a.score)
+    const sortedTools = Array.from(toolScores.entries())
+      .sort(([,a], [,b]) => b.score - a.score);
+
+    if (sortedTools.length === 0) {
+      return { tools: [], confidenceScores: [], reasonings: [], selectionMethod: 'no_tools' };
+    }
+
+    // ✅ Dynamic threshold: at least 50% of top score
+    const topScore = sortedTools[0][1].score;
+    const adaptiveThreshold = Math.max(0.3, topScore * 0.5); // At least 50% of top score
+    
+    console.log(`[DEBUG] Adaptive threshold: ${(adaptiveThreshold * 100).toFixed(1)}% (based on top: ${(topScore * 100).toFixed(1)}%)`);
+
+    const rankedTools = sortedTools
+      .filter(([,data]) => data.score >= adaptiveThreshold)
       .slice(0, maxTools);
+
+    // ✅ Always include at least the top tool
+    if (rankedTools.length === 0) {
+      rankedTools.push(sortedTools[0]);
+    }
 
     const tools = rankedTools.map(([,data]) => data.tool);
     const confidenceScores = rankedTools.map(([,data]) => data.score);
@@ -289,7 +238,7 @@ export class SemanticToolRegistry extends ProductionToolRegistry {
       tools,
       confidenceScores,
       reasonings,
-      selectionMethod: 'ensemble_voting'
+      selectionMethod: 'ensemble_voting_dynamic'
     };
   }
 
@@ -339,6 +288,8 @@ export class SemanticToolRegistry extends ProductionToolRegistry {
    * True semantic selection using embeddings
    */
   private async semanticSelection(query: string, maxTools: number) {
+    if (!this.embeddings) return { tools: [], confidenceScores: [], reasonings: [], selectionMethod: 'no_semantic_model' };
+
     // Generate query embedding
     const queryEmbedding = await this.embeddings.embedQuery(query);
     
@@ -368,8 +319,8 @@ export class SemanticToolRegistry extends ProductionToolRegistry {
       const bPerf = this.toolPerformance.get(b.toolName);
       
       // Boost score based on past performance
-      const aScore = a.similarity + (aPerf ? aPerf.avgRelevanceScore * 0.1 : 0);
-      const bScore = b.similarity + (bPerf ? bPerf.avgRelevanceScore * 0.1 : 0);
+      const aScore = a.similarity + (aPerf ? (aPerf.successCount / Math.max(aPerf.totalUsage, 1)) * 0.1 : 0);
+      const bScore = b.similarity + (bPerf ? (bPerf.successCount / Math.max(bPerf.totalUsage, 1)) * 0.1 : 0);
       
       return bScore - aScore;
     });
@@ -409,7 +360,6 @@ export class SemanticToolRegistry extends ProductionToolRegistry {
     const current = this.toolPerformance.get(toolName) || {
       successCount: 0,
       totalUsage: 0,
-      avgRelevanceScore: 0.5,
       lastUsed: Date.now()
     };
 
@@ -417,27 +367,24 @@ export class SemanticToolRegistry extends ProductionToolRegistry {
     if (success) current.successCount++;
     current.lastUsed = Date.now();
 
-    // Update relevance score based on success and feedback
-    if (userFeedback !== undefined) {
-      current.avgRelevanceScore = (current.avgRelevanceScore + userFeedback) / 2;
-    } else {
-      current.avgRelevanceScore = (current.avgRelevanceScore + (success ? 1 : 0)) / 2;
+    // Update performance metrics
+    if (success) {
+      current.successCount++;
     }
 
     this.toolPerformance.set(toolName, current);
   }
 
-  /**
-   * Generate rich embedding for each tool
-   */
-  private async generateToolEmbedding(toolName: string, metadata: SemanticToolMetadata) {
-    // Create rich text for embedding
+  // ✅ Updated embedding generation using config
+  private async generateToolEmbedding(toolName: string, toolConfig: any) {
+    if (!this.embeddings) return;
+    
     const embeddingText = `
-      Tool: ${metadata.name}
-      Description: ${metadata.description}
-      Category: ${metadata.category}
-      Context: ${metadata.semanticContext}
-      Example uses: ${metadata.usageExamples.join('. ')}
+      Tool: ${toolConfig.name}
+      Description: ${toolConfig.description}
+      Category: ${toolConfig.category}
+      Context: ${toolConfig.semanticContext}
+      Example uses: ${toolConfig.usageExamples.join('. ')}
     `.trim();
 
     const embedding = await this.embeddings.embedQuery(embeddingText);
@@ -470,5 +417,10 @@ export class SemanticToolRegistry extends ProductionToolRegistry {
    */
   getAllPerformanceData() {
     return Object.fromEntries(this.toolPerformance);
+  }
+
+  // ✅ Helper method to get tool config
+  getToolConfig(toolName: string) {
+    return getToolConfig(toolName);
   }
 }

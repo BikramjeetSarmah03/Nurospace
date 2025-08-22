@@ -161,44 +161,23 @@ export default class ChatService {
       
       if (existingMessages.length === 0) {
         // This is a new conversation, add system message
-        let systemContent = `You are an advanced AI assistant powered by semantic tool selection and ensemble voting.
+        let systemContent = `You are an intelligent AI assistant that provides helpful, accurate responses.
 
-            🧠 SEMANTIC INTELLIGENCE:
-            • Uses vector embeddings to understand query meaning beyond keywords
-            • Combines semantic analysis with keyword matching for optimal accuracy
-            • Continuously learns from tool usage to improve future selections
-            • Automatically selects the most relevant tools for each specific query
+🎯 **YOUR ROLE**:
+• Understand user queries and provide clear, well-structured answers
+• Use available capabilities when appropriate to enhance your responses
+• Combine information from multiple sources when needed
+• Be direct, helpful, and conversational
 
-            🛠️ AVAILABLE TOOLS:
-            • Document Analysis: retrieveRelevantChunks for analyzing uploaded documents
-            • Web Search: tavilySearch for current information, news, and research
-            • Weather Data: getCurrentWeather for weather information and forecasts
-            • Time/Date: getCurrentDateTime for current time and date queries
-
-            🎯 INTELLIGENT CAPABILITIES:
-            • Multi-tool orchestration for complex queries requiring multiple tools
-            • Semantic understanding of compound requests (e.g., "time and news")
-            • Contextual tool selection based on query intent and meaning
-            • Performance tracking and optimization for better results
-
-            💡 EXAMPLES:
-            • "What's the time and latest news?" → getCurrentDateTime + tavilySearch
-            • "Analyze my resume @doc123 and find job openings" → retrieveRelevantChunks + tavilySearch
-            • "Weather in London and current date" → getCurrentWeather + getCurrentDateTime
-
-            Your responses are intelligent, helpful, and contextually aware.`;
+The right tools for each query will be made available to you seamlessly.`;
 
         // Add document context if documents are mentioned
-      if (mentionedDocs.length > 0) {
-        const docContext = mentionedDocs
-          .map(
-            (doc) =>
-                `Document ID: ${doc.id}\nName: ${doc.name}\nType: ${doc.type}`,
-          )
-          .join("\n\n");
-
-                     systemContent += `\n\n📄 MENTIONED DOCUMENTS:\n${docContext}\n\nIMPORTANT: When documents are mentioned (@resource_id), the system will automatically use the document retrieval tool to analyze the document content using the provided Document ID.`;
+        if (mentionedDocs.length > 0) {
+          const docNames = mentionedDocs.map(doc => doc.name).join(', ');
+          systemContent += `\n\n📄 **Referenced Documents**: ${docNames}`;
         }
+
+        systemContent += `\n\nProvide helpful responses based on the user's needs.`;
 
         agentMessages.push(new SystemMessage(systemContent));
       }
@@ -260,7 +239,7 @@ export default class ChatService {
 
           // Send the final response
           const responseContent = result.messages[result.messages.length - 1]?.content;
-          console.log("[DEBUG] Response content:", responseContent);
+          // console.log("[DEBUG] Response content:", responseContent);
           if (responseContent) {
             const content = typeof responseContent === 'string' 
               ? responseContent 

@@ -23,27 +23,59 @@ export async function retrieveRelevantChunks(
     userId,
   );
 
-  // Check if query contains specific document ID
-  const docIdMatch = query.match(/\[DOC_ID:([^\]]+)\]/);
+  // Check if query contains specific document ID (multiple formats)
+  const docIdMatch = query.match(/\[DOC_ID:([^\]]+)\]/) || query.match(/@([a-f0-9-]{36})/);
   
   if (docIdMatch) {
     const docId = docIdMatch[1];
     console.log("[DEBUG] Found specific document ID:", docId);
     
-    // Search specifically for this document
-    const results = await db
-      .select({ content: resourceEmbeddings.content })
-      .from(resourceEmbeddings)
-      .where(sql`user_id = ${userId} AND resource_id = ${docId}`)
-      .limit(topK);
+    // Extract the actual search query (remove the document ID part)
+    const searchQuery = query.replace(/\[DOC_ID:[^\]]+\]/, '').replace(/@[a-f0-9-]{36}/, '').trim();
+    console.log("[DEBUG] Search query after removing doc ID:", searchQuery);
+    
+    if (searchQuery) {
+      // Use semantic search within the specific document
+      const embeddingModel = new GoogleGenerativeAIEmbeddings({
+        modelName: "embedding-001",
+        apiKey: process.env.GOOGLE_API_KEY,
+      });
 
-    console.log("[DEBUG] Document-specific query returned", results.length, "results");
-    console.log(
-      "[DEBUG] Results:",
-      results.map((r) => r.content.substring(0, 100) + "..."),
-    );
+      const queryEmbedding = await embeddingModel.embedQuery(searchQuery);
+      console.log("[DEBUG] Generated query embedding for document search, length:", queryEmbedding.length);
 
-    return results.map((r) => r.content);
+      const results = await db
+        .select({ content: resourceEmbeddings.content })
+        .from(resourceEmbeddings)
+        .where(sql`user_id = ${userId} AND resource_id = ${docId}`)
+        .orderBy(
+          sql`embedding <-> ${sql.raw(`'[${queryEmbedding.join(",")}]'::vector`)}`,
+        ) // cosine distance within specific document
+        .limit(topK);
+
+      console.log("[DEBUG] Document-specific semantic search returned", results.length, "results");
+      console.log(
+        "[DEBUG] Results:",
+        results.map((r) => r.content.substring(0, 100) + "..."),
+      );
+
+      return results.map((r) => r.content);
+    } else {
+      // If no search query, return first few chunks from the document
+      const results = await db
+        .select({ content: resourceEmbeddings.content })
+        .from(resourceEmbeddings)
+        .where(sql`user_id = ${userId} AND resource_id = ${docId}`)
+        .limit(topK);
+
+      console.log("[DEBUG] Document-specific query returned", results.length, "results");
+      console.log(
+        "[DEBUG] Results:",
+        results.map((r) => r.content.substring(0, 100) + "..."),
+      );
+
+      return results.map((r) => r.content);
+    }
   }
 
   // Fallback to vector search for general queries
@@ -83,7 +115,7 @@ export async function retrieveRelevantChunks(
 export const retrieveRelevantChunksTool = new DynamicTool({
   name: "retrieveRelevantChunks",
   description:
-    "CRITICAL: ALWAYS use this tool FIRST when the user asks about ANY information that might be in their uploaded documents, files, or personal content. This includes names, addresses, personal details, facts, or any information the user has provided in their documents. IMPORTANT: If the user asks about specific names, people, addresses, or personal information that they have uploaded, you MUST use this tool to search their documents first. Do NOT refuse to provide information from their own documents. The tool can handle both general queries and specific document ID queries (format: [DOC_ID:resource_id]). Examples: 'Tell me about John Smith', 'What's the address for...', 'Tell me a fact about...', 'What does my document say about...', 'news about...', 'district of...', 'news regarding [name]', etc. Input should be the user's question about their documents.",
+    "CRITICAL: ALWAYS use this tool FIRST when the user asks about ANY information that might be in their uploaded documents, files, or personal content. This includes names, addresses, personal details, facts, or any information the user has provided in their documents. IMPORTANT: If the user asks about specific names, people, addresses, or personal information that they have uploaded, you MUST use this tool to search their documents first. Do NOT refuse to provide information from their own documents. The tool can handle both general queries and specific document ID queries (format: @resource_id or [DOC_ID:resource_id]). For name-related queries, focus on finding personal information, contact details, biographical data, or identifying information. Examples: 'Tell me about John Smith', 'What's the address for...', 'Tell me a fact about...', 'What does my document say about...', 'What name is mentioned here', 'Who is this person', 'Find the name', etc. Input should be the user's question about their documents.",
   func: async (
     input: string,
     _runManager,
