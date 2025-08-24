@@ -4,8 +4,7 @@ import { toolset } from "@/tool/tool.index";
 import { getLLM, getFallbackLLM } from "@/lib/llm";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { StringOutputParser } from "@langchain/core/output_parsers";
-import { createSupervisorAgent, createAdvancedSupervisorAgent, createToolCallingSupervisorAgent, createHybridSupervisorAgent, createSemanticSupervisorAgent } from "./supervisor-agent";
-import { createSemanticSupervisor } from "./semantic-supervisor";
+// 🚀 LAZY LOADING: Remove top-level import to prevent premature initialization
 
 // Enhanced memory saver with better persistence
 const memorySaver = new MemorySaver();
@@ -55,46 +54,7 @@ export function createMemoryAgent(useFallback = false) {
   return agent;
 }
 
-/**
- * 🎯 SUPERVISOR AGENT - Routes tasks to specialized agents
- * 
- * This is the main supervisor agent that intelligently routes user requests
- * to specialized agents based on the nature of the task.
- */
-export function createSupervisedAgent(useFallback = false) {
-  return createSupervisorAgent(useFallback);
-}
 
-/**
- * 🚀 ADVANCED SUPERVISOR AGENT - Enhanced routing with dynamic tool selection
- * 
- * Advanced version with better tool routing and performance optimization
- */
-export function createAdvancedSupervisedAgent(useFallback = false) {
-  return createAdvancedSupervisorAgent(useFallback);
-}
-
-/**
- * 🔧 TOOL-CALLING SUPERVISOR AGENT - Uses tool-calling for agent selection
- * 
- * Experimental version that uses tool-calling for more precise agent routing
- */
-export function createToolCallingSupervisedAgent(useFallback = false) {
-  return createToolCallingSupervisorAgent(useFallback);
-}
-
-/**
- * 🚀 HYBRID SUPERVISOR AGENT - Function Calling + Caching + Fallback
- * 
- * Production-ready implementation with optimal performance:
- * - Function calling for efficient routing
- * - Smart caching for repeated queries  
- * - Fallback strategies for reliability
- * - Token optimization and cost control
- */
-export function createHybridSupervisedAgent(useFallback = false) {
-  return createHybridSupervisorAgent(useFallback);
-}
 
 /**
  * 🧠 SEMANTIC SUPERVISOR AGENT - AI-Powered Tool Selection
@@ -105,10 +65,13 @@ export function createHybridSupervisedAgent(useFallback = false) {
  * - Performance tracking and optimization
  * - Fallback to keyword-based selection
  */
-export function createSemanticSupervisedAgent(useFallback = false) {
-  return createSemanticSupervisor(useFallback);
+export async function createSemanticSupervisedAgent(useFallback = false) {
+  const semanticSupervisor = await createSemanticSupervisor(useFallback);
+  return semanticSupervisor;
 }
 
-// Export supervisor functions for direct use
-export { createSupervisorAgent, createAdvancedSupervisorAgent, createToolCallingSupervisorAgent, createHybridSupervisorAgent, createSemanticSupervisorAgent } from "./supervisor-agent";
-export { createSemanticSupervisor } from "./semantic-supervisor";
+// 🚀 LAZY LOADING: Export function that dynamically imports when needed
+export async function createSemanticSupervisor(useFallback = false) {
+  const { createSemanticSupervisor: createSemanticSupervisorFn } = await import("./normal-mode");
+  return createSemanticSupervisorFn(useFallback);
+}

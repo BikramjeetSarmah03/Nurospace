@@ -10,16 +10,24 @@ import {
   QuoteIcon,
   LayersIcon,
   PlusIcon,
+  SquareIcon,
+  Zap,
+  Sparkles,
 } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { API } from "@/lib/api-client";
+import { ModeToggle } from "./mode-toggle";
 
 interface ChatBoxProps {
   onSubmit: (
     value: string,
     context?: { documents: ResourceDocument[] },
+    mode?: "normal" | "max" | "power"
   ) => void;
+  onStop?: () => void;
+  canStop?: boolean;
+  isLoading?: boolean;
 }
 
 interface ResourceDocument {
@@ -50,8 +58,9 @@ interface MentionOption {
   category: "agent" | "files";
 }
 
-export default function ChatBox({ onSubmit }: ChatBoxProps) {
+export default function ChatBox({ onSubmit, onStop, canStop, isLoading }: ChatBoxProps) {
   const [value, setValue] = useState("");
+  const [mode, setMode] = useState<"normal" | "max" | "power">("power");
   const [showMentionPopup, setShowMentionPopup] = useState(false);
   const [mentionQuery, setMentionQuery] = useState("");
   const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
@@ -327,7 +336,7 @@ export default function ChatBox({ onSubmit }: ChatBoxProps) {
             ? { documents: selectedDocuments }
             : undefined;
 
-        onSubmit(processedValue, context);
+        onSubmit(processedValue, context, mode);
         setValue("");
         adjustHeight(true);
         setShowMentionPopup(false);
@@ -421,7 +430,7 @@ export default function ChatBox({ onSubmit }: ChatBoxProps) {
           ? { documents: selectedDocuments }
           : undefined;
 
-      onSubmit(processedValue, context);
+      onSubmit(processedValue, context, mode);
       setValue("");
       adjustHeight(true);
       setShowMentionPopup(false);
@@ -631,18 +640,51 @@ export default function ChatBox({ onSubmit }: ChatBoxProps) {
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={!value.trim()}
+          disabled={!value.trim() || isLoading}
           className={cn(
             "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all duration-200",
-            value.trim()
+            value.trim() && !isLoading
               ? "bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-lg hover:shadow-xl hover:scale-105"
               : "bg-muted text-muted-foreground cursor-not-allowed",
           )}
         >
           <ArrowUpIcon className="h-4 w-4" />
         </button>
+
+        {/* Stop Button - Only show when chat is in progress and can be stopped */}
+        {canStop && isLoading && onStop && (
+          <button
+            type="button"
+            onClick={onStop}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-500 text-white shadow-lg hover:bg-red-600 hover:shadow-xl hover:scale-105 transition-all duration-200 active:scale-95"
+            title="Stop chat generation"
+          >
+            <SquareIcon className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
+      {/* Mode Toggle and Status Banner - Below Chat Input */}
+      <div className="mt-3 flex items-center justify-center gap-4">
+        <ModeToggle onModeChange={setMode} initialMode={mode} />
+        
+        {/* Mode Status Indicator - Same line as toggle */}
+        {mode === "max" && (
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-yellow-100 to-orange-100 border border-orange-200 text-orange-800 dark:from-yellow-900/20 dark:to-orange-900/20 dark:border-orange-800 dark:text-orange-300">
+            <Zap className="h-4 w-4 animate-pulse" />
+            <span className="text-sm font-medium">MAX MODE ACTIVE</span>
+            <Zap className="h-4 w-4 animate-pulse" />
+          </div>
+        )}
+        
+        {mode === "power" && (
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 border border-blue-200 text-blue-800 dark:from-blue-900/20 dark:to-purple-900/20 dark:border-blue-800 dark:text-blue-300">
+            <Sparkles className="h-4 w-4 animate-pulse" />
+            <span className="text-sm font-medium">POWER MODE ACTIVE</span>
+            <Sparkles className="h-4 w-4 animate-pulse" />
+          </div>
+        )}
+      </div>
 
 
       {/* @ Mention Popup */}

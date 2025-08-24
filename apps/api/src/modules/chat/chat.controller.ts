@@ -44,6 +44,14 @@ export default class ChatController {
     return this.chatService.newChat(ctx, body, context.user);
   }
 
+  @Post("cancel")
+  async cancelChat(
+    @Body() body: { chatSlug?: string },
+    @AuthContext() context: IAuthContext,
+  ) {
+    return this.chatService.cancelChat(body.chatSlug, context.user);
+  }
+
   @Delete(":id")
   async deleteChat(
     @Param("id") chatId: string,

@@ -1,4 +1,4 @@
-import { IsOptional, IsString } from "class-validator";
+import { IsOptional, IsString, IsIn } from "class-validator";
 
 export class NewChatDto {
   @IsString()
@@ -11,4 +11,8 @@ export class NewChatDto {
   @IsOptional()
   @IsString()
   slug?: string;
+
+  @IsOptional()
+  @IsIn(["normal", "max", "power"])
+  mode?: "normal" | "max" | "power";
 }

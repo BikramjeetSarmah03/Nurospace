@@ -1,106 +1,139 @@
-# Message Feedback System
+# Chat Components
 
-This system provides interactive feedback options below each AI message in the chat interface.
+This directory contains the core chat components for the Nurospace AI dashboard.
 
 ## Components
 
-### MessageFeedback
-The main feedback component that displays below AI messages with the following options:
+### ChatBox
+The main chat input component that handles user message input and submission.
 
-1. **Copy** - Copies the message content to clipboard
-2. **Good Response** - Marks the response as helpful (thumbs up)
-3. **Bad Response** - Marks the response as unhelpful (thumbs down)
-4. **Read Aloud** - Uses browser's speech synthesis to read the message
-5. **Retry** - Triggers a retry action for the message
+**Features:**
+- Text input with auto-resize
+- Document/file mention system (@)
+- File upload support
+- Smart mention popup with categories
+- **NEW: Stop button for ongoing chats**
 
-## Features
-
-- **Hover to Reveal**: Feedback options only appear when hovering over a message
-- **Visual Feedback**: Buttons show different states (copied, good/bad feedback)
-- **Accessibility**: Proper tooltips and keyboard navigation support
-- **Responsive**: Works on both desktop and mobile devices
-- **Customizable**: Easy to extend with additional feedback options
-
-## Usage
-
-### Basic Implementation
-
+**Props:**
 ```tsx
-import MessageFeedback from './message-feedback';
-
-<MessageFeedback
-  messageId="msg-123"
-  messageContent="Your AI response content here"
-  onCopy={() => console.log("Copied!")}
-  onGoodResponse={() => console.log("Good response!")}
-  onBadResponse={() => console.log("Bad response!")}
-  onReadAloud={() => console.log("Reading aloud...")}
-  onRetry={() => console.log("Retrying...")}
-/>
+interface ChatBoxProps {
+  onSubmit: (value: string, context?: { documents: ResourceDocument[] }) => void;
+  onStop?: () => void;           // NEW: Function to stop ongoing chat
+  canStop?: boolean;             // NEW: Whether stop button should be shown
+  isLoading?: boolean;           // NEW: Whether a chat is currently in progress
+}
 ```
 
-### With Custom Hook
+**Stop Button Behavior:**
+- Only appears when `canStop={true}` and `isLoading={true}`
+- Red square button with hover effects
+- Clicking stops the ongoing chat generation
+- Uses AbortController to cancel fetch requests
 
+### ChatMessages
+Displays the conversation history between user and AI.
+
+**Features:**
+- Auto-scrolling to latest messages
+- Thinking indicator when AI is generating response
+- Scroll-to-bottom button for long conversations
+- Welcome screen for new chats
+
+### Message
+Individual message component for user and AI messages.
+
+### ResourceToolbar
+Toolbar for managing document resources in chat context.
+
+### ResourceDialog
+Dialog for selecting and managing document resources.
+
+### MessageFeedback
+Component for collecting user feedback on AI responses.
+
+### MentionPopup
+Smart popup for mentioning tools, files, and resources.
+
+## Stop Functionality Implementation
+
+The stop functionality has been implemented across all chat pages:
+
+### 1. Chat Page (`chat-page.tsx`)
+- New chat creation with stop capability
+- AbortController for request cancellation
+- Stop button state management
+
+### 2. Update Chat Page (`update-chat.tsx`)
+- Existing chat continuation with stop capability
+- Same AbortController pattern
+- Consistent stop button behavior
+
+### 3. Key Features
+- **AbortController**: Cancels ongoing fetch requests
+- **Visual Feedback**: Red stop button with hover effects
+- **State Management**: Proper loading and stop button states
+- **Error Handling**: Graceful handling of cancelled requests
+- **User Notification**: Toast message when chat is stopped
+
+### 4. Usage Example
 ```tsx
-import { useMessageFeedback } from './hooks/use-message-feedback';
+const [loading, setLoading] = useState(false);
+const [canStop, setCanStop] = useState(false);
+const abortControllerRef = useRef<AbortController | null>(null);
 
-const {
-  copied,
-  feedback,
-  handleCopy,
-  handleFeedback,
-  handleReadAloud,
-  handleRetry,
-} = useMessageFeedback();
+const handleStopChat = () => {
+  if (abortControllerRef.current) {
+    abortControllerRef.current.abort();
+    setCanStop(false);
+    setLoading(false);
+    toast.info("Chat stopped");
+  }
+};
+
+const handleSendChat = async (value: string) => {
+  setLoading(true);
+  setCanStop(true);
+  abortControllerRef.current = new AbortController();
+  
+  try {
+    const res = await fetch(url, {
+      signal: abortControllerRef.current.signal,
+      // ... other options
+    });
+    // ... handle response
+  } catch (error) {
+    if (error.name === 'AbortError') return; // Request cancelled
+    // ... handle other errors
+  } finally {
+    setLoading(false);
+    setCanStop(false);
+    abortControllerRef.current = null;
+  }
+};
+```
+
+## File Structure
+```
+src/features/chat/
+├── components/
+│   ├── chat-box.tsx          # Main chat input with stop button
+│   ├── chat-messages.tsx     # Message display
+│   ├── message.tsx           # Individual message
+│   ├── resource-toolbar.tsx  # Resource management
+│   ├── resource-dialog.tsx   # Resource selection
+│   ├── message-feedback.tsx  # Feedback collection
+│   ├── mention-popup.tsx     # Smart mentions
+│   └── README.md            # This file
+├── pages/
+│   ├── chat-page.tsx         # New chat with stop
+│   └── update-chat.tsx       # Existing chat with stop
+└── ...
 ```
 
 ## Styling
-
-The feedback component uses Tailwind CSS classes and includes:
-- Smooth transitions and hover effects
-- Color-coded feedback states (green for good, red for bad)
-- Subtle borders and spacing
-- Responsive design
-
-## Customization
-
-### Adding New Feedback Options
-
-1. Add new props to `MessageFeedbackProps` interface
-2. Create new button elements in the component
-3. Implement corresponding handlers
-4. Update the `useMessageFeedback` hook if needed
-
-### Styling Modifications
-
-Override the default classes by passing a `className` prop:
-
-```tsx
-<MessageFeedback
-  className="custom-feedback-styles"
-  // ... other props
-/>
-```
-
-## Browser Support
-
-- **Copy**: Uses modern Clipboard API with fallback
-- **Read Aloud**: Uses Web Speech API (supported in most modern browsers)
-- **Hover Effects**: CSS transitions with fallbacks for older browsers
-
-## Integration
-
-The feedback system is designed to work with existing chat components:
-
-1. Import `MessageFeedback` into your message component
-2. Pass the required props (messageId, messageContent)
-3. Implement callback functions for your use case
-4. Style as needed to match your design system
-
-## Future Enhancements
-
-- Analytics tracking for feedback data
-- Custom feedback categories
-- Voice feedback recording
-- Integration with AI model training
-- Multi-language support for read aloud
+The stop button uses Tailwind CSS classes:
+- `bg-red-500`: Red background
+- `hover:bg-red-600`: Darker red on hover
+- `hover:scale-105`: Slight scale up on hover
+- `active:scale-95`: Scale down when clicked
+- `transition-all duration-200`: Smooth animations

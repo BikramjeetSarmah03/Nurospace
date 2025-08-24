@@ -1,84 +1,84 @@
 // tool-registry.ts
 interface ToolMetadata {
-  name: string;
-  category: 'research' | 'analysis' | 'execution' | 'planning';
-  keywords: string[];
-  priority: number;
-  alwaysAvailable: boolean;
-  description?: string;
+    name: string;
+    category: 'research' | 'analysis' | 'execution' | 'planning';
+    keywords: string[];
+    priority: number;
+    alwaysAvailable: boolean;
+    description?: string;
   inputFormat?: string;
   outputFormat?: string;
   dependencies?: string[];
   tags?: string[];
-}
-
-export class ProductionToolRegistry {
-  private toolMap = new Map<string, any>();
-  private metadata = new Map<string, ToolMetadata>();
+  }
+  
+  export class ProductionToolRegistry {
+    private toolMap = new Map<string, any>();
+    private metadata = new Map<string, ToolMetadata>();
   private categoryIndex = new Map<string, Set<string>>();
   private keywordIndex = new Map<string, Set<string>>();
   private priorityQueue = new Map<number, Set<string>>();
   private cache = new Map<string, any[]>();
   private cacheTimestamp = 0;
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-
-  constructor(toolset: any[]) {
-    this.initializeRegistry(toolset);
-  }
-
-  private initializeRegistry(toolset: any[]) {
-    const startTime = Date.now();
-    
+  
+    constructor(toolset: any[]) {
+      this.initializeRegistry(toolset);
+    }
+  
+    private initializeRegistry(toolset: any[]) {
+      const startTime = Date.now();
+      
     // Define comprehensive tool metadata
-    const toolMetadata: ToolMetadata[] = [
-      {
+      const toolMetadata: ToolMetadata[] = [
+        {
         name: 'retrieveRelevantChunks',
-        category: 'research',
+          category: 'research',
         keywords: ['document', 'pdf', 'file', 'analyze', '@', 'search', 'find', 'content', 'text'],
-        priority: 10,
-        alwaysAvailable: true,
+          priority: 10,
+          alwaysAvailable: true,
         description: 'Search and analyze uploaded documents and files',
         inputFormat: 'text with @document_id or natural language',
         outputFormat: 'relevant document content',
         tags: ['document', 'search', 'analysis']
-      },
-      {
-        name: 'tavilySearch',
-        category: 'research', 
+        },
+        {
+          name: 'tavilySearch',
+          category: 'research', 
         keywords: ['search', 'web', 'internet', 'news', 'find', 'latest', 'current', 'recent', 'information'],
-        priority: 9,
-        alwaysAvailable: true,
+          priority: 9,
+          alwaysAvailable: true,
         description: 'Search the internet for current information and news',
         inputFormat: 'search query',
         outputFormat: 'search results with sources',
         tags: ['web', 'search', 'news']
-      },
-      {
-        name: 'getCurrentDateTime',
-        category: 'analysis',
+        },
+        {
+          name: 'getCurrentDateTime',
+          category: 'analysis',
         keywords: ['time', 'date', 'today', 'now', 'current', 'what time', 'what day', 'clock'],
-        priority: 8,
-        alwaysAvailable: true,
+          priority: 8,
+          alwaysAvailable: true,
         description: 'Get current date and time information',
         inputFormat: 'any text (ignored)',
         outputFormat: 'formatted date and time',
         tags: ['time', 'date', 'utility']
-      },
-      {
-        name: 'getCurrentWeather',
-        category: 'execution',
+        },
+        {
+          name: 'getCurrentWeather',
+          category: 'execution',
         keywords: ['weather', 'temperature', 'forecast', 'climate', 'rain', 'sunny', 'hot', 'cold'],
-        priority: 7,
-        alwaysAvailable: true,
+          priority: 7,
+          alwaysAvailable: true,
         description: 'Get weather information for any location',
         inputFormat: 'city name or location',
         outputFormat: 'weather data with temperature and conditions',
         tags: ['weather', 'api', 'location']
-      }
-    ];
-
+        }
+      ];
+  
     // Register all tools with metadata
-    for (const tool of toolset) {
+      for (const tool of toolset) {
       this.addTool(tool, toolMetadata.find(m => m.name === tool.name));
     }
 
@@ -93,11 +93,11 @@ export class ProductionToolRegistry {
    * Add a new tool to the registry with metadata
    */
   addTool(tool: any, metadata?: ToolMetadata): void {
-    this.toolMap.set(tool.name, tool);
-    
+        this.toolMap.set(tool.name, tool);
+        
     if (metadata) {
       this.metadata.set(tool.name, metadata);
-    } else {
+        } else {
       // Auto-generate metadata if not provided
       this.metadata.set(tool.name, this.generateMetadata(tool));
     }
@@ -243,10 +243,10 @@ export class ProductionToolRegistry {
   /**
    * Get all available tools
    */
-  getAllTools(): any[] {
-    return Array.from(this.toolMap.values());
-  }
-
+    getAllTools(): any[] {
+      return Array.from(this.toolMap.values());
+    }
+  
   /**
    * Get tool metadata
    */
@@ -258,16 +258,16 @@ export class ProductionToolRegistry {
    * Get all tool names
    */
   getToolNames(): string[] {
-    return Array.from(this.toolMap.keys());
-  }
-
+      return Array.from(this.toolMap.keys());
+    }
+  
   /**
    * Get tool count
    */
-  getToolCount(): number {
-    return this.toolMap.size;
-  }
-
+    getToolCount(): number {
+      return this.toolMap.size;
+    }
+  
   /**
    * Validate tool registry integrity
    */
@@ -394,6 +394,6 @@ export class ProductionToolRegistry {
 
   private isCacheValid(): boolean {
     return Date.now() - this.cacheTimestamp < this.CACHE_TTL;
+    }
   }
-}
   
