@@ -53,7 +53,7 @@ export function UpdateChatPage() {
       // Cancel the frontend request
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
-      
+
       // Send cancellation signal to backend
       try {
         await fetch(`${env.VITE_SERVER_URL}/api/v1/chat/cancel`, {
@@ -62,46 +62,57 @@ export function UpdateChatPage() {
             "Content-Type": "application/json",
           },
           credentials: "include",
-          body: JSON.stringify({ 
-            chatSlug: chat?.slug
+          body: JSON.stringify({
+            chatSlug: chat?.slug,
           }),
         });
       } catch (error) {
         console.log("Backend cancellation request failed:", error);
         // Continue with frontend cleanup even if backend fails
       }
-      
+
       // Clean up frontend state
       setCanStop(false);
       setLoading(false);
-      
+
       // Keep the user message, only remove any incomplete AI response
-      setMessages(prev => {
+      setMessages((prev) => {
         // Keep all messages except the last one if it's an incomplete AI response
         const lastMessage = prev[prev.length - 1];
-        if (lastMessage && lastMessage.role === "assistant" && lastMessage.content.length < 10) {
+        if (
+          lastMessage &&
+          lastMessage.role === "assistant" &&
+          lastMessage.content.length < 10
+        ) {
           // Remove incomplete AI response (less than 10 characters)
           return prev.slice(0, -1);
         }
         return prev; // Keep all messages if no incomplete AI response
       });
-      
+
       toast.info("Chat cancelled successfully");
     }
   };
 
-  const handleSendChat = async (value: string, context?: { documents: ResourceDocument[] }, mode?: "normal" | "max" | "power") => {
+  const handleSendChat = async (
+    value: string,
+    context?: { documents: ResourceDocument[] },
+    mode?: "normal" | "max" | "power",
+  ) => {
     if (!chat?.slug) {
       toast.error("Chat not found");
       return;
     }
 
     // Add user message
-    setMessages((prev) => [...prev, { 
-      role: "user", 
-      content: value,
-      timestamp: new Date().toISOString()
-    }]);
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "user",
+        content: value,
+        timestamp: new Date().toISOString(),
+      },
+    ]);
     setLoading(true);
     setCanStop(true);
 
@@ -111,19 +122,22 @@ export function UpdateChatPage() {
     let _assistantReply = "";
 
     try {
-      const res = await fetch(`${env.VITE_SERVER_URL}/api/v1/${chatUrls.chat}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const res = await fetch(
+        `${env.VITE_SERVER_URL}/api/v1/${chatUrls.chat}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include", // ✅ send cookies
+          body: JSON.stringify({
+            msg: value,
+            slug: chat.slug, // Use the existing chat slug to continue conversation
+            mode: mode || "normal", // Include mode in payload
+          }),
+          signal: abortControllerRef.current.signal,
         },
-        credentials: "include", // ✅ send cookies
-        body: JSON.stringify({
-          msg: value,
-          slug: chat.slug, // Use the existing chat slug to continue conversation
-          mode: mode || "normal" // Include mode in payload
-        }),
-        signal: abortControllerRef.current.signal,
-      });
+      );
 
       if (!res.ok || !res.body) {
         toast.error("Chat request failed");
@@ -160,17 +174,17 @@ export function UpdateChatPage() {
           if (last?.role === "assistant") {
             updated[updated.length - 1].content += chunk;
           } else {
-            updated.push({ 
-              role: "assistant", 
+            updated.push({
+              role: "assistant",
               content: chunk,
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(),
             });
           }
           return [...updated];
         });
       }
     } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
+      if (error instanceof Error && error.name === "AbortError") {
         // Request was cancelled, don't show error
         return;
       }
@@ -200,8 +214,8 @@ export function UpdateChatPage() {
 
       {/* Chat Input - Fixed at bottom */}
       <div className="sticky bottom-0 bg-background p-4">
-        <ChatBox 
-          onSubmit={handleSendChat} 
+        <ChatBox
+          onSubmit={handleSendChat}
           onStop={handleStopChat}
           canStop={canStop}
           isLoading={loading}

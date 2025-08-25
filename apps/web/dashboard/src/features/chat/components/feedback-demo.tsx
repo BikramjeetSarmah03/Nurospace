@@ -61,13 +61,13 @@ export default function FeedbackDemo() {
           Hover over AI messages to see feedback options
         </p>
       </div>
-      
+
       <div className="space-y-4">
         {sampleMessages.map((message) => (
           <Message key={message.id} {...message} />
         ))}
       </div>
-      
+
       <div className="text-center text-sm text-muted-foreground">
         <p>Features: Copy, Good/Bad Response, Read Aloud, Retry</p>
       </div>

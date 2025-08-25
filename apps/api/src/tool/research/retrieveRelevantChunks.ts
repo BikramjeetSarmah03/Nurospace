@@ -17,14 +17,18 @@ export async function retrieveRelevantChunks(
   topK = 5,
 ) {
   // Check if query contains specific document ID (multiple formats)
-  const docIdMatch = query.match(/\[DOC_ID:([^\]]+)\]/) || query.match(/@([a-f0-9-]{36})/);
-  
+  const docIdMatch =
+    query.match(/\[DOC_ID:([^\]]+)\]/) || query.match(/@([a-f0-9-]{36})/);
+
   if (docIdMatch) {
     const docId = docIdMatch[1];
-    
+
     // Extract the actual search query (remove the document ID part)
-    const searchQuery = query.replace(/\[DOC_ID:[^\]]+\]/, '').replace(/@[a-f0-9-]{36}/, '').trim();
-    
+    const searchQuery = query
+      .replace(/\[DOC_ID:[^\]]+\]/, "")
+      .replace(/@[a-f0-9-]{36}/, "")
+      .trim();
+
     if (searchQuery) {
       // Use semantic search within the specific document
       const embeddingModel = new GoogleGenerativeAIEmbeddings({
@@ -44,53 +48,59 @@ export async function retrieveRelevantChunks(
         .limit(topK);
 
       return results.map((r) => r.content);
-    } else {
-      // If no search query, return first few chunks from the document
-      const results = await db
-        .select({ content: resourceEmbeddings.content })
-        .from(resourceEmbeddings)
-        .where(sql`user_id = ${userId} AND resource_id = ${docId}`)
-        .limit(topK);
-
-      return results.map((r) => r.content);
     }
+    // If no search query, return first few chunks from the document
+    const results = await db
+      .select({ content: resourceEmbeddings.content })
+      .from(resourceEmbeddings)
+      .where(sql`user_id = ${userId} AND resource_id = ${docId}`)
+      .limit(topK);
+
+    return results.map((r) => r.content);
   }
 
   // SMART TEXT SEARCH FIRST, THEN VECTOR RANKING: Better accuracy approach
-  
+
   // SIMPLE DB CHECK: See what's actually in the database
   const dbCheck = await db
-    .select({ 
+    .select({
       content: resourceEmbeddings.content,
-      resourceId: resourceEmbeddings.resourceId
+      resourceId: resourceEmbeddings.resourceId,
     })
     .from(resourceEmbeddings)
     .where(sql`user_id = ${userId}`)
     .limit(3);
 
   // STEP 1: SMART TEXT SEARCH BY QUERY TERMS
-  
+
   // Extract meaningful search terms from the query
-  const searchTerms = query.toLowerCase()
+  const searchTerms = query
+    .toLowerCase()
     .split(/\s+/)
-    .filter(word => word.length > 2 && !['what', 'is', 'the', 'current', 'position', 'of'].includes(word));
-  
+    .filter(
+      (word) =>
+        word.length > 2 &&
+        !["what", "is", "the", "current", "position", "of"].includes(word),
+    );
+
   // Build dynamic text search query
   let textSearchQuery;
   if (searchTerms.length > 0) {
     // Search for any of the terms in the content
-    const termConditions = searchTerms.map(term => sql`content ILIKE ${`%${term}%`}`);
+    const termConditions = searchTerms.map(
+      (term) => sql`content ILIKE ${`%${term}%`}`,
+    );
     textSearchQuery = sql`user_id = ${userId} AND (${sql.join(termConditions, sql` OR `)})`;
   } else {
     // Fallback: search for common professional terms if no specific terms found (production-ready)
-    textSearchQuery = sql`user_id = ${userId} AND (content ILIKE ${`%position%`} OR content ILIKE ${`%role%`} OR content ILIKE ${`%job%`} OR content ILIKE ${`%developer%`} OR content ILIKE ${`%engineer%`} OR content ILIKE ${`%experience%`})`;
+    textSearchQuery = sql`user_id = ${userId} AND (content ILIKE ${"%position%"} OR content ILIKE ${"%role%"} OR content ILIKE ${"%job%"} OR content ILIKE ${"%developer%"} OR content ILIKE ${"%engineer%"} OR content ILIKE ${"%experience%"})`;
   }
-  
+
   // Execute text search
   const textSearchResults = await db
-    .select({ 
+    .select({
       content: resourceEmbeddings.content,
-      resourceId: resourceEmbeddings.resourceId
+      resourceId: resourceEmbeddings.resourceId,
     })
     .from(resourceEmbeddings)
     .where(textSearchQuery)
@@ -106,21 +116,23 @@ export async function retrieveRelevantChunks(
     const queryEmbedding = await embeddingModel.embedQuery(query);
 
     const vectorResults = await db
-      .select({ 
+      .select({
         content: resourceEmbeddings.content,
         resourceId: resourceEmbeddings.resourceId,
-        distance: sql`embedding <-> ${sql.raw(`'[${queryEmbedding.join(",")}]'::vector`)}`
+        distance: sql`embedding <-> ${sql.raw(`'[${queryEmbedding.join(",")}]'::vector`)}`,
       })
       .from(resourceEmbeddings)
       .where(sql`user_id = ${userId}`)
-      .orderBy(sql`embedding <-> ${sql.raw(`'[${queryEmbedding.join(",")}]'::vector`)}`)
+      .orderBy(
+        sql`embedding <-> ${sql.raw(`'[${queryEmbedding.join(",")}]'::vector`)}`,
+      )
       .limit(topK);
 
-    return vectorResults.map(r => r.content);
+    return vectorResults.map((r) => r.content);
   }
 
   // STEP 2: VECTOR RANKING OF TEXT SEARCH RESULTS
-  
+
   const embeddingModel = new GoogleGenerativeAIEmbeddings({
     modelName: "embedding-001",
     apiKey: process.env.GOOGLE_API_KEY,
@@ -133,39 +145,49 @@ export async function retrieveRelevantChunks(
     textSearchResults.map(async (result) => {
       const maxRetries = 3;
       let retryCount = 0;
-      
+
       while (retryCount < maxRetries) {
         try {
           // Simplified approach: Get vector distance directly without complex subqueries
           const distanceResult = await db
-            .select({ 
-              distance: sql`embedding <-> ${sql.raw(`'[${queryEmbedding.join(",")}]'::vector`)}` 
+            .select({
+              distance: sql`embedding <-> ${sql.raw(`'[${queryEmbedding.join(",")}]'::vector`)}`,
             })
-    .from(resourceEmbeddings)
-            .where(sql`resource_id = ${result.resourceId} AND content = ${result.content}`)
+            .from(resourceEmbeddings)
+            .where(
+              sql`resource_id = ${result.resourceId} AND content = ${result.content}`,
+            )
             .limit(1);
 
           if (distanceResult.length > 0) {
-            const vectorDistance = typeof distanceResult[0]?.distance === 'number' ? distanceResult[0].distance : 2.0;
-            
-            return { ...result, distance: vectorDistance, source: 'text+vector' };
-          } else {
-            return { ...result, distance: 2.0, source: 'text-only' };
+            const vectorDistance =
+              typeof distanceResult[0]?.distance === "number"
+                ? distanceResult[0].distance
+                : 2.0;
+
+            return {
+              ...result,
+              distance: vectorDistance,
+              source: "text+vector",
+            };
           }
+          return { ...result, distance: 2.0, source: "text-only" };
         } catch (error) {
           retryCount++;
-          
+
           if (retryCount >= maxRetries) {
-            return { ...result, distance: 2.0, source: 'text-only' };
+            return { ...result, distance: 2.0, source: "text-only" };
           }
-          
+
           // Wait before retry (exponential backoff)
-          await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 100));
+          await new Promise((resolve) =>
+            setTimeout(resolve, 2 ** retryCount * 100),
+          );
         }
       }
-      
-      return { ...result, distance: 2.0, source: 'text-only' };
-    })  
+
+      return { ...result, distance: 2.0, source: "text-only" };
+    }),
   );
 
   // Sort by vector distance and return top results
@@ -174,18 +196,21 @@ export async function retrieveRelevantChunks(
     .slice(0, topK);
 
   // FALLBACK: If no good results, return generic response
-  if (finalResults.length === 0 || finalResults.every(r => (r.distance || 2.0) > 1.5)) {
+  if (
+    finalResults.length === 0 ||
+    finalResults.every((r) => (r.distance || 2.0) > 1.5)
+  ) {
     // Return generic response based on query content (production-ready)
     const genericResponse = [
       `I couldn't find specific information about "${query}" in your documents.`,
       "The search results didn't contain the specific information you're looking for.",
-      "Please check if you have uploaded relevant documents or try rephrasing your question."
+      "Please check if you have uploaded relevant documents or try rephrasing your question.",
     ];
-    
+
     return genericResponse;
   }
 
-  return finalResults.map(r => r.content);
+  return finalResults.map((r) => r.content);
 }
 
 /**
@@ -217,7 +242,8 @@ export const retrieveRelevantChunksTool = new DynamicTool({
     if (!userId) {
       // For now, we'll use a default userId for testing
       // In production, this should come from the authenticated user context
-      userId = process.env.DEFAULT_USER_ID || "mC7pqADICzQTvOfUQ1e6HpxQMVhYaJmm";
+      userId =
+        process.env.DEFAULT_USER_ID || "mC7pqADICzQTvOfUQ1e6HpxQMVhYaJmm";
     }
 
     if (!userId) {
@@ -236,4 +262,3 @@ export const retrieveRelevantChunksTool = new DynamicTool({
     return result;
   },
 });
-

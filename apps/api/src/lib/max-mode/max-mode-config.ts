@@ -8,7 +8,7 @@ export interface MaxModeConfig {
     maxRetries: number;
     maxConcurrency: number;
   };
-  
+
   // Tool Selection
   toolSelection: {
     confidenceThreshold: number;
@@ -16,7 +16,7 @@ export interface MaxModeConfig {
     enableMultiToolOrchestration: boolean;
     enableToolChaining: boolean;
   };
-  
+
   // Processing Strategy
   processing: {
     enableQueryDecomposition: boolean;
@@ -25,7 +25,7 @@ export interface MaxModeConfig {
     enableQualityAssurance: boolean;
     enableFactVerification: boolean;
   };
-  
+
   // Response Quality
   responseQuality: {
     enableSourceAttribution: boolean;
@@ -34,7 +34,7 @@ export interface MaxModeConfig {
     enableCrossValidation: boolean;
     minResponseLength: number;
   };
-  
+
   // Performance Settings
   performance: {
     maxProcessingTime: number; // milliseconds
@@ -50,17 +50,17 @@ export const MAX_MODE_CONFIG: MaxModeConfig = {
     primaryModel: "gemini-2.5-pro",
     fallbackModel: "gemini-2.5-flash",
     temperature: 0.3, // Lower temperature for precision
-    maxRetries: 5,    // More retries for reliability
+    maxRetries: 5, // More retries for reliability
     maxConcurrency: 1,
   },
-  
+
   toolSelection: {
-    confidenceThreshold: 0.8,        // Higher threshold vs normal (0.6)
-    maxToolsPerQuery: 5,             // Allow multiple tools
+    confidenceThreshold: 0.8, // Higher threshold vs normal (0.6)
+    maxToolsPerQuery: 5, // Allow multiple tools
     enableMultiToolOrchestration: true,
     enableToolChaining: true,
   },
-  
+
   processing: {
     enableQueryDecomposition: true,
     enableChainOfThought: true,
@@ -68,7 +68,7 @@ export const MAX_MODE_CONFIG: MaxModeConfig = {
     enableQualityAssurance: true,
     enableFactVerification: true,
   },
-  
+
   responseQuality: {
     enableSourceAttribution: true,
     enableConfidenceScoring: true,
@@ -76,11 +76,11 @@ export const MAX_MODE_CONFIG: MaxModeConfig = {
     enableCrossValidation: true,
     minResponseLength: 200, // Ensure comprehensive responses
   },
-  
+
   performance: {
     maxProcessingTime: 60000, // 60 seconds
     enableCaching: true,
-    cacheExpiry: 300000,      // 5 minutes
+    cacheExpiry: 300000, // 5 minutes
     enableParallelExecution: true,
   },
 };
@@ -94,7 +94,7 @@ export const MAX_MODE_TOOL_COMBINATIONS = {
     executionOrder: ["tavilySearch", "retrieveRelevantChunks"],
     confidenceThreshold: 0.85,
   },
-  
+
   DOCUMENT_DEEP_DIVE: {
     name: "Document Deep Dive",
     description: "Thorough document analysis with cross-referencing",
@@ -103,7 +103,7 @@ export const MAX_MODE_TOOL_COMBINATIONS = {
     confidenceThreshold: 0.9,
     enableMultiplePasses: true,
   },
-  
+
   FACT_VERIFICATION: {
     name: "Fact Verification",
     description: "Multi-source fact checking and validation",
@@ -112,12 +112,22 @@ export const MAX_MODE_TOOL_COMBINATIONS = {
     confidenceThreshold: 0.95,
     enableCrossValidation: true,
   },
-  
+
   COMPREHENSIVE_ANALYSIS: {
     name: "Comprehensive Analysis",
     description: "Full analysis with all available tools",
-    tools: ["tavilySearch", "retrieveRelevantChunks", "getCurrentDateTime", "getCurrentWeather"],
-    executionOrder: ["tavilySearch", "retrieveRelevantChunks", "getCurrentDateTime", "getCurrentWeather"],
+    tools: [
+      "tavilySearch",
+      "retrieveRelevantChunks",
+      "getCurrentDateTime",
+      "getCurrentWeather",
+    ],
+    executionOrder: [
+      "tavilySearch",
+      "retrieveRelevantChunks",
+      "getCurrentDateTime",
+      "getCurrentWeather",
+    ],
     confidenceThreshold: 0.8,
     enableParallelExecution: true,
   },
@@ -132,7 +142,7 @@ export const MAX_MODE_QUERY_TYPES = {
     processingStrategy: "multi_step",
     qualityRequirements: "high",
   },
-  
+
   ANALYSIS: {
     name: "Analysis",
     description: "Deep analysis and interpretation",
@@ -140,7 +150,7 @@ export const MAX_MODE_QUERY_TYPES = {
     processingStrategy: "chain_of_thought",
     qualityRequirements: "very_high",
   },
-  
+
   COMPARISON: {
     name: "Comparison",
     description: "Comparing multiple sources or concepts",
@@ -148,7 +158,7 @@ export const MAX_MODE_QUERY_TYPES = {
     processingStrategy: "multi_step",
     qualityRequirements: "very_high",
   },
-  
+
   SYNTHESIS: {
     name: "Synthesis",
     description: "Combining information from multiple sources",
@@ -156,7 +166,7 @@ export const MAX_MODE_QUERY_TYPES = {
     processingStrategy: "multi_step",
     qualityRequirements: "very_high",
   },
-  
+
   VERIFICATION: {
     name: "Verification",
     description: "Fact checking and validation",
@@ -175,7 +185,7 @@ export const MAX_MODE_EXECUTION_STRATEGIES = {
     enableParallelExecution: false,
     enableQualityGates: true,
   },
-  
+
   CHAIN_OF_THOUGHT: {
     name: "Chain-of-Thought",
     description: "Step-by-step reasoning with LLM",
@@ -183,15 +193,20 @@ export const MAX_MODE_EXECUTION_STRATEGIES = {
     enableParallelExecution: false,
     enableQualityGates: true,
   },
-  
+
   CROSS_VALIDATION: {
     name: "Cross-Validation",
     description: "Verify information across multiple sources",
-    steps: ["primary_research", "secondary_research", "cross_check", "validation"],
+    steps: [
+      "primary_research",
+      "secondary_research",
+      "cross_check",
+      "validation",
+    ],
     enableParallelExecution: true,
     enableQualityGates: true,
   },
-  
+
   PARALLEL_EXECUTION: {
     name: "Parallel Execution",
     description: "Execute compatible tools simultaneously",
@@ -208,19 +223,19 @@ export const MAX_MODE_QUALITY_METRICS = {
     target: 0.95,
     weight: 0.4,
   },
-  
+
   COMPLETENESS: {
     name: "Completeness",
     target: 0.9,
     weight: 0.3,
   },
-  
+
   SOURCE_ATTRIBUTION: {
     name: "Source Attribution",
     target: 1.0,
     weight: 0.2,
   },
-  
+
   CONFIDENCE: {
     name: "Confidence",
     target: 0.85,
@@ -234,36 +249,56 @@ export function getMaxModeConfig(): MaxModeConfig {
 }
 
 export function getToolCombination(queryType: string) {
-  return MAX_MODE_TOOL_COMBINATIONS[queryType as keyof typeof MAX_MODE_TOOL_COMBINATIONS];
+  return MAX_MODE_TOOL_COMBINATIONS[
+    queryType as keyof typeof MAX_MODE_TOOL_COMBINATIONS
+  ];
 }
 
 export function getQueryType(query: string): string {
   const normalizedQuery = query.toLowerCase();
-  
-  if (normalizedQuery.includes("compare") || normalizedQuery.includes("difference")) {
+
+  if (
+    normalizedQuery.includes("compare") ||
+    normalizedQuery.includes("difference")
+  ) {
     return "COMPARISON";
   }
-  
-  if (normalizedQuery.includes("verify") || normalizedQuery.includes("fact check")) {
+
+  if (
+    normalizedQuery.includes("verify") ||
+    normalizedQuery.includes("fact check")
+  ) {
     return "VERIFICATION";
   }
-  
-  if (normalizedQuery.includes("analyze") || normalizedQuery.includes("interpret")) {
+
+  if (
+    normalizedQuery.includes("analyze") ||
+    normalizedQuery.includes("interpret")
+  ) {
     return "ANALYSIS";
   }
-  
-  if (normalizedQuery.includes("research") || normalizedQuery.includes("find")) {
+
+  if (
+    normalizedQuery.includes("research") ||
+    normalizedQuery.includes("find")
+  ) {
     return "RESEARCH";
   }
-  
-  if (normalizedQuery.includes("synthesize") || normalizedQuery.includes("combine")) {
+
+  if (
+    normalizedQuery.includes("synthesize") ||
+    normalizedQuery.includes("combine")
+  ) {
     return "SYNTHESIS";
   }
-  
+
   return "RESEARCH"; // Default to research
 }
 
 export function getExecutionStrategy(queryType: string) {
-  const type = MAX_MODE_QUERY_TYPES[queryType as keyof typeof MAX_MODE_QUERY_TYPES];
-  return MAX_MODE_EXECUTION_STRATEGIES[type?.processingStrategy as keyof typeof MAX_MODE_EXECUTION_STRATEGIES];
+  const type =
+    MAX_MODE_QUERY_TYPES[queryType as keyof typeof MAX_MODE_QUERY_TYPES];
+  return MAX_MODE_EXECUTION_STRATEGIES[
+    type?.processingStrategy as keyof typeof MAX_MODE_EXECUTION_STRATEGIES
+  ];
 }

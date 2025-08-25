@@ -12,8 +12,8 @@ import * as fs from "node:fs";
 // Simple text splitter function to replace RecursiveCharacterTextSplitter
 function splitTextIntoChunks(
   text: string,
-  chunkSize: number = 1000,
-  overlap: number = 200,
+  chunkSize = 1000,
+  overlap = 200,
 ): string[] {
   const chunks: string[] = [];
   let start = 0;

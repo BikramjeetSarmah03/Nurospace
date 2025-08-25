@@ -416,9 +416,9 @@ export class SimpleQueryHandler {
     }
 
     // Check for exact matches first
-    if (this.simpleResponses[normalizedQuery]) {
+    if (SimpleQueryHandler.simpleResponses[normalizedQuery]) {
       console.log(`[SIMPLE QUERY] Direct response for: "${query}"`);
-      return this.simpleResponses[normalizedQuery].response;
+      return SimpleQueryHandler.simpleResponses[normalizedQuery].response;
     }
 
     // Check for very short queries (1-3 words) that might be greetings
@@ -426,11 +426,11 @@ export class SimpleQueryHandler {
     if (words.length <= 3) {
       // Check first word
       const firstWord = words[0];
-      if (this.simpleResponses[firstWord]) {
+      if (SimpleQueryHandler.simpleResponses[firstWord]) {
         console.log(
           `[SIMPLE QUERY] First word match response for: "${query}" (matched: "${firstWord}")`,
         );
-        return this.simpleResponses[firstWord].response;
+        return SimpleQueryHandler.simpleResponses[firstWord].response;
       }
 
       // Check if it's a time-based greeting with additional words
@@ -440,11 +440,11 @@ export class SimpleQueryHandler {
       ) {
         const secondWord = words[1];
         const timeGreeting = `${firstWord} ${secondWord}`;
-        if (this.simpleResponses[timeGreeting]) {
+        if (SimpleQueryHandler.simpleResponses[timeGreeting]) {
           console.log(
             `[SIMPLE QUERY] Time greeting match response for: "${query}" (matched: "${timeGreeting}")`,
           );
-          return this.simpleResponses[timeGreeting].response;
+          return SimpleQueryHandler.simpleResponses[timeGreeting].response;
         }
       }
 
@@ -458,13 +458,13 @@ export class SimpleQueryHandler {
         console.log(
           `[SIMPLE QUERY] How are you match response for: "${query}"`,
         );
-        return this.simpleResponses["how are you"].response;
+        return SimpleQueryHandler.simpleResponses["how are you"].response;
       }
 
       // Check for "what's up" variations
       if (words.length === 2 && firstWord === "what" && words[1] === "up") {
         console.log(`[SIMPLE QUERY] What's up match response for: "${query}"`);
-        return this.simpleResponses["what's up"].response;
+        return SimpleQueryHandler.simpleResponses["what's up"].response;
       }
 
       // Check for "i don't know" variations
@@ -477,7 +477,7 @@ export class SimpleQueryHandler {
         console.log(
           `[SIMPLE QUERY] I don't know match response for: "${query}"`,
         );
-        return this.simpleResponses["i don't know"].response;
+        return SimpleQueryHandler.simpleResponses["i don't know"].response;
       }
 
       // Check for "i think so" variations
@@ -488,12 +488,14 @@ export class SimpleQueryHandler {
         words[2] === "so"
       ) {
         console.log(`[SIMPLE QUERY] I think so match response for: "${query}"`);
-        return this.simpleResponses["i think so"].response;
+        return SimpleQueryHandler.simpleResponses["i think so"].response;
       }
     }
 
     // Check for partial matches (e.g., "hello there" matches "hello")
-    for (const [key, responseData] of Object.entries(this.simpleResponses)) {
+    for (const [key, responseData] of Object.entries(
+      SimpleQueryHandler.simpleResponses,
+    )) {
       if (
         normalizedQuery.startsWith(key + " ") ||
         normalizedQuery.endsWith(" " + key)
@@ -513,7 +515,7 @@ export class SimpleQueryHandler {
    * @returns Array of all simple response data
    */
   static getAllResponses(): SimpleResponse[] {
-    return Object.values(this.simpleResponses);
+    return Object.values(SimpleQueryHandler.simpleResponses);
   }
 
   /**
@@ -522,7 +524,7 @@ export class SimpleQueryHandler {
    * @returns Array of responses in the specified category
    */
   static getResponsesByCategory(category: string): SimpleResponse[] {
-    return Object.values(this.simpleResponses).filter(
+    return Object.values(SimpleQueryHandler.simpleResponses).filter(
       (response) => response.category === category,
     );
   }
@@ -534,7 +536,7 @@ export class SimpleQueryHandler {
    * @param category - The category for organization
    */
   static addResponse(query: string, response: string, category: string): void {
-    this.simpleResponses[query.toLowerCase()] = {
+    SimpleQueryHandler.simpleResponses[query.toLowerCase()] = {
       query: query.toLowerCase(),
       response,
       category,
@@ -549,8 +551,8 @@ export class SimpleQueryHandler {
    * @param query - The query to remove
    */
   static removeResponse(query: string): void {
-    if (this.simpleResponses[query.toLowerCase()]) {
-      delete this.simpleResponses[query.toLowerCase()];
+    if (SimpleQueryHandler.simpleResponses[query.toLowerCase()]) {
+      delete SimpleQueryHandler.simpleResponses[query.toLowerCase()];
       console.log(`[SIMPLE QUERY] Removed response: "${query}"`);
     }
   }
@@ -562,12 +564,12 @@ export class SimpleQueryHandler {
   static getStats(): { total: number; categories: Record<string, number> } {
     const categories: Record<string, number> = {};
 
-    Object.values(this.simpleResponses).forEach((response) => {
+    Object.values(SimpleQueryHandler.simpleResponses).forEach((response) => {
       categories[response.category] = (categories[response.category] || 0) + 1;
     });
 
     return {
-      total: Object.keys(this.simpleResponses).length,
+      total: Object.keys(SimpleQueryHandler.simpleResponses).length,
       categories,
     };
   }

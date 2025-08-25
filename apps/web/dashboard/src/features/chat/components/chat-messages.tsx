@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Loader2Icon, ChevronDownIcon, SparklesIcon, BotIcon, UserIcon } from "lucide-react";
+import {
+  Loader2Icon,
+  ChevronDownIcon,
+  SparklesIcon,
+  BotIcon,
+  UserIcon,
+} from "lucide-react";
 
 import type { IMessage } from "@/features/chat/types/chat";
 
@@ -27,14 +33,19 @@ export default function ChatMessages({
   const scrollToBottom = () => {
     if (messagesEndRef.current && parentRef.current) {
       // Calculate scroll position accounting for chat input height
-      const scrollTop = Math.max(0, parentRef.current.scrollHeight - parentRef.current.clientHeight - chatInputHeight);
-      
+      const scrollTop = Math.max(
+        0,
+        parentRef.current.scrollHeight -
+          parentRef.current.clientHeight -
+          chatInputHeight,
+      );
+
       // Use smooth scrolling for better UX
       parentRef.current.scrollTo({
         top: scrollTop,
-        behavior: "smooth"
+        behavior: "smooth",
       });
-      
+
       // Fallback: also scroll the anchor into view as backup
       setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -59,8 +70,8 @@ export default function ChatMessages({
 
     const scrollContainer = parentRef.current;
     if (scrollContainer) {
-      scrollContainer.addEventListener('scroll', handleScroll);
-      return () => scrollContainer.removeEventListener('scroll', handleScroll);
+      scrollContainer.addEventListener("scroll", handleScroll);
+      return () => scrollContainer.removeEventListener("scroll", handleScroll);
     }
   }, []);
 
@@ -71,11 +82,15 @@ export default function ChatMessages({
           <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
             <SparklesIcon className="w-6 h-6 text-white" />
           </div>
-          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
         </div>
         <div className="text-center">
-          <h3 className="text-lg font-semibold text-foreground">Nurospace AI</h3>
-          <p className="text-sm text-muted-foreground">Loading your conversation...</p>
+          <h3 className="text-lg font-semibold text-foreground">
+            Nurospace AI
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Loading your conversation...
+          </p>
         </div>
       </div>
     </div>
@@ -92,15 +107,16 @@ export default function ChatMessages({
               <div className="w-full h-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
                 <SparklesIcon className="w-10 h-10 text-white" />
               </div>
-              <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full border-3 border-white shadow-sm"></div>
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full border-3 border-white shadow-sm" />
             </div>
-            
+
             <div className="space-y-4">
               <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent gradient-text-animate">
                 Welcome to Nurospace AI
-        </h1>
+              </h1>
               <p className="text-lg text-muted-foreground max-w-md mx-auto">
-                Your intelligent assistant for research, analysis, and creative problem-solving
+                Your intelligent assistant for research, analysis, and creative
+                problem-solving
               </p>
             </div>
 
@@ -108,17 +124,25 @@ export default function ChatMessages({
               <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg border border-blue-200 dark:border-blue-800">
                 <div className="flex items-center space-x-2 mb-2">
                   <BotIcon className="w-5 h-5 text-blue-600" />
-                  <h3 className="font-semibold text-blue-900 dark:text-blue-100">Research & Analysis</h3>
+                  <h3 className="font-semibold text-blue-900 dark:text-blue-100">
+                    Research & Analysis
+                  </h3>
                 </div>
-                <p className="text-sm text-blue-700 dark:text-blue-300">Get insights from documents and web search</p>
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  Get insights from documents and web search
+                </p>
               </div>
-              
+
               <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg border border-purple-200 dark:border-purple-800">
                 <div className="flex items-center space-x-2 mb-2">
                   <SparklesIcon className="w-5 h-5 text-purple-600" />
-                  <h3 className="font-semibold text-purple-900 dark:text-purple-100">Creative Solutions</h3>
+                  <h3 className="font-semibold text-purple-900 dark:text-purple-100">
+                    Creative Solutions
+                  </h3>
                 </div>
-                <p className="text-sm text-purple-700 dark:text-purple-300">Brainstorm ideas and solve complex problems</p>
+                <p className="text-sm text-purple-700 dark:text-purple-300">
+                  Brainstorm ideas and solve complex problems
+                </p>
               </div>
             </div>
           </div>
@@ -131,7 +155,9 @@ export default function ChatMessages({
           {messages.map((msg, index) => (
             <div
               key={msg.id || msg.timestamp}
-              className={`group relative chat-message-enter bg-transparent border-b border-gray-100 dark:border-gray-800/50`}
+              className={
+                "group relative chat-message-enter bg-transparent border-b border-gray-100 dark:border-gray-800/50"
+              }
             >
               <div className="max-w-4xl mx-auto px-4 py-1">
                 {msg.role === "user" ? (
@@ -155,7 +181,7 @@ export default function ChatMessages({
                         <BotIcon className="w-4 h-4 text-white" />
                       </div>
                     </div>
-                    
+
                     {/* Message Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2 mb-1">
@@ -163,7 +189,7 @@ export default function ChatMessages({
                           Nurospace AI
                         </span>
                         <div className="flex items-center space-x-1">
-                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                           <span className="text-xs text-gray-500">Online</span>
                         </div>
                       </div>
@@ -187,8 +213,12 @@ export default function ChatMessages({
               <SparklesIcon className="w-8 h-8 text-gray-500" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-foreground">No messages yet</h3>
-              <p className="text-sm text-muted-foreground">Start a conversation to get help from Nurospace AI</p>
+              <h3 className="text-lg font-semibold text-foreground">
+                No messages yet
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Start a conversation to get help from Nurospace AI
+              </p>
             </div>
           </div>
         </div>
@@ -204,19 +234,32 @@ export default function ChatMessages({
               </div>
               <div className="flex-1">
                 <div className="flex items-center space-x-2 mb-2">
-                  <span className="font-semibold text-sm text-gray-900 dark:text-gray-100">Nurospace AI</span>
+                  <span className="font-semibold text-sm text-gray-900 dark:text-gray-100">
+                    Nurospace AI
+                  </span>
                   <div className="flex items-center space-x-1">
-                    <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                    <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
                     <span className="text-xs text-gray-500">Thinking...</span>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    <div
+                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                      style={{ animationDelay: "0ms" }}
+                    />
+                    <div
+                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                      style={{ animationDelay: "150ms" }}
+                    />
+                    <div
+                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                      style={{ animationDelay: "300ms" }}
+                    />
                   </div>
-                  <span className="text-sm text-muted-foreground">Processing your request...</span>
+                  <span className="text-sm text-muted-foreground">
+                    Processing your request...
+                  </span>
                 </div>
               </div>
             </div>
@@ -226,7 +269,7 @@ export default function ChatMessages({
 
       {/* Auto-scroll anchor */}
       <div ref={messagesEndRef} className="h-4" />
-      
+
       {/* Scroll to bottom button */}
       {showScrollButton && (
         <button

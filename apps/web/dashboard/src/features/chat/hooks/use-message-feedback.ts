@@ -32,7 +32,7 @@ export function useMessageFeedback(): UseMessageFeedbackReturn {
   };
 
   const handleReadAloud = (content: string) => {
-    if ('speechSynthesis' in window) {
+    if ("speechSynthesis" in window) {
       if (isReading) {
         // Stop reading
         speechSynthesis.cancel();
@@ -43,12 +43,12 @@ export function useMessageFeedback(): UseMessageFeedbackReturn {
         const utterance = new SpeechSynthesisUtterance(content);
         utterance.rate = 0.9; // Slightly slower for better comprehension
         utterance.pitch = 1;
-        
+
         // Set up event listeners to track reading state
         utterance.onstart = () => setIsReading(true);
         utterance.onend = () => setIsReading(false);
         utterance.onerror = () => setIsReading(false);
-        
+
         speechSynthesis.speak(utterance);
       }
     }

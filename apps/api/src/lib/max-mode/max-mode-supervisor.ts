@@ -226,12 +226,11 @@ Enhanced Response:`;
           enhancedResponse.length,
         );
         return enhancedResponse;
-      } else {
-        console.log(
-          "[MAX MODE] ⚠️ Response enhancement returned insufficient content, using fallback formatting",
-        );
-        return this.formatResponseFallback(query, executionResult);
       }
+      console.log(
+        "[MAX MODE] ⚠️ Response enhancement returned insufficient content, using fallback formatting",
+      );
+      return this.formatResponseFallback(query, executionResult);
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
@@ -254,13 +253,13 @@ Enhanced Response:`;
     );
 
     // Create a structured response with the original content
-    let formattedResponse = `🚀 **MAX MODE ANALYSIS RESULTS**\n\n`;
+    let formattedResponse = "🚀 **MAX MODE ANALYSIS RESULTS**\n\n";
     formattedResponse += `**Original Query:** ${query}\n\n`;
 
     // Format the original response with better structure
     if (originalResponse.includes("Search Results:")) {
       // Format search results with better structure
-      formattedResponse += `**Analysis Results:**\n\n`;
+      formattedResponse += "**Analysis Results:**\n\n";
 
       // Split the response into sections and format each one
       const sections = originalResponse.split(/(?=Search Results:)/);
@@ -282,16 +281,16 @@ Enhanced Response:`;
 
           // Add separator between sections
           if (index < sections.length - 1) {
-            formattedResponse += `---\n\n`;
+            formattedResponse += "---\n\n";
           }
         }
       });
     } else {
       // For non-search results, format with better structure
-      formattedResponse += `**Analysis Results:**\n\n`;
+      formattedResponse += "**Analysis Results:**\n\n";
 
       // Clean up the response
-      let cleanResponse = originalResponse
+      const cleanResponse = originalResponse
         .replace(/\n\n+/g, "\n\n")
         .replace(/\s+/g, " ")
         .trim();
@@ -306,44 +305,47 @@ Enhanced Response:`;
     }
 
     // Add structured analysis summary
-    formattedResponse += `---\n\n`;
-    formattedResponse += `📊 **Analysis Summary:**\n`;
+    formattedResponse += "---\n\n";
+    formattedResponse += "📊 **Analysis Summary:**\n";
     formattedResponse += `• **Steps Completed:** ${completedSteps.length}/${executionResult.steps.length}\n`;
     formattedResponse += `• **Overall Confidence:** ${(executionResult.overallConfidence * 100).toFixed(1)}%\n`;
     formattedResponse += `• **Processing Time:** ${executionResult.totalExecutionTime}ms\n\n`;
 
     // Add step-by-step breakdown if available
     if (completedSteps.length > 0) {
-      formattedResponse += `🔍 **Analysis Steps:**\n`;
+      formattedResponse += "🔍 **Analysis Steps:**\n";
       completedSteps.forEach((step, index) => {
         const stepNumber = index + 1;
         const stepStatus = step.status === "completed" ? "✅" : "❌";
         formattedResponse += `${stepNumber}. ${stepStatus} ${step.question}\n`;
       });
-      formattedResponse += `\n`;
+      formattedResponse += "\n";
     }
 
     // Add intelligent recommendations
-    formattedResponse += `💡 **Recommendations:**\n`;
+    formattedResponse += "💡 **Recommendations:**\n";
 
     if (completedSteps.length < executionResult.steps.length) {
-      formattedResponse += `• Some analysis steps failed - consider rephrasing your question\n`;
+      formattedResponse +=
+        "• Some analysis steps failed - consider rephrasing your question\n";
     }
 
     if (executionResult.overallConfidence < 0.7) {
-      formattedResponse += `• Confidence is low - try being more specific in your query\n`;
+      formattedResponse +=
+        "• Confidence is low - try being more specific in your query\n";
     }
 
     if (executionResult.totalExecutionTime > 30000) {
-      formattedResponse += `• Processing took longer than expected - consider breaking down complex questions\n`;
+      formattedResponse +=
+        "• Processing took longer than expected - consider breaking down complex questions\n";
     }
 
     // Add general recommendations
-    formattedResponse += `• Ask follow-up questions for specific details\n`;
-    formattedResponse += `• Upload relevant documents for deeper analysis\n`;
-    formattedResponse += `• Request recent information for current trends\n\n`;
+    formattedResponse += "• Ask follow-up questions for specific details\n";
+    formattedResponse += "• Upload relevant documents for deeper analysis\n";
+    formattedResponse += "• Request recent information for current trends\n\n";
 
-    formattedResponse += `🚀 *Powered by MAX MODE - Enhanced AI Analysis*`;
+    formattedResponse += "🚀 *Powered by MAX MODE - Enhanced AI Analysis*";
 
     return formattedResponse;
   }

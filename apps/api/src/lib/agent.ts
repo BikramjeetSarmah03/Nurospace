@@ -9,7 +9,6 @@ import { StringOutputParser } from "@langchain/core/output_parsers";
 // Enhanced memory saver with better persistence
 const memorySaver = new MemorySaver();
 
-
 export function createAgent(useFallback = false) {
   const llm = useFallback ? getFallbackLLM() : getLLM("gemini-2.5-pro");
 
@@ -54,11 +53,9 @@ export function createMemoryAgent(useFallback = false) {
   return agent;
 }
 
-
-
 /**
  * 🧠 SEMANTIC SUPERVISOR AGENT - AI-Powered Tool Selection
- * 
+ *
  * Next-generation implementation with semantic understanding:
  * - Vector embeddings for true semantic matching
  * - Learning system for continuous improvement
@@ -72,6 +69,8 @@ export async function createSemanticSupervisedAgent(useFallback = false) {
 
 // 🚀 LAZY LOADING: Export function that dynamically imports when needed
 export async function createSemanticSupervisor(useFallback = false) {
-  const { createSemanticSupervisor: createSemanticSupervisorFn } = await import("./normal-mode");
+  const { createSemanticSupervisor: createSemanticSupervisorFn } = await import(
+    "./normal-mode"
+  );
   return createSemanticSupervisorFn(useFallback);
 }

@@ -1,5 +1,13 @@
 import React from "react";
-import { Copy, ThumbsUp, ThumbsDown, Volume2, RotateCcw, Check, Square } from "lucide-react";
+import {
+  Copy,
+  ThumbsUp,
+  ThumbsDown,
+  Volume2,
+  RotateCcw,
+  Check,
+  Square,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMessageFeedback } from "@/features/chat/hooks/use-message-feedback";
 
@@ -60,17 +68,26 @@ export default function MessageFeedback({
   };
 
   return (
-    <div className={cn("flex items-center gap-1 mt-3 pt-2 border-t border-border/20 opacity-0 group-hover:opacity-100 transition-all duration-200", className)}>
+    <div
+      className={cn(
+        "flex items-center gap-1 mt-3 pt-2 border-t border-border/20 opacity-0 group-hover:opacity-100 transition-all duration-200",
+        className,
+      )}
+    >
       {/* Copy */}
       <button
         onClick={handleCopy}
         className={cn(
           "p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all hover:scale-105",
-          copied && "text-green-600 bg-green-50 dark:bg-green-950/20"
+          copied && "text-green-600 bg-green-50 dark:bg-green-950/20",
         )}
         title="Copy message"
       >
-        {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+        {copied ? (
+          <Check className="w-3.5 h-3.5" />
+        ) : (
+          <Copy className="w-3.5 h-3.5" />
+        )}
       </button>
 
       {/* Good Response */}
@@ -78,7 +95,8 @@ export default function MessageFeedback({
         onClick={handleGoodResponse}
         className={cn(
           "p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all hover:scale-105",
-          feedback === "good" && "text-green-600 bg-green-50 dark:bg-green-950/20"
+          feedback === "good" &&
+            "text-green-600 bg-green-50 dark:bg-green-950/20",
         )}
         title="Good response"
       >
@@ -90,7 +108,7 @@ export default function MessageFeedback({
         onClick={handleBadResponse}
         className={cn(
           "p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all hover:scale-105",
-          feedback === "bad" && "text-red-600 bg-red-50 dark:bg-red-950/20"
+          feedback === "bad" && "text-red-600 bg-red-50 dark:bg-red-950/20",
         )}
         title="Bad response"
       >
@@ -102,7 +120,7 @@ export default function MessageFeedback({
         onClick={handleReadAloud}
         className={cn(
           "p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all hover:scale-105",
-          isReading && "text-blue-600 bg-blue-50 dark:bg-blue-950/20"
+          isReading && "text-blue-600 bg-blue-50 dark:bg-blue-950/20",
         )}
         title={isReading ? "Stop reading" : "Read aloud"}
       >

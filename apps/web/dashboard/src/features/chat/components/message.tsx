@@ -18,11 +18,11 @@ const Message = React.memo(({ className, content, role, id }: MessageProps) => {
       <div
         className={cn(
           "prose prose-sm dark:prose-invert max-w-none",
-          role === "user" 
-            ? "prose-p:text-white prose-strong:text-white prose-headings:text-white prose-code:text-white prose-code:bg-white/20" 
+          role === "user"
+            ? "prose-p:text-white prose-strong:text-white prose-headings:text-white prose-code:text-white prose-code:bg-white/20"
             : "prose-headings:font-semibold prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-p:leading-relaxed prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-code:text-gray-800 dark:prose-code:text-gray-200 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-sm",
-          role === "user" 
-            ? "prose-pre:bg-white/10 prose-pre:border prose-pre:border-white/20 prose-blockquote:border-l-4 prose-blockquote:border-white/50 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-white/90 prose-ul:list-disc prose-ol:list-decimal prose-li:text-white/90" 
+          role === "user"
+            ? "prose-pre:bg-white/10 prose-pre:border prose-pre:border-white/20 prose-blockquote:border-l-4 prose-blockquote:border-white/50 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-white/90 prose-ul:list-disc prose-ol:list-decimal prose-li:text-white/90"
             : "prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-700 prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:pl-4 prose-blockquote:italic prose-ul:list-disc prose-ol:list-decimal prose-li:text-gray-700 dark:prose-li:text-gray-300",
           role === "user" && "text-right",
           className,
@@ -90,7 +90,7 @@ const Message = React.memo(({ className, content, role, id }: MessageProps) => {
           {content}
         </ReactMarkdown>
       </div>
-      
+
       {/* Show feedback options only for AI messages */}
       {role === "assistant" && id && (
         <div className="mt-1 pt-1 border-t border-gray-100 dark:border-gray-800">

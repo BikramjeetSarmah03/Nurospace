@@ -112,13 +112,15 @@ export async function processMentionsInQuery(
 
           if (processedMention.toolName === "youtubeSearch") {
             if (!process.env.YOUTUBE_API_KEY) {
-              errorMessage = `❌ YouTube search requires YOUTUBE_API_KEY environment variable to be set. Please configure the YouTube API key to enable YouTube search functionality.`;
+              errorMessage =
+                "❌ YouTube search requires YOUTUBE_API_KEY environment variable to be set. Please configure the YouTube API key to enable YouTube search functionality.";
             } else {
               errorMessage = `❌ YouTube search tool not available. Please check the tool configuration. Available tools: ${toolset.map((t) => t.name).join(", ")}`;
             }
           } else if (processedMention.toolName === "tavilySearch") {
             if (!process.env.TAVILY_API_KEY) {
-              errorMessage = `❌ Web search requires TAVILY_API_KEY environment variable to be set. Please configure the Tavily API key to enable web search functionality.`;
+              errorMessage =
+                "❌ Web search requires TAVILY_API_KEY environment variable to be set. Please configure the Tavily API key to enable web search functionality.";
             } else {
               errorMessage = `❌ Web search tool not available. Please check the tool configuration. Available tools: ${toolset.map((t) => t.name).join(", ")}`;
             }
@@ -160,7 +162,7 @@ export async function processMentionsInQuery(
   // Only return direct tool results if we have agent mentions
   if (!hasDirectToolMentions) {
     console.log(
-      `[MENTION] No direct tool mentions found, following normal AI flow`,
+      "[MENTION] No direct tool mentions found, following normal AI flow",
     );
     return {
       hasMentions: false,
@@ -186,26 +188,26 @@ function formatMentionResponse(
   originalQuery: string,
   toolResults: ToolResult[],
 ): string {
-  let response = `🎯 **Direct Tool Execution Results**\n\n`;
+  let response = "🎯 **Direct Tool Execution Results**\n\n";
   response += `**Original Query:** ${originalQuery}\n\n`;
 
   const successfulResults = toolResults.filter((r) => r.success);
   const failedResults = toolResults.filter((r) => !r.success);
 
   if (successfulResults.length > 0) {
-    response += `✅ **Successful Executions:**\n\n`;
+    response += "✅ **Successful Executions:**\n\n";
 
     successfulResults.forEach((result, index) => {
       const toolDisplayName = getToolDisplayName(result.toolName);
       response += `**${index + 1}. ${toolDisplayName}**\n`;
       response += `🔍 Query: "${result.originalQuery}"\n\n`;
       response += `${result.result}\n\n`;
-      response += `---\n\n`;
+      response += "---\n\n";
     });
   }
 
   if (failedResults.length > 0) {
-    response += `❌ **Failed Executions:**\n\n`;
+    response += "❌ **Failed Executions:**\n\n";
 
     failedResults.forEach((result, index) => {
       const toolDisplayName = getToolDisplayName(result.toolName);
@@ -217,7 +219,7 @@ function formatMentionResponse(
 
   // Add summary
   response += `📊 **Summary:** ${successfulResults.length} successful, ${failedResults.length} failed\n`;
-  response += `⚡ *Executed via direct tool calls*`;
+  response += "⚡ *Executed via direct tool calls*";
 
   return response;
 }

@@ -2,7 +2,7 @@
 import { getLLM, getFallbackLLM } from "../llm";
 import { toolset } from "../../tool/tool.index";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
-import { BaseMessage } from "@langchain/core/messages";
+import type { BaseMessage } from "@langchain/core/messages";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { StringOutputParser } from "@langchain/core/output_parsers";
@@ -186,15 +186,15 @@ Respond with ONLY: research, analysis, execution, or planning`;
       console.log(
         `[HYBRID] 📝 Routing prompt prepared, length: ${prompt.length} characters`,
       );
-      console.log(`[HYBRID] 🚀 Invoking LLM for routing...`);
+      console.log("[HYBRID] 🚀 Invoking LLM for routing...");
 
       try {
         // 🔒 ACQUIRE LLM MUTEX - Prevent concurrent calls
         await this.llmMutex.acquire();
-        console.log(`[HYBRID] 🔒 LLM mutex acquired for routing`);
+        console.log("[HYBRID] 🔒 LLM mutex acquired for routing");
 
         const response = await llm.invoke(prompt);
-        console.log(`[HYBRID] ✅ LLM routing response received:`, response);
+        console.log("[HYBRID] ✅ LLM routing response received:", response);
 
         const responseText = this.extractTextFromResponse(response);
         console.log(`[HYBRID] 📄 Extracted routing text: "${responseText}"`);
@@ -216,7 +216,7 @@ Respond with ONLY: research, analysis, execution, or planning`;
         return selectedAgent;
       } catch (llmError: any) {
         console.error(
-          `[HYBRID] ❌ LLM routing invocation failed with detailed error:`,
+          "[HYBRID] ❌ LLM routing invocation failed with detailed error:",
           {
             error: llmError,
             message: llmError?.message,
@@ -233,11 +233,11 @@ Respond with ONLY: research, analysis, execution, or planning`;
       } finally {
         // 🔒 RELEASE LLM MUTEX
         this.llmMutex.release();
-        console.log(`[HYBRID] 🔓 LLM mutex released for routing`);
+        console.log("[HYBRID] 🔓 LLM mutex released for routing");
       }
     } catch (error: any) {
       console.error(
-        `[HYBRID] ❌ Function calling failed with detailed error:`,
+        "[HYBRID] ❌ Function calling failed with detailed error:",
         {
           error: error,
           message: error?.message,
@@ -558,7 +558,7 @@ export class HybridSupervisorAgent {
         agentType,
       );
       console.log(
-        `[HYBRID] 🎯 LLM selected tools:`,
+        "[HYBRID] 🎯 LLM selected tools:",
         selectedTools.map((t) => t.name),
       );
 
@@ -615,7 +615,7 @@ export class HybridSupervisorAgent {
         `[HYBRID] 🔍 Starting intelligent tool selection for ${agentType} agent`,
       );
       console.log(
-        `[HYBRID] 🛠️ Available tools:`,
+        "[HYBRID] 🛠️ Available tools:",
         availableTools.map((t) => t.name),
       );
 
@@ -626,7 +626,7 @@ export class HybridSupervisorAgent {
 
       // ✅ IMPROVED: Generate dynamic rules based on available tools
       const dynamicRules = this.generateDynamicToolRules(availableTools);
-      console.log(`[HYBRID] 📋 Generated dynamic rules:`, dynamicRules);
+      console.log("[HYBRID] 📋 Generated dynamic rules:", dynamicRules);
 
       const prompt = `You are an intelligent tool selector for a ${agentType} agent.
 
@@ -653,16 +653,16 @@ Example responses:
       console.log(
         `[HYBRID] 📝 Tool selection prompt prepared, length: ${prompt.length} characters`,
       );
-      console.log(`[HYBRID] 🚀 Invoking LLM for tool selection...`);
+      console.log("[HYBRID] 🚀 Invoking LLM for tool selection...");
 
       try {
         // 🔒 ACQUIRE LLM MUTEX - Prevent concurrent calls
         await this.llmMutex.acquire();
-        console.log(`[HYBRID] 🔒 LLM mutex acquired for tool selection`);
+        console.log("[HYBRID] 🔒 LLM mutex acquired for tool selection");
 
         const response = await llm.invoke(prompt);
 
-        console.log(`[HYBRID] 🧠 LLM raw response:`, response);
+        console.log("[HYBRID] 🧠 LLM raw response:", response);
 
         // Clean the response and try to parse JSON
         const responseText = this.extractTextFromResponse(response);
@@ -671,7 +671,7 @@ Example responses:
         // 🚀 FIX: Handle empty or invalid responses
         if (!responseText || responseText.trim().length === 0) {
           console.warn(
-            `[HYBRID] ⚠️ LLM returned empty response, using smart fallback`,
+            "[HYBRID] ⚠️ LLM returned empty response, using smart fallback",
           );
           return this.selectRelevantToolByQuery(query, availableTools);
         }
@@ -695,23 +695,23 @@ Example responses:
         let toolNames: string[];
         try {
           toolNames = JSON.parse(cleanedResponse);
-          console.log(`[HYBRID] ✅ JSON parsed successfully:`, toolNames);
+          console.log("[HYBRID] ✅ JSON parsed successfully:", toolNames);
 
           // 🚀 FIX: Validate parsed result
           if (!Array.isArray(toolNames) || toolNames.length === 0) {
             console.warn(
-              `[HYBRID] ⚠️ LLM returned empty array, using smart fallback`,
+              "[HYBRID] ⚠️ LLM returned empty array, using smart fallback",
             );
             return this.selectRelevantToolByQuery(query, availableTools);
           }
         } catch (parseError: any) {
-          console.error(`[HYBRID] ❌ JSON parsing failed:`, {
+          console.error("[HYBRID] ❌ JSON parsing failed:", {
             error: parseError,
             message: parseError?.message,
             cleanedResponse: cleanedResponse,
           });
           console.warn(
-            `[HYBRID] ⚠️ JSON parsing failed, using smart fallback:`,
+            "[HYBRID] ⚠️ JSON parsing failed, using smart fallback:",
             parseError,
           );
           return this.selectRelevantToolByQuery(query, availableTools);
@@ -728,7 +728,7 @@ Example responses:
         return selectedTools;
       } catch (llmError: any) {
         console.error(
-          `[HYBRID] ❌ LLM invocation failed with detailed error:`,
+          "[HYBRID] ❌ LLM invocation failed with detailed error:",
           {
             error: llmError,
             message: llmError?.message,
@@ -738,18 +738,18 @@ Example responses:
           },
         );
         console.warn(
-          `[HYBRID] ⚠️ LLM invocation failed, using smart fallback:`,
+          "[HYBRID] ⚠️ LLM invocation failed, using smart fallback:",
           llmError,
         );
         return this.selectRelevantToolByQuery(query, availableTools);
       } finally {
         // 🔒 RELEASE LLM MUTEX
         this.llmMutex.release();
-        console.log(`[HYBRID] 🔓 LLM mutex released for tool selection`);
+        console.log("[HYBRID] 🔓 LLM mutex released for tool selection");
       }
     } catch (error: any) {
       console.error(
-        `[HYBRID] ❌ Intelligent tool selection failed with detailed error:`,
+        "[HYBRID] ❌ Intelligent tool selection failed with detailed error:",
         {
           error: error,
           message: error?.message,
@@ -759,7 +759,7 @@ Example responses:
         },
       );
       console.warn(
-        `[HYBRID] ⚠️ Intelligent tool selection failed, using smart fallback:`,
+        "[HYBRID] ⚠️ Intelligent tool selection failed, using smart fallback:",
         error,
       );
 
@@ -783,7 +783,7 @@ Example responses:
     ) {
       if (availableToolNames.includes("getCurrentDateTime")) {
         console.log(
-          `[HYBRID] 🎯 Smart fallback: Time query detected, selecting getCurrentDateTime`,
+          "[HYBRID] 🎯 Smart fallback: Time query detected, selecting getCurrentDateTime",
         );
         return availableTools.filter((t) => t.name === "getCurrentDateTime");
       }
@@ -799,7 +799,7 @@ Example responses:
     ) {
       if (availableToolNames.includes("tavilySearch")) {
         console.log(
-          `[HYBRID] 🎯 Smart fallback: Search query detected, selecting tavilySearch`,
+          "[HYBRID] 🎯 Smart fallback: Search query detected, selecting tavilySearch",
         );
         return availableTools.filter((t) => t.name === "tavilySearch");
       }
@@ -814,7 +814,7 @@ Example responses:
     ) {
       if (availableToolNames.includes("retrieveRelevantChunks")) {
         console.log(
-          `[HYBRID] 🎯 Smart fallback: Document query detected, selecting retrieveRelevantChunks`,
+          "[HYBRID] 🎯 Smart fallback: Document query detected, selecting retrieveRelevantChunks",
         );
         return availableTools.filter(
           (t) => t.name === "retrieveRelevantChunks",
@@ -830,7 +830,7 @@ Example responses:
     ) {
       if (availableToolNames.includes("getCurrentWeather")) {
         console.log(
-          `[HYBRID] 🎯 Smart fallback: Weather query detected, selecting getCurrentWeather`,
+          "[HYBRID] 🎯 Smart fallback: Weather query detected, selecting getCurrentWeather",
         );
         return availableTools.filter((t) => t.name === "getCurrentWeather");
       }
@@ -843,7 +843,7 @@ Example responses:
       normalizedQuery.includes(" plus ")
     ) {
       console.log(
-        `[HYBRID] 🎯 Smart fallback: Multi-part query detected, selecting relevant tools`,
+        "[HYBRID] 🎯 Smart fallback: Multi-part query detected, selecting relevant tools",
       );
       const relevantTools = [];
 
@@ -853,7 +853,7 @@ Example responses:
 
     // 🚫 NO MATCH - Return all available tools as fallback
     console.log(
-      `[HYBRID] 🚫 No specific query pattern detected, returning all available tools`,
+      "[HYBRID] 🚫 No specific query pattern detected, returning all available tools",
     );
     return availableTools;
   }
@@ -925,7 +925,7 @@ Example responses:
     if (selectedTools.length > 1 && this.canExecuteInParallel(selectedTools)) {
       strategy = "parallel";
       console.log(
-        `[HYBRID] 🚀 Executing tools in parallel for better performance`,
+        "[HYBRID] 🚀 Executing tools in parallel for better performance",
       );
 
       const parallelPromises = selectedTools.map(async (tool) => {
@@ -990,7 +990,7 @@ Example responses:
       // 🚀 STRATEGY 2: Sequential execution with context passing
       strategy = "sequential";
       console.log(
-        `[HYBRID] 🚀 Executing tools sequentially with context passing`,
+        "[HYBRID] 🚀 Executing tools sequentially with context passing",
       );
 
       let context = userQuery;
@@ -1245,15 +1245,15 @@ Your task: Combine the tool results into a coherent, helpful response that direc
         );
       }
 
-      console.log(`[HYBRID] 🚀 Invoking LLM for response synthesis...`);
+      console.log("[HYBRID] 🚀 Invoking LLM for response synthesis...");
 
       try {
         // 🔒 ACQUIRE LLM MUTEX - Prevent concurrent calls
         await this.llmMutex.acquire();
-        console.log(`[HYBRID] 🔒 LLM mutex acquired for response synthesis`);
+        console.log("[HYBRID] 🔒 LLM mutex acquired for response synthesis");
 
         const response = await llm.invoke(prompt);
-        console.log(`[HYBRID] ✅ LLM synthesis response received:`, response);
+        console.log("[HYBRID] ✅ LLM synthesis response received:", response);
 
         const extractedText = this.extractTextFromResponse(response);
         console.log(`[HYBRID] 📄 Extracted synthesis text: "${extractedText}"`);
@@ -1261,7 +1261,7 @@ Your task: Combine the tool results into a coherent, helpful response that direc
         // 🚀 FIX: Handle empty synthesis responses
         if (!extractedText || extractedText.trim().length === 0) {
           console.warn(
-            `[HYBRID] ⚠️ LLM synthesis returned empty response, using enhanced fallback`,
+            "[HYBRID] ⚠️ LLM synthesis returned empty response, using enhanced fallback",
           );
           return this.createEnhancedFallbackResponse(
             userQuery,
@@ -1270,10 +1270,10 @@ Your task: Combine the tool results into a coherent, helpful response that direc
           );
         }
 
-        console.log(`[HYBRID] 🧠 Response synthesis completed successfully`);
+        console.log("[HYBRID] 🧠 Response synthesis completed successfully");
         return extractedText;
       } catch (llmError: any) {
-        console.error(`[HYBRID] ❌ LLM synthesis failed with detailed error:`, {
+        console.error("[HYBRID] ❌ LLM synthesis failed with detailed error:", {
           error: llmError,
           message: llmError?.message,
           stack: llmError?.stack,
@@ -1281,7 +1281,7 @@ Your task: Combine the tool results into a coherent, helpful response that direc
           cause: llmError?.cause,
         });
         console.warn(
-          `[HYBRID] ⚠️ LLM synthesis failed, using enhanced fallback:`,
+          "[HYBRID] ⚠️ LLM synthesis failed, using enhanced fallback:",
           llmError,
         );
         return this.createEnhancedFallbackResponse(
@@ -1292,11 +1292,11 @@ Your task: Combine the tool results into a coherent, helpful response that direc
       } finally {
         // 🔒 RELEASE LLM MUTEX
         this.llmMutex.release();
-        console.log(`[HYBRID] 🔓 LLM mutex released for response synthesis`);
+        console.log("[HYBRID] 🔓 LLM mutex released for response synthesis");
       }
     } catch (error: any) {
       console.error(
-        `[HYBRID] ❌ Response synthesis failed with detailed error:`,
+        "[HYBRID] ❌ Response synthesis failed with detailed error:",
         {
           error: error,
           message: error?.message,
@@ -1306,7 +1306,7 @@ Your task: Combine the tool results into a coherent, helpful response that direc
         },
       );
       console.warn(
-        `[HYBRID] ⚠️ Response synthesis failed, using enhanced fallback:`,
+        "[HYBRID] ⚠️ Response synthesis failed, using enhanced fallback:",
         error,
       );
 
@@ -1372,13 +1372,15 @@ Your task: Combine the tool results into a coherent, helpful response that direc
       queryLower.includes("strategy") ||
       queryLower.includes("plan")
     ) {
-      response += `\n📋 **Strategic Summary**: Based on the gathered information, you can now develop a comprehensive workflow or strategy. Consider all the data points above.`;
+      response +=
+        "\n📋 **Strategic Summary**: Based on the gathered information, you can now develop a comprehensive workflow or strategy. Consider all the data points above.";
     } else if (
       queryLower.includes("analyze") ||
       queryLower.includes("compare") ||
       queryLower.includes("trend")
     ) {
-      response += `\n📊 **Analytical Summary**: The information above provides data for analysis. Look for patterns, trends, and insights in the gathered information.`;
+      response +=
+        "\n📊 **Analytical Summary**: The information above provides data for analysis. Look for patterns, trends, and insights in the gathered information.";
     } else {
       response += `\n📝 **Summary**: I've collected relevant information to help answer your query. Review the above results for the most relevant insights.`;
     }

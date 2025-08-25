@@ -15,17 +15,19 @@ function createDynamicTool(config: any) {
     func: async (input: string) => {
       // ✅ Route to appropriate tool function based on config
       switch (config.name) {
-        case "getCurrentWeather":
+        case "getCurrentWeather": {
           const apiKey = process.env.OPENWEATHER_API_KEY;
           if (!apiKey) throw new Error("OPENWEATHER_API_KEY not set");
           const weatherRes = await getCurrentWeather(input, apiKey);
           return `Weather in ${weatherRes.city}: ${weatherRes.description}, ${weatherRes.temperature}°C`;
+        }
 
-        case "getCurrentDateTime":
+        case "getCurrentDateTime": {
           const dateTimeRes = getCurrentDateTime();
           return `Current Date: ${dateTimeRes.date}\nCurrent Time: ${dateTimeRes.time}\nTimezone: ${dateTimeRes.timezone}\nISO: ${dateTimeRes.iso}`;
+        }
 
-        case "tavilySearch":
+        case "tavilySearch": {
           const tavilyApiKey = process.env.TAVILY_API_KEY;
           if (!tavilyApiKey) {
             return "Tavily API key not configured. Please set TAVILY_API_KEY environment variable to enable web search functionality.";
@@ -42,8 +44,9 @@ function createDynamicTool(config: any) {
             console.error("[ERROR] Tavily search failed:", error);
             return `Search failed: ${error instanceof Error ? error.message : "Unknown error"}`;
           }
+        }
 
-        case "youtubeSearch":
+        case "youtubeSearch": {
           const youtubeApiKey = process.env.YOUTUBE_API_KEY;
           if (!youtubeApiKey) {
             return "YouTube API key not configured. Please set YOUTUBE_API_KEY environment variable to enable YouTube search functionality.";
@@ -54,6 +57,7 @@ function createDynamicTool(config: any) {
             console.error("[ERROR] YouTube search failed:", error);
             return `YouTube search failed: ${error instanceof Error ? error.message : "Unknown error"}`;
           }
+        }
 
         case "retrieveRelevantChunks":
           // This tool is already a DynamicTool, so we'll include it separately

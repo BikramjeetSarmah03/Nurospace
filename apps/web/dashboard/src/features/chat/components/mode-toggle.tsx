@@ -89,7 +89,7 @@ export function ModeToggle({
 
               {/* Active indicator */}
               {mode === modeKey && (
-                <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse" />
               )}
             </button>
 
@@ -108,7 +108,7 @@ export function ModeToggle({
                       <div
                         key={i}
                         className="w-1.5 h-1.5 bg-current rounded-full opacity-60"
-                      ></div>
+                      />
                     ))}
                   </div>
                 </div>

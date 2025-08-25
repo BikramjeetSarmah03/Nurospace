@@ -168,7 +168,7 @@ export default class ChatService {
       const mentionResult = await this.handleDirectMentionCalls(userInput);
 
       if (mentionResult.hasMentions) {
-        console.log(`[MENTION] ✅ Direct tool calls executed for mentions`);
+        console.log("[MENTION] ✅ Direct tool calls executed for mentions");
 
         // Save the mention response
         await this.messageService.createMessage(
@@ -180,7 +180,7 @@ export default class ChatService {
         // Return the mention response immediately
         return streamText(c, async (stream) => {
           await stream.write(mentionResult.response);
-          await stream.write(`[MODE]:mention`);
+          await stream.write("[MODE]:mention");
           await stream.write(`[CHAT_SLUG]:${finalSlug}`);
           await stream.close();
         });
@@ -208,15 +208,14 @@ export default class ChatService {
         // Return the simple response immediately
         return streamText(c, async (stream) => {
           await stream.write(simpleResponse);
-          await stream.write(`[MODE]:simple`);
+          await stream.write("[MODE]:simple");
           await stream.write(`[CHAT_SLUG]:${finalSlug}`);
           await stream.close();
         });
-      } else {
-        console.log(
-          `[SIMPLE QUERY] ❌ Not a simple query, proceeding with AI processing`,
-        );
       }
+      console.log(
+        "[SIMPLE QUERY] ❌ Not a simple query, proceeding with AI processing",
+      );
 
       // 🎯 Create semantic supervisor agent with userId context
       const supervisorAgent = await createSemanticSupervisedAgent(false);
@@ -333,7 +332,7 @@ export default class ChatService {
           // ⚡ POWER MODE PROCESSING - Hybrid Supervisor Agent
           if (selectedMode === "power") {
             console.log(
-              `[POWER MODE] 🚀 Frontend requested POWER mode, using Hybrid Supervisor Agent`,
+              "[POWER MODE] 🚀 Frontend requested POWER mode, using Hybrid Supervisor Agent",
             );
 
             try {
@@ -387,7 +386,7 @@ export default class ChatService {
                 await stream.write(formattedResponse);
 
                 // Add mode indicator to response
-                await stream.write(`[MODE]:power`);
+                await stream.write("[MODE]:power");
                 await stream.write(`[CHAT_SLUG]:${finalSlug}`);
                 await stream.close();
               }
@@ -457,7 +456,7 @@ export default class ChatService {
                 await stream.write(formattedResponse);
 
                 // Add mode indicator to response
-                await stream.write(`[MODE]:max`);
+                await stream.write("[MODE]:max");
                 await stream.write(`[CHAT_SLUG]:${finalSlug}`);
                 await stream.close();
               }
@@ -534,7 +533,7 @@ export default class ChatService {
 
             await stream.write(content);
             // Add mode indicator to response
-            await stream.write(`[MODE]:normal`);
+            await stream.write("[MODE]:normal");
             await stream.write(`[CHAT_SLUG]:${finalSlug}`);
             await stream.close();
           }
@@ -553,14 +552,14 @@ export default class ChatService {
           await this.messageService.createMessage(
             chatId.id,
             "assistant",
-            `I apologize, but I encountered an error while processing your request. Please try again.`,
+            "I apologize, but I encountered an error while processing your request. Please try again.",
           );
 
           await stream.write(
-            `I apologize, but I encountered an error while processing your request. Please try again.`,
+            "I apologize, but I encountered an error while processing your request. Please try again.",
           );
           // Add mode indicator to error response
-          await stream.write(`[MODE]:error`);
+          await stream.write("[MODE]:error");
           await stream.write(`[CHAT_SLUG]:${finalSlug}`);
           await stream.close();
         }
@@ -850,8 +849,8 @@ export default class ChatService {
     let formattedResponse = enhancedResponse;
 
     // Add quality metrics footer with better formatting
-    formattedResponse += `\n\n--- 🔍 ANALYSIS INSIGHTS ---\n\n`;
-    formattedResponse += `📊 **Quality Metrics:**\n`;
+    formattedResponse += "\n\n--- 🔍 ANALYSIS INSIGHTS ---\n\n";
+    formattedResponse += "📊 **Quality Metrics:**\n";
     formattedResponse += `• **Confidence Level**: ${(confidence * 100).toFixed(1)}%\n`;
     formattedResponse += `• **Processing Time**: ${processingTime}ms\n`;
     formattedResponse += `• **Accuracy**: ${(qualityMetrics.accuracy * 100).toFixed(1)}%\n`;
@@ -864,15 +863,15 @@ export default class ChatService {
       Array.isArray(recommendations) &&
       recommendations.length > 0
     ) {
-      formattedResponse += `💡 **Recommendations for Better Results:**\n`;
+      formattedResponse += "💡 **Recommendations for Better Results:**\n";
       recommendations.forEach((rec: string) => {
         formattedResponse += `• ${rec}\n`;
       });
-      formattedResponse += `\n`;
+      formattedResponse += "\n";
     }
 
     // Add MAX mode indicator
-    formattedResponse += `🚀 *Powered by MAX MODE - Enhanced AI Analysis*`;
+    formattedResponse += "🚀 *Powered by MAX MODE - Enhanced AI Analysis*";
 
     return formattedResponse;
   }
@@ -902,7 +901,8 @@ export default class ChatService {
     }
 
     // Add POWER mode indicator
-    formattedResponse += `\n\n⚡ *Powered by POWER MODE - Hybrid Supervisor Agent*`;
+    formattedResponse +=
+      "\n\n⚡ *Powered by POWER MODE - Hybrid Supervisor Agent*";
 
     return formattedResponse;
   }
