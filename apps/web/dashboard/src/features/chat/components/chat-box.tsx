@@ -23,7 +23,7 @@ interface ChatBoxProps {
   onSubmit: (
     value: string,
     context?: { documents: ResourceDocument[] },
-    mode?: "normal" | "max" | "power"
+    mode?: "normal" | "max" | "power",
   ) => void;
   onStop?: () => void;
   canStop?: boolean;
@@ -58,7 +58,12 @@ interface MentionOption {
   category: "agent" | "files";
 }
 
-export default function ChatBox({ onSubmit, onStop, canStop, isLoading }: ChatBoxProps) {
+export default function ChatBox({
+  onSubmit,
+  onStop,
+  canStop,
+  isLoading,
+}: ChatBoxProps) {
   const [value, setValue] = useState("");
   const [mode, setMode] = useState<"normal" | "max" | "power">("power");
   const [showMentionPopup, setShowMentionPopup] = useState(false);
@@ -75,6 +80,7 @@ export default function ChatBox({ onSubmit, onStop, canStop, isLoading }: ChatBo
   const [selectedDocuments, setSelectedDocuments] = useState<
     ResourceDocument[]
   >([]);
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const popupScrollRef = useRef<HTMLDivElement>(null);
 
@@ -147,7 +153,9 @@ export default function ChatBox({ onSubmit, onStop, canStop, isLoading }: ChatBo
       },
     ];
 
-    const fileOptions: MentionOption[] = (Array.isArray(documents) ? documents : []).map((doc) => ({
+    const fileOptions: MentionOption[] = (
+      Array.isArray(documents) ? documents : []
+    ).map((doc) => ({
       id: doc.id,
       name: doc.name,
       type: "file" as const,
@@ -323,12 +331,18 @@ export default function ChatBox({ onSubmit, onStop, canStop, isLoading }: ChatBo
       if (value.trim()) {
         // Replace document names with their resource IDs before sending
         let processedValue = value;
-        
+
         // Replace @document_name with @resource_id for all selected documents
         selectedDocuments.forEach((doc) => {
-          const mentionPattern = new RegExp(`@${doc.name.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}`, 'g');
+          const mentionPattern = new RegExp(
+            `@${doc.name.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}`,
+            "g",
+          );
           processedValue = processedValue.replace(mentionPattern, `@${doc.id}`);
         });
+
+        // Process keyword mentions like "@Search YouTube" -> "@search-youtube"
+        processedValue = processKeywordMentions(processedValue);
 
         // Prepare context with selected documents if any
         const context =
@@ -388,7 +402,8 @@ export default function ChatBox({ onSubmit, onStop, canStop, isLoading }: ChatBo
 
       if (atIndex !== -1) {
         // For documents, show the name but store the ID; for agents, use the name
-        const insertText = option.type === "file" ? `@${option.name}` : `@${option.name}`;
+        const insertText =
+          option.type === "file" ? `@${option.name}` : `@${option.name}`;
         const newValue =
           beforeCursor.slice(0, atIndex) + insertText + afterCursor;
 
@@ -417,12 +432,18 @@ export default function ChatBox({ onSubmit, onStop, canStop, isLoading }: ChatBo
     if (value.trim()) {
       // Replace document names with their resource IDs before sending
       let processedValue = value;
-      
+
       // Replace @document_name with @resource_id for all selected documents
       selectedDocuments.forEach((doc) => {
-        const mentionPattern = new RegExp(`@${doc.name.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}`, 'g');
+        const mentionPattern = new RegExp(
+          `@${doc.name.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}`,
+          "g",
+        );
         processedValue = processedValue.replace(mentionPattern, `@${doc.id}`);
       });
+
+      // Process keyword mentions like "@Search YouTube" -> "@search-web"
+      processedValue = processKeywordMentions(processedValue);
 
       // Prepare context with selected documents if any
       const context =
@@ -436,6 +457,75 @@ export default function ChatBox({ onSubmit, onStop, canStop, isLoading }: ChatBo
       setShowMentionPopup(false);
       setSelectedDocuments([]); // Clear selected documents when sending
     }
+  };
+
+  /**
+   * Process keyword mentions and convert them to proper mention IDs
+   * Examples: "@Search YouTube" -> "@search-youtube", "@Search Web" -> "@search-web"
+   */
+  const processKeywordMentions = (message: string): string => {
+    // Define keyword mappings to mention IDs (matching backend exactly)
+    const keywordMappings: Record<string, string> = {
+      // Multi-word keywords (longest first)
+      "search youtube": "search-youtube",
+      "search web": "search-web",
+      "search workspace": "search-workspace",
+      "search papers": "search-papers",
+      "complete form": "complete-form",
+      "create citation": "create-citation",
+      "create flashcards": "create-flashcards",
+
+      // Single-word keywords
+      search: "search-web", // Default search
+      youtube: "search-youtube",
+      web: "search-web",
+      research: "research",
+      papers: "search-papers",
+      workspace: "search-workspace",
+      documents: "search-workspace",
+      files: "search-workspace",
+      citation: "create-citation",
+      flashcards: "create-flashcards",
+      form: "complete-form",
+    };
+
+    // Process mentions with spaces (like "@Search YouTube")
+    let processedMessage = message;
+
+    // Sort keywords by length (longest first) to avoid partial matches
+    const sortedKeywords = Object.keys(keywordMappings).sort(
+      (a, b) => b.length - a.length,
+    );
+
+    console.log("[FRONTEND] Original message:", message);
+    console.log("[FRONTEND] Sorted keywords:", sortedKeywords);
+
+    for (const keyword of sortedKeywords) {
+      // Use case-insensitive matching with word boundaries
+      const escapedKeyword = keyword.replace(
+        /[.*+?^${}()|[\\]\\\\]/g,
+        "\\\\$&",
+      );
+      // Add word boundary to prevent partial matches
+      const mentionPattern = new RegExp(`@${escapedKeyword}(?=\\s|$)`, "gi");
+      const beforeReplace = processedMessage;
+      processedMessage = processedMessage.replace(
+        mentionPattern,
+        `@${keywordMappings[keyword]}`,
+      );
+
+      if (beforeReplace !== processedMessage) {
+        console.log(
+          `[FRONTEND] Replaced '@${keyword}' with '@${keywordMappings[keyword]}'`,
+        );
+        console.log(
+          `[FRONTEND] Before: "${beforeReplace}", After: "${processedMessage}"`,
+        );
+      }
+    }
+
+    console.log("[FRONTEND] Final processed message:", processedMessage);
+    return processedMessage;
   };
 
   const getFileType = (fileName: string): string => {
@@ -463,12 +553,14 @@ export default function ChatBox({ onSubmit, onStop, canStop, isLoading }: ChatBo
   const scrollToSelectedItem = (selectedIndex: number) => {
     if (popupScrollRef.current) {
       // Find all the actual option buttons (excluding section headers)
-      const optionElements = popupScrollRef.current.querySelectorAll('button[type="button"]');
+      const optionElements = popupScrollRef.current.querySelectorAll(
+        'button[type="button"]',
+      );
       if (optionElements[selectedIndex]) {
         optionElements[selectedIndex].scrollIntoView({
-          behavior: 'smooth',
-          block: 'nearest',
-          inline: 'nearest'
+          behavior: "smooth",
+          block: "nearest",
+          inline: "nearest",
         });
       }
     }
@@ -504,188 +596,173 @@ export default function ChatBox({ onSubmit, onStop, canStop, isLoading }: ChatBo
         </div>
       )}
 
-      <div className="relative flex items-end gap-3 p-3 bg-muted/30 rounded-2xl border border-border/50 focus-within:border-border focus-within:ring-2 focus-within:ring-ring/20 transition-all duration-200">
-        {/* Textarea */}
-        <textarea
-          ref={textareaRef}
-          value={value}
-          onChange={handleInput}
-          onKeyDown={handleKeyDown}
-          placeholder="Ask Anything..."
-          className="flex-1 resize-none bg-transparent text-sm leading-relaxed placeholder:text-muted-foreground focus:outline-none min-h-[32px] max-h-[120px]"
-          style={{ height: "32px" }}
-        />
+      <div className="relative flex flex-col gap-2 p-3 bg-muted/30 rounded-2xl border border-border/50 focus-within:border-border focus-within:ring-2 focus-within:ring-ring/20 transition-all duration-200">
+        {/* Top row: Textarea and buttons */}
+        <div className="flex items-end gap-3">
+          {/* Textarea */}
+          <textarea
+            ref={textareaRef}
+            value={value}
+            onChange={handleInput}
+            onKeyDown={handleKeyDown}
+            placeholder="Ask Anything..."
+            className="flex-1 resize-none bg-transparent text-sm leading-relaxed placeholder:text-muted-foreground focus:outline-none min-h-[32px] max-h-[120px]"
+            style={{ height: "32px" }}
+          />
 
-        {/* Upload Document Button */}
-        <button
-          type="button"
-          onClick={() => {
-            const input = document.createElement("input");
-            input.type = "file";
-            input.accept =
-              ".pdf,.doc,.docx,.txt,.md,.jpg,.jpeg,.png,.gif,.webp";
-            input.multiple = false;
-            input.onchange = async (e) => {
-              const file = (e.target as HTMLInputElement).files?.[0];
-              if (file) {
-                try {
-                  setIsUploading(true);
-                  const formData = new FormData();
-                  formData.append("file", file);
-                  formData.append("type", getFileType(file.name));
-
-                  console.log(
-                    "Uploading file:",
-                    file.name,
-                    "with type:",
-                    getFileType(file.name),
-                  );
-
-                  const response = await API.post(
-                    "/resources/upload",
-                    formData,
-                    {
-                      headers: {
-                        "Content-Type": "multipart/form-data",
-                      },
-                    },
-                  );
-
-                  if (response.data.success) {
-                    console.log(
-                      "Document uploaded successfully:",
-                      response.data,
-                    );
-                    showUploadStatus(
-                      "Document uploaded successfully!",
-                      "success",
-                    );
-                    // Refresh the documents list
-                    const docsResponse = await API.get("/resources");
-                    if (
-                      docsResponse.data?.success &&
-                      Array.isArray(docsResponse.data.data)
-                    ) {
-                      setDocuments(docsResponse.data.data);
-                    }
-                  } else {
-                    showUploadStatus(
-                      `Upload failed: ${response.data.message}`,
-                      "error",
-                    );
-                  }
-                } catch (error: unknown) {
-                  console.error("Failed to upload document:", error);
-                  const errorMessage =
-                    (error as { response?: { data?: { message?: string } } })
-                      .response?.data?.message ||
-                    (error as Error).message ||
-                    "Upload failed";
-                  showUploadStatus(`Upload failed: ${errorMessage}`, "error");
-                } finally {
-                  setIsUploading(false);
-                }
-              }
-            };
-            input.click();
-          }}
-          disabled={isUploading}
-          className={cn(
-            "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors",
-            isUploading
-              ? "bg-muted text-muted-foreground cursor-not-allowed"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted",
-          )}
-          title={isUploading ? "Uploading..." : "Upload document"}
-        >
-          {isUploading ? (
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500" />
-          ) : (
-            <PlusIcon className="h-4 w-4" />
-          )}
-        </button>
-
-        {/* @ Mention Button */}
-        <button
-          type="button"
-          onClick={() => {
-            if (textareaRef.current) {
-              const currentValue = textareaRef.current.value;
-              const cursorPos = textareaRef.current.selectionStart || 0;
-              const newValue =
-                currentValue.slice(0, cursorPos) +
-                "@" +
-                currentValue.slice(cursorPos);
-              setValue(newValue);
-              textareaRef.current.value = newValue;
-              textareaRef.current.setSelectionRange(
-                cursorPos + 1,
-                cursorPos + 1,
-              );
-              textareaRef.current.focus();
-              setMentionQuery("");
-              setShowMentionPopup(true);
-              setSelectedMentionIndex(0);
-              // Scroll to first item when popup opens
-              setTimeout(() => scrollToSelectedItem(0), 0);
-            }
-          }}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors text-muted-foreground hover:text-foreground hover:bg-muted"
-          title="Mention tools and files (@)"
-        >
-          <AtSignIcon className="h-4 w-4" />
-        </button>
-
-        {/* Send Button */}
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={!value.trim() || isLoading}
-          className={cn(
-            "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all duration-200",
-            value.trim() && !isLoading
-              ? "bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-lg hover:shadow-xl hover:scale-105"
-              : "bg-muted text-muted-foreground cursor-not-allowed",
-          )}
-        >
-          <ArrowUpIcon className="h-4 w-4" />
-        </button>
-
-        {/* Stop Button - Only show when chat is in progress and can be stopped */}
-        {canStop && isLoading && onStop && (
+          {/* Upload Document Button */}
           <button
             type="button"
-            onClick={onStop}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-500 text-white shadow-lg hover:bg-red-600 hover:shadow-xl hover:scale-105 transition-all duration-200 active:scale-95"
-            title="Stop chat generation"
+            onClick={() => {
+              const input = document.createElement("input");
+              input.type = "file";
+              input.accept =
+                ".pdf,.doc,.docx,.txt,.md,.jpg,.jpeg,.png,.gif,.webp";
+              input.multiple = false;
+              input.onchange = async (e) => {
+                const file = (e.target as HTMLInputElement).files?.[0];
+                if (file) {
+                  try {
+                    setIsUploading(true);
+                    const formData = new FormData();
+                    formData.append("file", file);
+                    formData.append("type", getFileType(file.name));
+
+                    console.log(
+                      "Uploading file:",
+                      file.name,
+                      "with type:",
+                      getFileType(file.name),
+                    );
+
+                    const response = await API.post(
+                      "/resources/upload",
+                      formData,
+                      {
+                        headers: {
+                          "Content-Type": "multipart/form-data",
+                        },
+                      },
+                    );
+
+                    if (response.data.success) {
+                      console.log(
+                        "Document uploaded successfully:",
+                        response.data,
+                      );
+                      showUploadStatus(
+                        "Document uploaded successfully!",
+                        "success",
+                      );
+                      // Refresh the documents list
+                      const docsResponse = await API.get("/resources");
+                      if (
+                        docsResponse.data?.success &&
+                        Array.isArray(docsResponse.data.data)
+                      ) {
+                        setDocuments(docsResponse.data.data);
+                      }
+                    } else {
+                      showUploadStatus(
+                        `Upload failed: ${response.data.message}`,
+                        "error",
+                      );
+                    }
+                  } catch (error: unknown) {
+                    console.error("Failed to upload document:", error);
+                    const errorMessage =
+                      (error as { response?: { data?: { message?: string } } })
+                        .response?.data?.message ||
+                      (error as Error).message ||
+                      "Upload failed";
+                    showUploadStatus(`Upload failed: ${errorMessage}`, "error");
+                  } finally {
+                    setIsUploading(false);
+                  }
+                }
+              };
+              input.click();
+            }}
+            disabled={isUploading}
+            className={cn(
+              "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors",
+              isUploading
+                ? "bg-muted text-muted-foreground cursor-not-allowed"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted",
+            )}
+            title={isUploading ? "Uploading..." : "Upload document"}
           >
-            <SquareIcon className="h-4 w-4" />
+            {isUploading ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500" />
+            ) : (
+              <PlusIcon className="h-4 w-4" />
+            )}
           </button>
-        )}
-      </div>
 
-      {/* Mode Toggle and Status Banner - Below Chat Input */}
-      <div className="mt-3 flex items-center justify-center gap-4">
-        <ModeToggle onModeChange={setMode} initialMode={mode} />
-        
-        {/* Mode Status Indicator - Same line as toggle */}
-        {mode === "max" && (
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-yellow-100 to-orange-100 border border-orange-200 text-orange-800 dark:from-yellow-900/20 dark:to-orange-900/20 dark:border-orange-800 dark:text-orange-300">
-            <Zap className="h-4 w-4 animate-pulse" />
-            <span className="text-sm font-medium">MAX MODE ACTIVE</span>
-            <Zap className="h-4 w-4 animate-pulse" />
-          </div>
-        )}
-        
-        {mode === "power" && (
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 border border-blue-200 text-blue-800 dark:from-blue-900/20 dark:to-purple-900/20 dark:border-blue-800 dark:text-blue-300">
-            <Sparkles className="h-4 w-4 animate-pulse" />
-            <span className="text-sm font-medium">POWER MODE ACTIVE</span>
-            <Sparkles className="h-4 w-4 animate-pulse" />
-          </div>
-        )}
-      </div>
+          {/* @ Mention Button */}
+          <button
+            type="button"
+            onClick={() => {
+              if (textareaRef.current) {
+                const currentValue = textareaRef.current.value;
+                const cursorPos = textareaRef.current.selectionStart || 0;
+                const newValue =
+                  currentValue.slice(0, cursorPos) +
+                  "@" +
+                  currentValue.slice(cursorPos);
+                setValue(newValue);
+                textareaRef.current.value = newValue;
+                textareaRef.current.setSelectionRange(
+                  cursorPos + 1,
+                  cursorPos + 1,
+                );
+                textareaRef.current.focus();
+                setMentionQuery("");
+                setShowMentionPopup(true);
+                setSelectedMentionIndex(0);
+                // Scroll to first item when popup opens
+                setTimeout(() => scrollToSelectedItem(0), 0);
+              }
+            }}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors text-muted-foreground hover:text-foreground hover:bg-muted"
+            title="Mention tools and files (@)"
+          >
+            <AtSignIcon className="h-4 w-4" />
+          </button>
 
+          {/* Send Button */}
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={!value.trim() || isLoading}
+            className={cn(
+              "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all duration-200",
+              value.trim() && !isLoading
+                ? "bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-lg hover:shadow-xl hover:scale-105"
+                : "bg-muted text-muted-foreground cursor-not-allowed",
+            )}
+          >
+            <ArrowUpIcon className="h-4 w-4" />
+          </button>
+
+          {/* Stop Button - Only show when chat is in progress and can be stopped */}
+          {canStop && isLoading && onStop && (
+            <button
+              type="button"
+              onClick={onStop}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-500 text-white shadow-lg hover:bg-red-600 hover:shadow-xl hover:scale-105 transition-all duration-200 active:scale-95"
+              title="Stop chat generation"
+            >
+              <SquareIcon className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Bottom row: Mode Toggle */}
+        <div className="flex items-center justify-start pt-2">
+          <ModeToggle onModeChange={setMode} initialMode={mode} />
+        </div>
+      </div>
 
       {/* @ Mention Popup */}
       {showMentionPopup && (

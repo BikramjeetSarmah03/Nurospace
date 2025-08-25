@@ -1,6 +1,5 @@
 import { Worker } from "bullmq";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
-import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { RESOURCE_QUEUE_KEYS } from "./keys";
 import { connection } from "./redis";
@@ -9,6 +8,31 @@ import { db } from "@/db";
 import { resourceEmbeddings } from "@/db/schema";
 import { TaskType } from "@google/generative-ai";
 import * as fs from "node:fs";
+
+// Simple text splitter function to replace RecursiveCharacterTextSplitter
+function splitTextIntoChunks(
+  text: string,
+  chunkSize: number = 1000,
+  overlap: number = 200,
+): string[] {
+  const chunks: string[] = [];
+  let start = 0;
+
+  while (start < text.length) {
+    const end = Math.min(start + chunkSize, text.length);
+    const chunk = text.slice(start, end);
+    chunks.push(chunk);
+    start = end - overlap;
+  }
+
+  return chunks;
+}
+
+// Type for document structure
+interface Document {
+  pageContent: string;
+  metadata: Record<string, any>;
+}
 
 console.log("🚀 Resource Worker: Starting up...");
 console.log("🔗 Redis connection config:", connection);
@@ -45,8 +69,7 @@ const resourceWorker = new Worker(
         );
 
         // Try multiple PDF loading approaches
-        let docs = [];
-        let texts = [];
+        let docs: Document[] = [];
 
         // Method 1: Try PDFLoader with absolute path (same as productify)
         try {
@@ -66,9 +89,9 @@ const resourceWorker = new Worker(
               docs[0].pageContent?.substring(0, 100),
             );
           }
-        } catch (error) {
-          console.log("⚠️ PDFLoader with absolute path failed:", error.message);
-          console.log("⚠️ Error stack:", error.stack);
+        } catch (error: any) {
+          console.log("⚠️ PDFLoader with absolute path failed:", error?.message);
+          console.log("⚠️ Error stack:", error?.stack);
         }
 
         // Method 2: Try PDFLoader with exact productify path construction
@@ -95,12 +118,12 @@ const resourceWorker = new Worker(
                 docs[0].pageContent?.substring(0, 100),
               );
             }
-          } catch (error) {
+          } catch (error: any) {
             console.log(
               "⚠️ PDFLoader with productify path failed:",
-              error.message,
+              error?.message,
             );
-            console.log("⚠️ Error stack:", error.stack);
+            console.log("⚠️ Error stack:", error?.stack);
           }
         }
 
@@ -127,9 +150,9 @@ const resourceWorker = new Worker(
                 docs[0].pageContent?.substring(0, 100),
               );
             }
-          } catch (error) {
-            console.log("⚠️ PDFLoader with filename failed:", error.message);
-            console.log("⚠️ Error stack:", error.stack);
+          } catch (error: any) {
+            console.log("⚠️ PDFLoader with filename failed:", error?.message);
+            console.log("⚠️ Error stack:", error?.stack);
           }
         }
 
@@ -149,7 +172,7 @@ const resourceWorker = new Worker(
 
             try {
               // Import pdf-parse dynamically to avoid import issues
-              const pdfParse = await import("pdf-parse");
+              const pdfParse = (await import("pdf-parse")) as any;
               const pdfData = await pdfParse.default(dataBuffer);
 
               if (pdfData.text && pdfData.text.trim().length > 0) {
@@ -160,10 +183,10 @@ const resourceWorker = new Worker(
               } else {
                 console.log("⚠️ pdf-parse returned empty text");
               }
-            } catch (pdfError) {
+            } catch (pdfError: any) {
               console.log(
                 "⚠️ pdf-parse import/extraction failed:",
-                pdfError.message,
+                pdfError?.message,
               );
             }
 
@@ -176,7 +199,7 @@ const resourceWorker = new Worker(
             }
 
             // Create document object with extracted or placeholder text
-            const simpleDoc = {
+            const simpleDoc: Document = {
               pageContent: extractedText,
               metadata: {
                 source: fullPath,
@@ -188,8 +211,8 @@ const resourceWorker = new Worker(
             console.log(
               `📄 Created document with ${extractedText.length} characters`,
             );
-          } catch (error) {
-            console.log("⚠️ Manual file reading failed:", error.message);
+          } catch (error: any) {
+            console.log("⚠️ Manual file reading failed:", error?.message);
           }
         }
 
@@ -213,15 +236,10 @@ const resourceWorker = new Worker(
         }
 
         // Split documents into chunks
-        const textSplitter = new RecursiveCharacterTextSplitter({
-          chunkSize: 1000,
-          chunkOverlap: 200,
-        });
-
-        const splitDocs = await textSplitter.splitDocuments(docs);
-        texts = splitDocs.map((doc) => doc.pageContent);
+        const allText = docs.map((doc) => doc.pageContent).join("\n\n");
+        const texts = splitTextIntoChunks(allText, 1000, 200);
         console.log(
-          `✂️ Split into ${texts.length} chunks using RecursiveCharacterTextSplitter`,
+          `✂️ Split into ${texts.length} chunks using custom text splitter`,
         );
 
         if (texts.length === 0) {
@@ -251,9 +269,9 @@ const resourceWorker = new Worker(
 
         console.log(`✅ Embedded and stored ${texts.length} chunks.`);
         return { status: "done" };
-      } catch (error) {
+      } catch (error: any) {
         console.error("❌ PDF processing error:", error);
-        return { status: "failed", error: error.message };
+        return { status: "failed", error: error?.message || "Unknown error" };
       }
     }
 
