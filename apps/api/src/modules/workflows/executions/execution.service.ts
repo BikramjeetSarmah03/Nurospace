@@ -26,6 +26,8 @@ import {
   IExecutionPhaseStatus,
   IWorkflowExecutionStatus,
   IWorkflowExecutionTrigger,
+  IWorkflowStatus,
+  type IWorkflowExecutionPlan,
 } from "@packages/workflow/types/workflow.ts";
 import { FlowToExecutionPlan } from "@packages/workflow/lib/execution-plan.ts";
 import { createLogCollector } from "@packages/workflow/lib/create-log-collector.ts";
@@ -82,18 +84,28 @@ export default class ExecuctionService {
     if (!workflow.data)
       throw new HTTPException(404, { message: "Workflow not found" });
 
-    const flow = JSON.parse(flowDefination);
-    const result = FlowToExecutionPlan(flow.nodes, flow.edges);
+    let executionPlan: IWorkflowExecutionPlan;
+    if (workflow.data.status === IWorkflowStatus.PUBLISHED) {
+      if (!workflow.data.execuationPlan) {
+        throw new HTTPException(404, {
+          message: "No execution plan found in published workflow",
+        });
+      }
+      executionPlan = JSON.parse(workflow.data.execuationPlan);
+    } else {
+      const flow = JSON.parse(flowDefination);
+      const result = FlowToExecutionPlan(flow.nodes, flow.edges);
 
-    if (result.error)
-      throw new HTTPException(400, { message: "Flow defination not valid" });
+      if (result.error)
+        throw new HTTPException(400, { message: "Flow defination not valid" });
 
-    if (!result.executionPlan)
-      throw new HTTPException(404, {
-        message: "No execution plan generated",
-      });
+      if (!result.executionPlan)
+        throw new HTTPException(404, {
+          message: "No execution plan generated",
+        });
 
-    const executionPlan = result.executionPlan;
+      executionPlan = result.executionPlan;
+    }
 
     // 3. Transaction: Insert execution + phases
     const execution = await db.transaction(async (tx) => {
